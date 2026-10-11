@@ -130,6 +130,7 @@ public abstract class Player extends GameObject implements PlayerView {
         this.animTimer = new AnimationTimer(punch.getAnimationDuration());
 
         sprite.setBounds(0, 15, 25 / PPM, 25 / PPM);
+        sprite.setRegion(standing[0]);
 
         this.currentInputState = inputState;
         this.spawnpoint = spawnpoint;
@@ -179,7 +180,9 @@ public abstract class Player extends GameObject implements PlayerView {
 
 
     public void draw(Batch batch) {
-        sprite.draw(batch);
+        if (sprite != null && sprite.getTexture() != null) {
+            sprite.draw(batch);
+        }
     }
 
     private void touchingTiles() {
@@ -201,8 +204,10 @@ public abstract class Player extends GameObject implements PlayerView {
     private void setAnimationPosition() {
         sprite.setPosition(b2dbody.getPosition().x - sprite.getWidth() / 2, b2dbody.getPosition().y - sprite.getHeight() / 4); //set the position of the animation to the center of the body
 
-
-        sprite.setRegion(getRenderTexture(stateTime)); //set the texture to the current state of the movement
+        TextureRegion region = getRenderTexture(stateTime);
+        if (region != null) {
+            sprite.setRegion(region); //set the texture to the current state of the movement
+        }
         sprite.setFlip(facingRight, false); // lets the player face the correct direction
     }
 
@@ -213,12 +218,12 @@ public abstract class Player extends GameObject implements PlayerView {
         // Set State depending on x-velocity of the player body
         if (getB2dbody().getLinearVelocity().x == 0f && isGrounded()) {
             this.currentState = State.STANDING;
-
-
         } else if (getB2dbody().getLinearVelocity().x != 0f && isGrounded()) {
             this.currentState = State.RUNNING;
         } else if (!isGrounded() && getB2dbody().getLinearVelocity().y > 0 && previousY != currentY) {
             this.currentState = State.JUMPING;
+        } else if (!isGrounded()) {
+            this.currentState = State.FALLING;
         }
     }
 
@@ -453,23 +458,25 @@ public abstract class Player extends GameObject implements PlayerView {
                     break;
 
                 case RUNNING:
-
                     sprite.setRegion(playerRun);
                     frame = run.getKeyFrame(stateTime);
                     break;
 
                 case JUMPING:
+                case FALLING:
+                default:
                     sprite.setRegion(playerJump);
                     frame = jump.getKeyFrame(stateTime);
                     break;
-
             }
         }
 
-        // log.debug("isGrounded: " + isGrounded());
+        if (frame == null) {
+            sprite.setRegion(playerStand);
+            frame = stand.getKeyFrame(stateTime);
+        }
+
         return frame;
-
-
     }
 
     private boolean reachedWorldEdge() {
@@ -572,7 +579,7 @@ public abstract class Player extends GameObject implements PlayerView {
 
 
     public enum InputState {
-        WASD, ARROWS
+        WASD, ARROWS, NETWORK
     }
 
     private enum State {
@@ -627,6 +634,19 @@ public abstract class Player extends GameObject implements PlayerView {
 
     public boolean isFacingRight() {
         return facingRight;
+    }
+
+    public void setFacingRight(boolean facingRight) {
+        this.facingRight = facingRight;
+        this.isFacingRightAxe = facingRight ? 1 : -1;
+    }
+
+    public void setInputState(InputState inputState) {
+        this.currentInputState = inputState;
+    }
+
+    public void setPunching(boolean punching) {
+        this.isPunching = punching;
     }
 
     public int getIsFacingRightAxe() {

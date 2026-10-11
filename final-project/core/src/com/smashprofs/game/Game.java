@@ -10,6 +10,9 @@ import com.smashprofs.game.Screens.PlayScreen;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.smashprofs.game.network.client.NetworkClient;
+import com.smashprofs.game.network.mock.MockServer;
+
 import static com.smashprofs.game.Helper.Util.log4JconfLoad;
 
 public class Game extends com.badlogic.gdx.Game {
@@ -19,6 +22,34 @@ public class Game extends com.badlogic.gdx.Game {
 	public static final int V_HEIGHT = 208;
 	private GameThread thread;
 	public static Boolean soundEffects, ingameMusic, debugMode, showFPS, unitTestMode;
+	public static Boolean mockMode = false;
+
+	private NetworkClient networkClient;
+	private MockServer mockServer;
+
+	public Game() {
+		this(null, null);
+	}
+
+	public Game(NetworkClient networkClient, MockServer mockServer) {
+		this.networkClient = networkClient;
+		this.mockServer = mockServer;
+		if (mockServer != null) {
+			mockMode = true;
+		}
+	}
+
+	public NetworkClient getNetworkClient() {
+		return networkClient;
+	}
+
+	public MockServer getMockServer() {
+		return mockServer;
+	}
+
+	public boolean isNetworkActive() {
+		return networkClient != null;
+	}
 	
 	@Override
 	public void create () {
@@ -51,8 +82,8 @@ public class Game extends com.badlogic.gdx.Game {
 
 		batch = new SpriteBatch();
 
-		if(unitTestMode) {
-			log.warn("Unit test mode enabled, skipping intro screen");
+		if(mockMode || unitTestMode) {
+			log.warn("Mock or unit test mode enabled, skipping intro screen");
 			log.warn("Redirecting to PlayScreen...");
 			setScreen(new PlayScreen(this));
 		}
@@ -86,6 +117,12 @@ public class Game extends com.badlogic.gdx.Game {
 	@Override
 	public void dispose () {
 		batch.dispose();
+		if (networkClient != null) {
+			networkClient.disconnect();
+		}
+		if (mockServer != null) {
+			mockServer.stop();
+		}
 		try {
 			thread.threadEnd();
 		} catch (NegativeSeconds e) {

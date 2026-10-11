@@ -305,13 +305,13 @@ public class CharacterSelectScreen implements Screen {
     }
 
     public static String getSelectedPlayerOne() {
-        if(com.smashprofs.game.Game.unitTestMode) {
+        if(com.smashprofs.game.Game.unitTestMode || com.smashprofs.game.Game.mockMode || playerNames == null) {
             return "Alex";
         }
         return playerNames[carouselCounter];
     }
     public static String getSelectedPlayerTwo() {
-        if(com.smashprofs.game.Game.unitTestMode) {
+        if(com.smashprofs.game.Game.unitTestMode || com.smashprofs.game.Game.mockMode || playerNames == null) {
             return "Maurice";
         }
         return playerNames[carouselCounter2];

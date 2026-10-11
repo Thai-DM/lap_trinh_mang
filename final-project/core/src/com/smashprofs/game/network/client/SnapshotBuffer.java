@@ -48,6 +48,10 @@ public class SnapshotBuffer {
      * @param snapshot The incoming GameSnapshot.
      * @return true if accepted and buffered, false if rejected (null or too stale).
      */
+    public synchronized boolean push(GameSnapshot snapshot) {
+        return pushSnapshot(snapshot);
+    }
+
     public synchronized boolean pushSnapshot(GameSnapshot snapshot) {
         if (snapshot == null) {
             return false;

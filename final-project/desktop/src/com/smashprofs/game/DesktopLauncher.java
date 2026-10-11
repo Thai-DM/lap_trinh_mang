@@ -56,6 +56,33 @@ public class DesktopLauncher {
 		else if(useOwnResolution) config.setWindowedMode(getWidth(), getHeight());
 		else config.setMaximized(true);
 
-		new Lwjgl3Application(new Game(), config);
+		boolean mockMode = false;
+		if (arg != null) {
+			for (String s : arg) {
+				if ("--mock".equalsIgnoreCase(s)) {
+					mockMode = true;
+					break;
+				}
+			}
+		}
+
+		Game game;
+		if (mockMode) {
+			try {
+				com.smashprofs.game.network.mock.MockServer mockServer = new com.smashprofs.game.network.mock.MockServer();
+				mockServer.start();
+				int port = mockServer.getPort();
+				System.out.println("[DesktopLauncher] Started MockServer on 127.0.0.1:" + port);
+				com.smashprofs.game.network.client.NetworkClient networkClient = new com.smashprofs.game.network.client.NetworkClient("127.0.0.1", port, null);
+				game = new Game(networkClient, mockServer);
+			} catch (Exception e) {
+				System.err.println("[DesktopLauncher] Failed to start MockServer: " + e.getMessage());
+				game = new Game();
+			}
+		} else {
+			game = new Game();
+		}
+
+		new Lwjgl3Application(game, config);
 	}
 }

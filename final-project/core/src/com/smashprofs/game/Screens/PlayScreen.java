@@ -33,6 +33,19 @@ import org.apache.logging.log4j.Logger;
 import static com.smashprofs.game.Actors.Players.Player.PPM;
 
 
+import com.smashprofs.common.model.GameSnapshot;
+import com.smashprofs.common.model.PlayerId;
+import com.smashprofs.common.model.PlayerInput;
+import com.smashprofs.common.model.PlayerState;
+import com.smashprofs.common.protocol.MessageType;
+import com.smashprofs.common.protocol.NetworkPacket;
+import com.smashprofs.game.network.client.ConnectionListener;
+import com.smashprofs.game.network.client.NetworkClient;
+import com.smashprofs.game.network.client.OutboundInputQueue;
+import com.smashprofs.game.network.client.SnapshotBuffer;
+import com.smashprofs.game.network.client.StateInterpolator;
+import java.util.Map;
+
 /**
  * The main game screen
  */
@@ -44,6 +57,16 @@ public class PlayScreen implements Screen {
     public static Viewport viewport; // Manages a Camera and determines how world coordinates are mapped to and from the screen.
     private Hud hud;
     private WinScreen winScreen;
+
+    // Network Integration (Phase 6)
+    private NetworkClient networkClient;
+    private SnapshotBuffer snapshotBuffer;
+    private StateInterpolator stateInterpolator;
+    private OutboundInputQueue outboundInputQueue;
+    private boolean networkActive = false;
+    private long clientInputTick = 0;
+    private final PlayerId p1Id = new PlayerId("player-1");
+    private final PlayerId p2Id = new PlayerId("player-2");
 
 
     //tiled map
@@ -116,6 +139,36 @@ public class PlayScreen implements Screen {
      */
     public void update(float deltatime) {
         tiledMapRenderer.setView(gamecamera);
+
+        if (networkActive && networkClient != null && networkClient.isConnected()) {
+            // 1. Capture local Player 1 keyboard input and enqueue into OutboundInputQueue
+            float moveAxis = 0.0f;
+            if (Gdx.input.isKeyPressed(Input.Keys.A)) moveAxis -= 1.0f;
+            if (Gdx.input.isKeyPressed(Input.Keys.D)) moveAxis += 1.0f;
+            boolean jump = Gdx.input.isKeyJustPressed(Input.Keys.W);
+            boolean stomp = Gdx.input.isKeyJustPressed(Input.Keys.S);
+            boolean melee = Gdx.input.isKeyJustPressed(Input.Keys.V) || Gdx.input.isKeyJustPressed(Input.Keys.SPACE);
+            boolean ability = Gdx.input.isKeyJustPressed(Input.Keys.F);
+            boolean block = Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT);
+
+            outboundInputQueue.recordFrameInput(moveAxis, jump, stomp, melee, block, ability);
+            PlayerInput input = outboundInputQueue.pollNextInputToSend(clientInputTick++);
+            if (input != null) {
+                networkClient.sendPacket(NetworkPacket.of(MessageType.PLAYER_INPUT, "player-1", input));
+            }
+
+            // 2. Advance StateInterpolator and apply interpolated state to Remote Player 2
+            stateInterpolator.update(deltatime);
+            Map<PlayerId, PlayerState> interpolated = stateInterpolator.getInterpolatedPlayers();
+            if (interpolated != null) {
+                PlayerState p2State = interpolated.get(p2Id);
+                if (p2State != null) {
+                    playerTwo.getB2dbody().setTransform(p2State.x(), p2State.y(), 0);
+                    playerTwo.getB2dbody().setLinearVelocity(p2State.velocityX(), p2State.velocityY());
+                    playerTwo.setFacingRight(p2State.facingRight());
+                }
+            }
+        }
 
         playerOne.update(deltatime);
         playerTwo.update(deltatime); // update method must be before most of the code below otherwise some values are null;
@@ -190,24 +243,33 @@ public class PlayScreen implements Screen {
 
         createTileMap();
 
-        //playerOne = playerFactory.getPlayer(PlayerTypes.Alex);
-        switch(CharacterSelectScreen.getSelectedPlayerOne()) {
+        String p1Type = "Alex";
+        String p2Type = "Maurice";
+        try {
+            if (CharacterSelectScreen.getSelectedPlayerOne() != null) {
+                p1Type = CharacterSelectScreen.getSelectedPlayerOne();
+            }
+            if (CharacterSelectScreen.getSelectedPlayerTwo() != null) {
+                p2Type = CharacterSelectScreen.getSelectedPlayerTwo();
+            }
+        } catch (Exception ignored) {}
+
+        switch(p1Type) {
             case "Alex": playerOne = playerFactory.getPlayer(PlayerTypes.Alex); break;
-            case "Maurice": playerOne = playerFactory.getPlayer(    PlayerTypes.Maurice); break;
+            case "Maurice": playerOne = playerFactory.getPlayer(PlayerTypes.Maurice); break;
             case "Luca": playerOne = playerFactory.getPlayer(PlayerTypes.Luca); break;
             case "Leo": playerOne = playerFactory.getPlayer(PlayerTypes.Leo); break;
             case "Viktor": playerOne = playerFactory.getPlayer(PlayerTypes.Viktor); break;
             default: playerOne = playerFactory.getPlayer(PlayerTypes.Alex);
         }
 
-        // playerTwo = playerFactory.getPlayer(PlayerTypes.Maurice);
-        switch(CharacterSelectScreen.getSelectedPlayerTwo()) {
+        switch(p2Type) {
             case "Alex": playerTwo = playerFactory.getPlayer(PlayerTypes.Alex); break;
             case "Maurice": playerTwo = playerFactory.getPlayer(PlayerTypes.Maurice); break;
             case "Luca": playerTwo = playerFactory.getPlayer(PlayerTypes.Luca); break;
             case "Leo": playerTwo = playerFactory.getPlayer(PlayerTypes.Leo); break;
             case "Viktor": playerTwo = playerFactory.getPlayer(PlayerTypes.Viktor); break;
-            default: playerTwo = playerFactory.getPlayer(PlayerTypes.Alex);
+            default: playerTwo = playerFactory.getPlayer(PlayerTypes.Maurice);
         }
 
         contactListener = B2dContactListener.getContactListener_INSTANCE();
@@ -234,6 +296,49 @@ public class PlayScreen implements Screen {
         playerFactory.resetFactory();
         combatManager.resetCombatManager();
         contactListener.resetContactListener();
+
+        // Network Initialization (Phase 6)
+        this.networkClient = game.getNetworkClient();
+        if (this.networkClient != null) {
+            this.networkActive = true;
+            this.snapshotBuffer = new SnapshotBuffer(32);
+            this.stateInterpolator = new StateInterpolator(snapshotBuffer, 30.0f, 2.0f);
+            this.outboundInputQueue = new OutboundInputQueue(p1Id, 32);
+
+            // Remote player input is disabled; updated via network interpolation
+            playerTwo.setInputState(Player.InputState.NETWORK);
+
+            networkClient.setListener(new ConnectionListener() {
+                @Override
+                public void onConnected() {
+                    log.info("Network connected to server. Sending JOIN_ROOM...");
+                    networkClient.sendPacket(new NetworkPacket(MessageType.JOIN_ROOM, "player-1", "{\"roomId\":\"mock-room\"}"));
+                }
+
+                @Override
+                public void onPacketReceived(NetworkPacket packet) {
+                    if (packet.getType() == MessageType.GAME_STATE) {
+                        GameSnapshot snapshot = packet.parsePayload(GameSnapshot.class);
+                        if (snapshot != null) {
+                            snapshotBuffer.push(snapshot);
+                        }
+                    }
+                }
+
+                @Override
+                public void onDisconnected(String reason) {
+                    log.warn("Network disconnected: " + reason);
+                }
+            });
+
+            if (!networkClient.isConnected()) {
+                try {
+                    networkClient.connect();
+                } catch (Exception e) {
+                    log.error("Failed to connect network client: " + e.getMessage());
+                }
+            }
+        }
 
     }
     /**
@@ -371,6 +476,9 @@ public class PlayScreen implements Screen {
      */
     @Override
     public void dispose() {
+        if (networkClient != null) {
+            networkClient.disconnect();
+        }
         map.dispose();
         tiledMapRenderer.dispose();
         box2DDebugRenderer.dispose();

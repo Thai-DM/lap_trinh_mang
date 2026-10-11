@@ -37,7 +37,7 @@ public class NetworkClient {
     private final String host;
     private final int port;
     private final int connectTimeoutMs;
-    private final ConnectionListener listener;
+    private volatile ConnectionListener listener;
     private final BlockingQueue<NetworkPacket> sendQueue;
 
     private Socket socket;
@@ -63,6 +63,14 @@ public class NetworkClient {
         this.connectTimeoutMs = connectTimeoutMs;
         this.listener = listener;
         this.sendQueue = new LinkedBlockingQueue<>(Math.max(1, queueCapacity));
+    }
+
+    public void setListener(ConnectionListener listener) {
+        this.listener = listener;
+    }
+
+    public ConnectionListener getListener() {
+        return listener;
     }
 
     /**

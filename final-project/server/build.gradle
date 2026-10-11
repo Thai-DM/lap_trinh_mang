@@ -4,5 +4,17 @@ targetCompatibility = 17
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 
 sourceSets.main.java.srcDirs = [ "src/" ]
+sourceSets.test.java.srcDirs = [ "test/" ]
+// Đóng gói từ TMX gốc duy nhất; không tải/copy bộ texture hoặc tạo bản map riêng cho server.
+sourceSets.main.resources.srcDirs = [ "../assets" ]
+sourceSets.main.resources.includes = [ "1/Map1New2Remake.tmx" ]
+
+dependencies {
+    // World xuất hiện trong API wrapper; gdx-box2d kéo theo gdx cùng phiên bản.
+    api "com.badlogicgames.gdx:gdx-box2d:$gdxVersion"
+    // Chỉ cần native Box2D khi chạy; không thêm backend rendering hoặc OpenGL.
+    runtimeOnly "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-desktop"
+    testImplementation 'junit:junit:4.13.1'
+}
 
 eclipse.project.name = appName + "-server"

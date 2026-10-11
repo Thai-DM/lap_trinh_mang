@@ -1,6 +1,6 @@
 package com.smashprofs.common.protocol;
 
-/** Message types defined by protocol version 0.1. */
+/** Giữ tên v0.1 và bổ sung tên TCP v1; wire dùng tên, không dùng ordinal. */
 public enum MessageType {
     JOIN_ROOM,
     PLAYER_READY,
@@ -11,5 +11,12 @@ public enum MessageType {
     GAME_END,
     MATCH_RESULT,
     RANKING_UPDATED,
-    ERROR
+    ERROR,
+    CONNECT,
+    CONNECT_ACK,
+    CREATE_ROOM,
+    ROOM_CREATED,
+    ROOM_STATE,
+    LEAVE_ROOM,
+    GAME_START
 }

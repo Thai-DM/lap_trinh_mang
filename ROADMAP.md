@@ -11,8 +11,8 @@
 | **Mốc 1: Contract v1 & Codec** | DTOs, Framing, Round-trip, Golden Fixtures, Deterministic Framing | **HOÀN THÀNH** ✅ *(Đã push dev)* | 18/18 unit tests xanh; wire format tự nhất quán 100%. |
 | **Giai đoạn 2A: TCP Transport** | Kết nối TCP, Reader/Writer threads, xử lý EOF/timeout, Loopback Socket Test (Port 0) | **HOÀN THÀNH** ✅ *(Đã push dev)* | 6/6 loopback tests xanh; Reader-only callbacks, non-blocking send, đóng tài nguyên sạch. |
 | **Giai đoạn 2B: Outbound Input Queue** | Bounded queue, non-blocking render thread, merge Continuous State, carry-forward Discrete Events | **HOÀN THÀNH** ✅ *(Sẵn sàng push)* | 5/5 unit tests xanh: bảo toàn phím nhảy/đánh khi gộp, sequence tăng đều, test đa luồng. |
-| **Giai đoạn 3: SnapshotBuffer** | Tick-based Bounded Queue, Thread Safety, Immutability, Drop/Hold policy | 🟡 **TIẾP THEO** | Concurrency test producer/consumer không race condition. |
-| **Giai đoạn 4: StateInterpolator** | Số thực `renderTick` tăng đều theo delta, Pre-buffering, Hold/Freeze khi lag | ⚪ Chưa bắt đầu | Unit test Lerp độc lập tách biệt khỏi LibGDX/OpenGL. |
+| **Giai đoạn 3: SnapshotBuffer** | Tick-based Bounded Queue, Thread Safety, Immutability, Drop/Hold policy | **HOÀN THÀNH** ✅ *(Sẵn sàng push)* | 6/6 unit tests xanh: sắp xếp theo server tick, tính alpha nội suy, concurrency an toàn. |
+| **Giai đoạn 4: StateInterpolator** | Số thực `renderTick` tăng đều theo delta, Pre-buffering, Hold/Freeze khi lag | 🟡 **TIẾP THEO** | Unit test Lerp độc lập tách biệt khỏi LibGDX/OpenGL. |
 | **Giai đoạn 5: MockServer** | Giả lập server gửi snapshot 30Hz, vòng đời `start()`/`stop()`, cờ `--mock` | ⚪ Chưa bắt đầu | Chạy game độc lập với MockServer mà không cần server thật. |
 | **Giai đoạn 6: Tích hợp Game (Vùng Vàng)** | Khảo sát Box2D; Hook `PlayScreen`, `LocalPlayer` đọc phím, `RemotePlayer` hiển thị nội suy | ⚪ Chưa bắt đầu | 2 nhân vật di chuyển mượt trên màn hình; đóng game sạch. |
 | **Giai đoạn 7: Đo lường & Server Thật** | RTT/Ping, Snapshot rate, xử lý ngắt kết nối, hiển thị `MatchResult`/`Ranking` | ⚪ Chưa bắt đầu | Báo cáo số liệu thực tế; bàn giao tích hợp server nhóm. |

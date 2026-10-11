@@ -10,12 +10,12 @@
 |---|---|:---:|---|
 | **Mốc 1: Contract v1 & Codec** | DTOs, Framing, Round-trip, Golden Fixtures, Deterministic Framing | **HOÀN THÀNH** ✅ *(Đã push dev)* | 18/18 unit tests xanh; wire format tự nhất quán 100%. |
 | **Giai đoạn 2A: TCP Transport** | Kết nối TCP, Reader/Writer threads, xử lý EOF/timeout, Loopback Socket Test (Port 0) | **HOÀN THÀNH** ✅ *(Đã push dev)* | 6/6 loopback tests xanh; Reader-only callbacks, non-blocking send, đóng tài nguyên sạch. |
-| **Giai đoạn 2B: Outbound Input Queue** | Bounded queue, non-blocking render thread, merge Continuous State, carry-forward Discrete Events | **HOÀN THÀNH** ✅ *(Sẵn sàng push)* | 5/5 unit tests xanh: bảo toàn phím nhảy/đánh khi gộp, sequence tăng đều, test đa luồng. |
-| **Giai đoạn 3: SnapshotBuffer** | Tick-based Bounded Queue, Thread Safety, Immutability, Drop/Hold policy | **HOÀN THÀNH** ✅ *(Sẵn sàng push)* | 6/6 unit tests xanh: sắp xếp theo server tick, tính alpha nội suy, concurrency an toàn. |
-| **Giai đoạn 4: StateInterpolator** | Số thực `renderTick` tăng đều theo delta, Pre-buffering, Hold/Freeze khi lag | **HOÀN THÀNH** ✅ *(Sẵn sàng push)* | 6/6 unit tests xanh: Lerp vị trí x, y, teleport threshold, tích lũy renderTick theo delta. |
-| **Giai đoạn 5: MockServer** | Giả lập server gửi snapshot 30Hz, vòng đời `start()`/`stop()`, cờ `--mock` | 🟡 **TIẾP THEO** | Chạy game độc lập với MockServer mà không cần server thật. |
-| **Giai đoạn 6: Tích hợp Game (Vùng Vàng)** | Khảo sát Box2D; Hook `PlayScreen`, `LocalPlayer` đọc phím, `RemotePlayer` hiển thị nội suy | ⚪ Chưa bắt đầu | 2 nhân vật di chuyển mượt trên màn hình; đóng game sạch. |
-| **Giai đoạn 7: Đo lường & Server Thật** | RTT/Ping, Snapshot rate, xử lý ngắt kết nối, hiển thị `MatchResult`/`Ranking` | ⚪ Chưa bắt đầu | Báo cáo số liệu thực tế; bàn giao tích hợp server nhóm. |
+| **Giai đoạn 2B: Outbound Input Queue** | Bounded queue, non-blocking render thread, merge Continuous State, carry-forward Discrete Events | **HOÀN THÀNH** ✅ *(Đã push dev)* | 5/5 unit tests xanh: bảo toàn phím nhảy/đánh khi gộp, sequence tăng đều, test đa luồng. |
+| **Giai đoạn 3: SnapshotBuffer** | Tick-based Bounded Queue, Thread Safety, Immutability, Drop/Hold policy | **HOÀN THÀNH** ✅ *(Đã push dev)* | 6/6 unit tests xanh: sắp xếp theo server tick, tính alpha nội suy, concurrency an toàn. |
+| **Giai đoạn 4: StateInterpolator** | Số thực `renderTick` tăng đều theo delta, Pre-buffering, Hold/Freeze khi lag | **HOÀN THÀNH** ✅ *(Đã push dev)* | 6/6 unit tests xanh: Lerp vị trí x, y, teleport threshold, tích lũy renderTick theo delta. |
+| **Giai đoạn 5: MockServer** | Giả lập server gửi snapshot 30Hz, vòng đời `start()`/`stop()`, cờ `--mock` | **HOÀN THÀNH** ✅ *(Đã push dev)* | 6/6 loopback tests xanh; MockServer loopback độc lập, 30Hz snapshot, PING/PONG, PLAYER_INPUT. |
+| **Giai đoạn 6: Tích hợp Game (Vùng Vàng)** | Khảo sát Box2D; Hook `PlayScreen`, `LocalPlayer` đọc phím, `RemotePlayer` hiển thị nội suy | **HOÀN THÀNH** ✅ *(Đã push dev)* | Chạy `--mock`: Local Player điều khiển WASD, Remote Player nội suy mượt 60 FPS từ snapshot mạng 30Hz. |
+| **Giai đoạn 7: Đo lường & Server Thật** | RTT/Ping, Snapshot rate, xử lý ngắt kết nối, hiển thị `MatchResult`/`Ranking` | **HOÀN THÀNH** ✅ *(Đã push dev)* | Đo Ping/RTT, tần số 30Hz, Graceful disconnect với phím F9, 64/64 tests xanh toàn dự án. |
 
 ---
 

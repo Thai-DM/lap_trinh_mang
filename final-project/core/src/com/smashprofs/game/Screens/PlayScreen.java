@@ -34,6 +34,7 @@ import static com.smashprofs.game.Actors.Players.Player.PPM;
 
 
 import com.smashprofs.common.model.GameSnapshot;
+import com.smashprofs.common.model.MatchResult;
 import com.smashprofs.common.model.PlayerId;
 import com.smashprofs.common.model.PlayerInput;
 import com.smashprofs.common.model.PlayerState;
@@ -41,6 +42,7 @@ import com.smashprofs.common.protocol.MessageType;
 import com.smashprofs.common.protocol.NetworkPacket;
 import com.smashprofs.game.network.client.ConnectionListener;
 import com.smashprofs.game.network.client.NetworkClient;
+import com.smashprofs.game.network.client.NetworkMetricsTracker;
 import com.smashprofs.game.network.client.OutboundInputQueue;
 import com.smashprofs.game.network.client.SnapshotBuffer;
 import com.smashprofs.game.network.client.StateInterpolator;
@@ -58,11 +60,14 @@ public class PlayScreen implements Screen {
     private Hud hud;
     private WinScreen winScreen;
 
-    // Network Integration (Phase 6)
+    // Network Integration (Phase 6 & 7)
     private NetworkClient networkClient;
     private SnapshotBuffer snapshotBuffer;
     private StateInterpolator stateInterpolator;
     private OutboundInputQueue outboundInputQueue;
+    private NetworkMetricsTracker networkMetricsTracker;
+    private float pingTimer = 0.0f;
+    private MatchResult latestMatchResult;
     private boolean networkActive = false;
     private long clientInputTick = 0;
     private final PlayerId p1Id = new PlayerId("player-1");
@@ -125,6 +130,17 @@ public class PlayScreen implements Screen {
            // Gdx.app.exit();
             game.setScreen(new MainMenuScreen(game));
         }
+
+        // Phím tắt F9: Giả lập ngắt kết nối server đột ngột để kiểm thử Graceful Disconnect (Giai đoạn 7)
+        if (Gdx.input.isKeyJustPressed(Input.Keys.F9)) {
+            if (game.getMockServer() != null && game.getMockServer().isRunning()) {
+                log.warn("[TEST] Người dùng ấn F9: Dừng MockServer đột ngột để kiểm tra xử lý ngắt kết nối an toàn...");
+                game.getMockServer().stop();
+            } else if (networkClient != null && networkClient.isConnected()) {
+                log.warn("[TEST] Người dùng ấn F9: Ngắt kết nối NetworkClient đột ngột...");
+                networkClient.disconnect();
+            }
+        }
     }
 
 
@@ -155,6 +171,13 @@ public class PlayScreen implements Screen {
             PlayerInput input = outboundInputQueue.pollNextInputToSend(clientInputTick++);
             if (input != null) {
                 networkClient.sendPacket(NetworkPacket.of(MessageType.PLAYER_INPUT, "player-1", input));
+            }
+
+            // 2. Periodic Ping (Phase 7 - RTT Measurement)
+            pingTimer += deltatime;
+            if (pingTimer >= 1.0f) {
+                pingTimer = 0.0f;
+                networkMetricsTracker.sendPing(networkClient, "player-1");
             }
 
             // 2. Advance StateInterpolator and apply interpolated state to Remote Player 2
@@ -297,13 +320,14 @@ public class PlayScreen implements Screen {
         combatManager.resetCombatManager();
         contactListener.resetContactListener();
 
-        // Network Initialization (Phase 6)
+        // Network Initialization (Phase 6 & 7)
         this.networkClient = game.getNetworkClient();
         if (this.networkClient != null) {
             this.networkActive = true;
             this.snapshotBuffer = new SnapshotBuffer(32);
             this.stateInterpolator = new StateInterpolator(snapshotBuffer, 30.0f, 2.0f);
             this.outboundInputQueue = new OutboundInputQueue(p1Id, 32);
+            this.networkMetricsTracker = new NetworkMetricsTracker();
 
             // Remote player input is disabled; updated via network interpolation
             playerTwo.setInputState(Player.InputState.NETWORK);
@@ -311,6 +335,7 @@ public class PlayScreen implements Screen {
             networkClient.setListener(new ConnectionListener() {
                 @Override
                 public void onConnected() {
+                    networkMetricsTracker.onConnected();
                     log.info("Network connected to server. Sending JOIN_ROOM...");
                     networkClient.sendPacket(new NetworkPacket(MessageType.JOIN_ROOM, "player-1", "{\"roomId\":\"mock-room\"}"));
                 }
@@ -321,13 +346,27 @@ public class PlayScreen implements Screen {
                         GameSnapshot snapshot = packet.parsePayload(GameSnapshot.class);
                         if (snapshot != null) {
                             snapshotBuffer.push(snapshot);
+                            networkMetricsTracker.onSnapshotReceived(snapshot.serverTick());
+                        }
+                    } else if (packet.getType() == MessageType.PONG) {
+                        networkMetricsTracker.onPongReceived(packet);
+                    } else if (packet.getType() == MessageType.MATCH_RESULT) {
+                        MatchResult result = packet.parsePayload(MatchResult.class);
+                        if (result != null) {
+                            latestMatchResult = result;
+                            log.info("Authoritative MATCH_RESULT received: winner={}", result.winnerId());
+                            Gdx.app.postRunnable(() -> {
+                                winScreen.setMatchResult(result);
+                                game.setScreen(winScreen);
+                            });
                         }
                     }
                 }
 
                 @Override
                 public void onDisconnected(String reason) {
-                    log.warn("Network disconnected: " + reason);
+                    networkMetricsTracker.onDisconnected(reason);
+                    log.warn("Network disconnected: {}", reason);
                 }
             });
 
@@ -335,6 +374,7 @@ public class PlayScreen implements Screen {
                 try {
                     networkClient.connect();
                 } catch (Exception e) {
+                    networkMetricsTracker.onDisconnected(e.getMessage());
                     log.error("Failed to connect network client: " + e.getMessage());
                 }
             }
@@ -426,6 +466,9 @@ public class PlayScreen implements Screen {
 
 
         // Muss unter batch.end() stehen
+        if (networkActive && networkMetricsTracker != null) {
+            hud.setNetworkStatus(networkMetricsTracker.getStatusSummary());
+        }
         hud.stage.draw();
         hud.updateHud(delta, playerOne, playerTwo);
 
@@ -438,6 +481,9 @@ public class PlayScreen implements Screen {
         //Test for win and set to win screen
        if(hud.testWin(playerOne,playerTwo))
        {
+           if (latestMatchResult != null) {
+               winScreen.setMatchResult(latestMatchResult);
+           }
            game.setScreen(winScreen);
        }
 

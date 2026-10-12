@@ -52,6 +52,28 @@ public class Game extends com.badlogic.gdx.Game {
 
 	public LobbyClient getLobbyClient() { return lobbyClient; }
 
+	/** UI transfers an already joined connection; no socket connect/write on the render thread. */
+	public void openOnlineLobby(LobbyClient joined) {
+		if (joined.getSnapshot().phase() != LobbyClient.Phase.JOINED) {
+			throw new IllegalArgumentException("The connection must join a room first");
+		}
+		if (lobbyClient != null) { lobbyClient.close(); }
+		if (networkClient != null && networkClient != joined.getNetworkClient()) {
+			var previous = networkClient;
+			new Thread(() -> previous.disconnectAndWait(3000), "Game-PreviousConnectionClose").start();
+		}
+		if (mockServer != null) {
+			var previous = mockServer; mockServer = null;
+			new Thread(previous::stop, "Game-MockServerClose").start();
+		}
+		mockMode = false; lobbyClient = joined; networkClient = joined.getNetworkClient();
+		setScreen(new CharacterSelectScreen(this));
+	}
+
+	public void leaveOnlineLobby() {
+		if (lobbyClient != null) { lobbyClient.close(); lobbyClient = null; networkClient = null; }
+	}
+
 	public NetworkClient getNetworkClient() {
 		return networkClient;
 	}
@@ -134,7 +156,7 @@ public class Game extends com.badlogic.gdx.Game {
 	
 	@Override
 	public void dispose () {
-		if (lobbyClient != null && getScreen() != null) { getScreen().dispose(); }
+		if (getScreen() != null) { getScreen().dispose(); }
 		batch.dispose();
 		if (lobbyClient != null) {
 			lobbyClient.close();

@@ -18,6 +18,8 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.SpriteDrawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.ScreenUtils;
@@ -44,6 +46,9 @@ public class MainMenuScreen implements Screen {
     private Image playButton, exitButton;
     private final VfxManager postProcessingManager;
     private SoundManager sound;
+    private final BitmapFont onlineFont = new BitmapFont();
+    private final Texture menuBackground = new Texture("mainmenu/bgmenu.png");
+    private boolean disposed;
 
     private final Texture playButtonInactive = new Texture("mainmenu/buttons/playButtonInactive.png"),
             playButtonActive = new Texture("mainmenu/buttons/playButtonActive.png"),
@@ -142,7 +147,16 @@ public class MainMenuScreen implements Screen {
 
 
 
-        mainTable.add(playButton).padBottom(100).maxSize(300, 100).padTop(500);
+        onlineFont.getData().setScale(2.5f);
+        var onlineStyle = new TextButton.TextButtonStyle();
+        onlineStyle.font = onlineFont; onlineStyle.fontColor = Color.CYAN; onlineStyle.overFontColor = Color.WHITE;
+        var online = new TextButton("Online Multiplayer (O)", onlineStyle);
+        online.addListener(new ClickListener() {
+            @Override public void clicked(InputEvent event, float x, float y) { openOnline(); }
+        });
+        mainTable.add(playButton).padBottom(30).maxSize(300, 100).padTop(500);
+        mainTable.row();
+        mainTable.add(online).width(550).height(80).padBottom(30);
         mainTable.row();
         mainTable.add(exitButton).padBottom(180).maxSize(300, 100);
         mainTable.row().padRight(1700);
@@ -151,7 +165,7 @@ public class MainMenuScreen implements Screen {
         mainTable.add(timesplayed).maxSize(300, 100).padRight(1700);
         mainTable.row();
         mainTable.add(gamedevs).maxSize(600, 200).padLeft(1650);
-        mainTable.background(new TextureRegionDrawable(new Texture("mainmenu/bgmenu.png")));
+        mainTable.background(new TextureRegionDrawable(menuBackground));
         //Add table to stage
         mainTable.setDebug(false);
         stage.addActor(mainTable);
@@ -166,6 +180,7 @@ public class MainMenuScreen implements Screen {
      */
     @Override
     public void render(float delta) {
+        if (Gdx.input.isKeyJustPressed(Input.Keys.O)) { openOnline(); return; }
         ScreenUtils.clear(Color.CLEAR);
         postProcessingManager.cleanUpBuffers();
 
@@ -229,7 +244,11 @@ public class MainMenuScreen implements Screen {
 
     @Override
     public void hide() {
+        dispose();
+    }
 
+    private void openOnline() {
+        game.setScreen(new OnlineLobbyScreen((com.smashprofs.game.Game) game));
     }
 
     /**
@@ -237,7 +256,12 @@ public class MainMenuScreen implements Screen {
      */
     @Override
     public void dispose() {
+        if (disposed) { return; } disposed = true;
+        if (Gdx.input.getInputProcessor() == stage) { Gdx.input.setInputProcessor(null); }
         this.stage.dispose();
         this.spriteBatch.dispose();
+        postProcessingManager.dispose(); onlineFont.dispose(); menuBackground.dispose();
+        playButtonInactive.dispose(); playButtonActive.dispose(); exitButtonInactive.dispose(); exitButtonActive.dispose(); logo.dispose();
+        gametime.getStyle().font.dispose(); timesplayed.getStyle().font.dispose(); gamedevs.getStyle().font.dispose();
     }
 }

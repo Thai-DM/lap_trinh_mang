@@ -67,6 +67,7 @@ public class CharacterSelectScreen implements Screen {
     private final LobbyClient lobby;
     private Label lobbyStatus;
     private TextButton readyButton;
+    private TextButton changeRoomButton;
     private BitmapFont lobbyFont;
     private String displayedMatchId;
     private final Map<String, Texture> ownedTextures = new java.util.LinkedHashMap<>();
@@ -113,6 +114,14 @@ public class CharacterSelectScreen implements Screen {
             readyButton.addListener(new ClickListener() {
                 @Override public void clicked(InputEvent event, float x, float y) {
                     lobby.ready(getSelectedPlayerOne());
+                }
+            });
+            changeRoomButton = new TextButton("Change room / server", style);
+            changeRoomButton.addListener(new ClickListener() {
+                @Override public void clicked(InputEvent event, float x, float y) {
+                    var localGame = (com.smashprofs.game.Game) game;
+                    localGame.leaveOnlineLobby();
+                    game.setScreen(new OnlineLobbyScreen(localGame));
                 }
             });
         }
@@ -352,6 +361,8 @@ public class CharacterSelectScreen implements Screen {
             table.add(readyButton).colspan(2).padTop(40);
             table.row();
             table.add(lobbyStatus).colspan(2).width(1600).padTop(40);
+            table.row();
+            table.add(changeRoomButton).colspan(2).padTop(25);
             table.background(new TextureRegionDrawable(loadTexture("ui/selecbg.png")));
             stage.addActor(table);
             return;

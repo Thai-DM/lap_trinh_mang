@@ -27,6 +27,8 @@ final class OnlinePlayScreen implements Screen {
     private final TiledMap map;
     private final OrthogonalTiledMapRenderer tiles;
     private final OnlineHud hud;
+    private final float mapWidth;
+    private final float mapHeight;
     private boolean disposed;
     private float animationTime;
 
@@ -35,8 +37,8 @@ final class OnlinePlayScreen implements Screen {
         presentation = new OnlineMatchPresentation(session);
         map = new TmxMapLoader().load("1/Map1New2Remake.tmx");
         tiles = new OrthogonalTiledMapRenderer(map, 1 / 100f);
-        float mapWidth = map.getProperties().get("width", Integer.class) * map.getProperties().get("tilewidth", Integer.class) / 100f;
-        float mapHeight = map.getProperties().get("height", Integer.class) * map.getProperties().get("tileheight", Integer.class) / 100f;
+        mapWidth = map.getProperties().get("width", Integer.class) * map.getProperties().get("tilewidth", Integer.class) / 100f;
+        mapHeight = map.getProperties().get("height", Integer.class) * map.getProperties().get("tileheight", Integer.class) / 100f;
         viewport.setWorldSize(mapWidth, mapHeight); camera.position.set(mapWidth / 2, mapHeight / 2, 0);
         for (var member : session.getRoster().players()) {
             players.put(member.playerId().value(), assets.player(member.characterId()));
@@ -50,7 +52,7 @@ final class OnlinePlayScreen implements Screen {
         presentation.update();
         var result = presentation.takeResultTransition();
         if (result != null) {
-            game.setScreen(new OnlineResultScreen(result, session.getLocalPlayerId().value()));
+            game.setScreen(new OnlineResultScreen(game, result, session.getLocalPlayerId().value()));
             return; // setScreen hides/disposes this screen on the render thread.
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) { Gdx.app.exit(); return; }
@@ -91,18 +93,43 @@ final class OnlinePlayScreen implements Screen {
         hud.update(presentation.getFrame(), status, connected); hud.draw(delta);
     }
     private void updateCamera() {
-        var values = presentation.getPlayers(); if (values.isEmpty()) { return; }
+        var values = presentation.getPlayers();
+        float aspect = Gdx.graphics.getWidth() / (float) Math.max(1, Gdx.graphics.getHeight());
+
+        if (values.isEmpty()) {
+            float defaultW = 5.0f;
+            float defaultH = defaultW / aspect;
+            viewport.setWorldSize(defaultW, defaultH);
+            viewport.update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), false);
+            camera.position.set(mapWidth / 2f, Math.max(defaultH / 2f, 1.2f), 0);
+            return;
+        }
+
         float minX = Float.POSITIVE_INFINITY, maxX = Float.NEGATIVE_INFINITY;
         float minY = Float.POSITIVE_INFINITY, maxY = Float.NEGATIVE_INFINITY;
         for (var p : values) {
             minX = Math.min(minX, p.state().x()); maxX = Math.max(maxX, p.state().x());
             minY = Math.min(minY, p.state().y()); maxY = Math.max(maxY, p.state().y());
         }
-        float aspect = Gdx.graphics.getWidth() / (float) Math.max(1, Gdx.graphics.getHeight());
-        float width = Math.max(4, Math.max(maxX - minX + 1.5f, (maxY - minY + 1) * aspect));
-        viewport.setWorldSize(width, width / aspect);
+
+        float minWidth = 4.0f;
+        float maxWidth = Math.min(mapWidth, mapHeight * aspect);
+        if (maxWidth < minWidth) { maxWidth = mapWidth; }
+        float desiredWidth = Math.max(minWidth, Math.max(maxX - minX + 2.0f, (maxY - minY + 1.2f) * aspect));
+        float width = Math.min(desiredWidth, maxWidth);
+        float height = width / aspect;
+
+        viewport.setWorldSize(width, height);
         viewport.update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), false);
-        camera.position.set((minX + maxX) / 2, (minY + maxY) / 2 + 0.15f, 0);
+
+        float halfW = width / 2f;
+        float halfH = height / 2f;
+        float targetX = (minX + maxX) / 2f;
+        float targetY = (minY + maxY) / 2f + 0.2f;
+
+        float camX = Math.max(halfW, Math.min(mapWidth - halfW, targetX));
+        float camY = Math.max(halfH, Math.min(mapHeight - halfH, targetY));
+        camera.position.set(camX, camY, 0);
     }
     @Override public void resize(int width, int height) { viewport.update(width, height, false); hud.resize(width, height); }
     @Override public void pause() { }

@@ -82,6 +82,10 @@ project(":core") {
 
 project(":common") {
     apply plugin: "java-library"
+
+    dependencies {
+        api "com.google.code.gson:gson:2.10.1"
+    }
 }
 
 project(":server") {
@@ -99,6 +103,7 @@ project(":tests") {
 
     dependencies {
 
+        implementation project(":common")
         implementation project(":core")
 
         implementation "junit:junit:4.+"

@@ -21,6 +21,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.SpriteDrawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
@@ -30,6 +31,7 @@ import com.badlogic.gdx.utils.viewport.FillViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.crashinvaders.vfx.VfxManager;
 import com.smashprofs.game.Helper.*;
+import com.smashprofs.game.network.client.LobbyClient;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -62,11 +64,21 @@ public class CharacterSelectScreen implements Screen {
     private BitmapFont labelFont;
     SpriteBatch batch;
     Game game;
+    private final LobbyClient lobby;
+    private Label lobbyStatus;
+    private TextButton readyButton;
+    private BitmapFont lobbyFont;
+    private String displayedMatchId;
+    private final Map<String, Texture> ownedTextures = new java.util.LinkedHashMap<>();
+    private boolean disposed;
+
+    private Texture loadTexture(String path) { return ownedTextures.computeIfAbsent(path, Texture::new); }
 
     public CharacterSelectScreen(Game game) {
         this.camera = new OrthographicCamera(width, height);
         this.batch = new SpriteBatch();
         this.game = game;
+        this.lobby = game instanceof com.smashprofs.game.Game localGame ? localGame.getLobbyClient() : null;
         this.viewport = new FillViewport(1920, 1080, this.camera);
         this.stage = new Stage(this.viewport, this.batch);
         this.soundManager = SoundManager.getSoundManager_INSTANCE();
@@ -76,7 +88,7 @@ public class CharacterSelectScreen implements Screen {
         this.postProcessingManager = ppSetUpHandler.getPostProcessingManager();
 
         Map<String, String> players = Map.of("Alex", "Sprites/Alex/alex_stand.png", "Maurice", "Sprites/Momo/momo_strip.png", "Luca", "Sprites/Luca/luca_stand.png", "Leo", "Sprites/Leo/leo_stand.png", "Viktor", "Sprites/Viktor/viktor_stand.png");
-        this.playerImages = players.values().stream().map(path -> new Texture(path)).map(t -> TextureRegion.split(t, 100, 100)[0]).map(tr -> tr[0]).toList();
+        this.playerImages = players.values().stream().map(this::loadTexture).map(t -> TextureRegion.split(t, 100, 100)[0]).map(tr -> tr[0]).toList();
         playerNames = players.keySet().toArray(new String[players.keySet().size()]);
 
         this.currentSelection = new ImageButton(new TextureRegionDrawable(playerImages.get(carouselCounter)));
@@ -87,24 +99,42 @@ public class CharacterSelectScreen implements Screen {
         this.p1Label = new Label(playerNames[carouselCounter], new Label.LabelStyle(labelFont, Color.valueOf("FFFFFF")));
         this.p2Label = new Label(playerNames[carouselCounter2], new Label.LabelStyle(labelFont, Color.valueOf("FFFFFF")));
 
-        left1 = new Image(new Texture("ui/arrowLeft.png"));
-        left2 = new Image(new Texture("ui/arrowLeft.png"));
-        right1 = new Image(new Texture("ui/arrowRight.png"));
-        right2 = new Image(new Texture("ui/arrowRight.png"));
+        if (lobby != null) {
+            lobbyFont = new BitmapFont();
+            lobbyFont.getData().setScale(2f);
+            lobbyStatus = new Label(lobby.getSnapshot().statusText(), new Label.LabelStyle(lobbyFont, Color.WHITE));
+            lobbyStatus.setWrap(true);
+            TextButton.TextButtonStyle style = new TextButton.TextButtonStyle();
+            style.font = lobbyFont;
+            style.fontColor = Color.WHITE;
+            style.disabledFontColor = Color.GRAY;
+            readyButton = new TextButton("Ready (Enter)", style);
+            readyButton.setDisabled(true);
+            readyButton.addListener(new ClickListener() {
+                @Override public void clicked(InputEvent event, float x, float y) {
+                    lobby.ready(getSelectedPlayerOne());
+                }
+            });
+        }
+
+        left1 = new Image(loadTexture("ui/arrowLeft.png"));
+        left2 = new Image(loadTexture("ui/arrowLeft.png"));
+        right1 = new Image(loadTexture("ui/arrowRight.png"));
+        right2 = new Image(loadTexture("ui/arrowRight.png"));
 
         left1.scaleBy(2f);
         left2.scaleBy(2f);
         right1.scaleBy(2f);
         right2.scaleBy(2f);
 
-        playButton = new Image(new Texture("mainmenu/buttons/playButtonInactive.png"));
-        p1ctrls = new Image(new Texture("ui/ctrlsP1.png"));
-        p2ctrls = new Image(new Texture("ui/ctrlsP2.png"));
+        playButton = new Image(loadTexture("mainmenu/buttons/playButtonInactive.png"));
+        p1ctrls = new Image(loadTexture("ui/ctrlsP1.png"));
+        p2ctrls = new Image(loadTexture("ui/ctrlsP2.png"));
         // Set control hints to "Gamepad" if every player has a connected gamepad.
         if(controllers.size > 1) {
             log.info("More than 1 gamepad connected! Showing controller hints.");
-            p1ctrls = new Image(new Texture("ui/ctrlsGamepad.png"));
-            p2ctrls = new Image(new Texture("ui/ctrlsGamepad.png"));
+            p1ctrls = new Image(loadTexture("ui/ctrlsGamepad.png"));
+            p2ctrls = new Image(loadTexture("ui/ctrlsGamepad.png"));
         }
         // Keep in mind: scaleBy(1f) equals setScale(2f)!
         p1ctrls.scaleBy(0.5f);
@@ -136,8 +166,9 @@ public class CharacterSelectScreen implements Screen {
             public void enter(InputEvent event, float x, float y, int pointer, Actor actor) {
 
                 //playButton = new Image(playButtonActive);
-                playButton.setDrawable(new SpriteDrawable(new Sprite(new Texture("mainmenu/buttons/playButtonActive.png"))));
+                playButton.setDrawable(new SpriteDrawable(new Sprite(loadTexture("mainmenu/buttons/playButtonActive.png"))));
                 if (Gdx.input.isButtonJustPressed(0)) {
+                    if (lobby != null) { return; } // Production waits for server GAME_START.
                     soundManager.playSound("sounds/minecraft_click.mp3");
                     log.info("PlayerOne selected the character " + getSelectedPlayerOne());
                     log.info("PlayerTwo selected the character " + getSelectedPlayerTwo());
@@ -147,7 +178,7 @@ public class CharacterSelectScreen implements Screen {
 
             @Override
             public void exit(InputEvent event, float x, float y, int pointer, Actor actor) {
-                playButton.setDrawable(new SpriteDrawable(new Sprite(new Texture("mainmenu/buttons/playButtonInactive.png"))));
+                playButton.setDrawable(new SpriteDrawable(new Sprite(loadTexture("mainmenu/buttons/playButtonInactive.png"))));
             }
         });
 
@@ -178,6 +209,7 @@ public class CharacterSelectScreen implements Screen {
 
     @Override
     public void render(float delta) {
+        if (lobby != null && updateLobbyView()) { return; } // Screen transition only on the render thread.
         ScreenUtils.clear(Color.CLEAR);
         postProcessingManager.cleanUpBuffers();
         postProcessingManager.beginInputCapture();
@@ -194,6 +226,21 @@ public class CharacterSelectScreen implements Screen {
 
         postProcessingManager.renderToScreen();
 
+    }
+
+    private boolean updateLobbyView() {
+        var state = lobby.getSnapshot();
+        lobbyStatus.setText(state.statusText());
+        readyButton.setDisabled(!state.canReady());
+        if (state.canReady() && Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
+            lobby.ready(getSelectedPlayerOne());
+        }
+        if (state.isMatchStarted() && displayedMatchId == null) {
+            displayedMatchId = state.match().matchId();
+            game.setScreen(new PlayScreen((com.smashprofs.game.Game) game));
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -219,6 +266,7 @@ public class CharacterSelectScreen implements Screen {
     }
 
     public void incrementCarouselCounter(int NumberOfCarouselCounter) {
+        if (!canChangeSelection(NumberOfCarouselCounter)) { return; }
 
         if(NumberOfCarouselCounter == 1) {
             if(carouselCounter < playerImages.size()-1) {
@@ -244,6 +292,7 @@ public class CharacterSelectScreen implements Screen {
     }
 
     public void decrementCarouselCounter(int NumberOfCarouselCounter) {
+        if (!canChangeSelection(NumberOfCarouselCounter)) { return; }
 
         if(NumberOfCarouselCounter == 1) {
             if(carouselCounter > 0) {
@@ -280,7 +329,33 @@ public class CharacterSelectScreen implements Screen {
         renderTable();
     }
 
+    private boolean canChangeSelection(int selection) {
+        if (lobby == null) { return true; }
+        if (selection != 1) { return false; }
+        return switch (lobby.getSnapshot().phase()) {
+            case IDLE, CONNECTING, CREATING, JOINING, JOINED -> true;
+            default -> false;
+        };
+    }
+
     public void renderTable() {
+
+        if (lobby != null) {
+            table.top();
+            table.add(currentSelection).colspan(2).width(width / 2f).padTop(100);
+            table.row();
+            table.add(p1Label).colspan(2).padTop(30);
+            table.row();
+            table.add(left1).padTop(30);
+            table.add(right1).padTop(30);
+            table.row();
+            table.add(readyButton).colspan(2).padTop(40);
+            table.row();
+            table.add(lobbyStatus).colspan(2).width(1600).padTop(40);
+            table.background(new TextureRegionDrawable(loadTexture("ui/selecbg.png")));
+            stage.addActor(table);
+            return;
+        }
 
         table.top();
         table.row().padTop(height/5f);
@@ -299,19 +374,19 @@ public class CharacterSelectScreen implements Screen {
         table.add(p2ctrls).colspan(2);
         table.row();
         table.add(playButton).center().colspan(4);
-        table.background(new TextureRegionDrawable(new Texture("ui/selecbg.png")));
+        table.background(new TextureRegionDrawable(loadTexture("ui/selecbg.png")));
         stage.addActor(table);
 
     }
 
     public static String getSelectedPlayerOne() {
-        if(com.smashprofs.game.Game.unitTestMode) {
+        if(com.smashprofs.game.Game.unitTestMode || com.smashprofs.game.Game.mockMode || playerNames == null) {
             return "Alex";
         }
         return playerNames[carouselCounter];
     }
     public static String getSelectedPlayerTwo() {
-        if(com.smashprofs.game.Game.unitTestMode) {
+        if(com.smashprofs.game.Game.unitTestMode || com.smashprofs.game.Game.mockMode || playerNames == null) {
             return "Maurice";
         }
         return playerNames[carouselCounter2];
@@ -329,12 +404,20 @@ public class CharacterSelectScreen implements Screen {
 
     @Override
     public void hide() {
-
+        if (lobby != null) { dispose(); }
     }
 
     @Override
     public void dispose() {
+        if (disposed) { return; }
+        disposed = true;
+        if (Gdx.input.getInputProcessor() == stage) { Gdx.input.setInputProcessor(null); }
+        if (lobbyFont != null) { lobbyFont.dispose(); }
         this.stage.dispose();
         this.batch.dispose();
+        labelFont.dispose();
+        postProcessingManager.dispose();
+        ownedTextures.values().forEach(Texture::dispose);
+        ownedTextures.clear();
     }
 }

@@ -46,6 +46,17 @@ final class TcpClientConnection implements SessionChannel {
     private final AtomicBoolean writerStarted = new AtomicBoolean();
     private volatile Future<?> writeTask;
     private volatile Future<?> readTask;
+    private volatile long writeStarted, lastSendDuration;
+    private final TokenBucket inboundBytes=new TokenBucket(Integer.getInteger("smashprofs.network.inboundBytesPerSecond",2_097_152),4_194_304);
+    private final TokenBucket invalidFrameRate = new TokenBucket(8, 32);
+    @Override public long writeStartedNanos() { return writeStarted; }
+    @Override public long lastSendNanos() { return lastSendDuration; }
+    @Override public int outboundQueueDepth() {
+        synchronized (outboundLock) {
+            return (pendingSnapshot == null ? 0 : 1) + (pendingStart == null ? 0 : 1)
+                    + (pendingHeartbeat == null ? 0 : 1) + pendingEnds.size();
+        }
+    }
 
     TcpClientConnection(Socket socket, String sessionId, ConnectionManager connections,
                         TcpIoConfiguration configuration, Consumer<ClientSession> onClosed) throws IOException {
@@ -97,6 +108,7 @@ final class TcpClientConnection implements SessionChannel {
             var snapshot = delivery.snapshot();
             if (snapshot.matchId().equals(lastAcceptedEndMatch)) { return false; }
             if (snapshot.matchId().equals(lastOfferedMatch) && snapshot.serverTick() <= lastOfferedTick) { return false; }
+            if(pendingSnapshot!=null) { connections.performance.snapshotReplacements.increment(); }
             pendingSnapshot = delivery;
             lastOfferedMatch = snapshot.matchId(); lastOfferedTick = snapshot.serverTick();
             outboundLock.notifyAll(); return true;
@@ -200,13 +212,13 @@ final class TcpClientConnection implements SessionChannel {
                     if (end != null) {
                         if (isOpen() && end.finalState().stillValid().getAsBoolean()) {
                             // Giữ cùng sendLock cho hai frame; không control writer nào chen giữa chúng.
-                            send(GameStateMessageMapper.map(end.finalState()));
+                            sendSnapshot(end.finalState());
                             send(GameEndMessageMapper.map(end.result()));
                         }
                     } else if (start == null && heartbeat != null && isOpen() && heartbeat.stillValid().getAsBoolean()) {
                         send(heartbeat.message());
                     } else if (start == null && delivery != null && isOpen() && delivery.stillValid().getAsBoolean()) {
-                        send(GameStateMessageMapper.map(delivery));
+                        sendSnapshot(delivery);
                     }
                 } finally { sendLock.unlock(); }
             }
@@ -244,18 +256,25 @@ final class TcpClientConnection implements SessionChannel {
                 final TcpMessageCodec.DecodedMessage message;
                 try { message = readerCodec.readNext(guarded, configuration.maxMessageBytes()); }
                 catch (ProtocolException invalidApplication) {
+                    connections.errors.increment();
+                    if (!invalidFrameRate.allow(1)) {
+                        connections.performance.rateLimitRejections.increment();
+                        throw new IOException("Invalid frame rate exceeded");
+                    }
                     // Frame đã được tiêu thụ hết: gửi lỗi an toàn rồi tiếp tục, không mất framing.
                     send(ProtocolV1.error(invalidApplication.requestId(), invalidApplication.code(),
                             invalidApplication.getMessage()));
                     continue;
                 }
                 if (message == null) { break; }
+                connections.receivedMessages.increment();
                 if (isOpen() && connections.get(session.getSessionId()) == session) {
-                    configuration.dispatcher().dispatch(session, message.type(), message.payload());
+                    if (!configuration.dispatcher().dispatch(session, message.type(), message.payload())) { connections.errors.increment(); }
                 }
             }
         } catch (IOException | RuntimeException failure) {
             if (isOpen()) {
+                connections.errors.increment();
                 // Không log payload hoặc message exception do decoder có thể chứa dữ liệu client không giới hạn.
                 LOGGER.log(Level.WARNING, "Đóng TCP session {0}; lỗi read/decode/dispatch: {1}",
                         new Object[]{session.getSessionId(), failure.getClass().getSimpleName()});
@@ -263,25 +282,60 @@ final class TcpClientConnection implements SessionChannel {
         } finally { close(); }
     }
 
-    @Override public void send(Object message) {
+    private void sendSnapshot(GameStateDelivery delivery) {
+        if(connections.shareSnapshots && encoderCodec instanceof JsonTcpMessageCodec) {
+            try {
+                var frame=connections.snapshotFrames.frame(delivery).encode(encoderCodec,connections.performance);
+                writeStarted=System.nanoTime();
+                try {
+                    channel.writeSharedFrame(frame,configuration.maxMessageBytes());
+                    connections.sentBytes.add(frame.size()); connections.snapshotBytes.add(frame.size()); connections.sentMessages.increment();
+                } finally {
+                    lastSendDuration=System.nanoTime()-writeStarted; writeStarted=0;
+                    connections.performance.record(com.smashprofs.server.metrics.PerformanceMetrics.Stage.NETWORK_WRITE,lastSendDuration);
+                }
+            } catch(IOException failure) { connections.errors.increment(); close(); throw new UncheckedIOException(failure); }
+            return;
+        }
+        long started=System.nanoTime(); var message=GameStateMessageMapper.map(delivery);
+        sendInternal(message,System.nanoTime()-started);
+    }
+    @Override public void send(Object message) { sendInternal(message,0); }
+    private void sendInternal(Object message,long mappingNanos) {
         if (!isOpen()) { throw new IllegalStateException("Connection đã đóng"); }
         if (encoderCodec == null) { throw new UnsupportedOperationException("Chưa có TCP wire encoder/framing được duyệt"); }
         // Encode riêng từng direction; giữ cùng khóa encode+write để giữ thứ tự cùng connection.
-        sendLock.lock();
+        long lockStarted=System.nanoTime(); sendLock.lock();
+        connections.performance.record(com.smashprofs.server.metrics.PerformanceMetrics.Stage.SEND_LOCK_WAIT,System.nanoTime()-lockStarted);
         try {
             if (!isOpen()) { throw new IllegalStateException("Connection đã đóng"); }
             try {
+                long serializationStarted=System.nanoTime();
                 byte[] encoded = Objects.requireNonNull(encoderCodec.encode(message, configuration.maxMessageBytes()));
+                connections.performance.record(com.smashprofs.server.metrics.PerformanceMetrics.Stage.JSON_SERIALIZATION,System.nanoTime()-serializationStarted+mappingNanos);
+                if(message instanceof com.smashprofs.common.protocol.ProtocolMessage wire && wire.type()==com.smashprofs.common.protocol.MessageType.GAME_STATE) { connections.performance.snapshotEncodes.increment(); }
                 if (encoded.length > configuration.maxMessageBytes()) { throw new IOException("Encoded message vượt byte limit"); }
-                channel.writeEncodedBytes(encoded, configuration.maxMessageBytes());
+                writeStarted = System.nanoTime();
+                try {
+                    channel.writeEncodedBytes(encoded, configuration.maxMessageBytes());
+                    connections.sentBytes.add(encoded.length); connections.sentMessages.increment();
+                    if (message instanceof com.smashprofs.common.protocol.ProtocolMessage wire
+                            && wire.type() == com.smashprofs.common.protocol.MessageType.GAME_STATE) {
+                        connections.snapshotBytes.add(encoded.length);
+                    }
+                } finally {
+                    lastSendDuration = System.nanoTime() - writeStarted; writeStarted = 0;
+                    connections.performance.record(com.smashprofs.server.metrics.PerformanceMetrics.Stage.NETWORK_WRITE,lastSendDuration);
+                }
             } catch (IOException failure) {
                 if (!closed.get()) {
+                    connections.errors.increment();
                     LOGGER.log(Level.WARNING, "TCP send thất bại tại session {0}; loại lỗi {1}",
                             new Object[]{session.getSessionId(), failure.getClass().getSimpleName()});
                 }
                 close(); throw new UncheckedIOException("TCP send thất bại; connection đã đóng", failure);
             } catch (RuntimeException failure) {
-                if (!closed.get()) { LOGGER.warning("TCP encoder thất bại; đóng connection"); }
+                if (!closed.get()) { connections.errors.increment(); LOGGER.warning("TCP encoder thất bại; đóng connection"); }
                 close(); throw failure;
             }
         } finally { sendLock.unlock(); }
@@ -321,10 +375,12 @@ final class TcpClientConnection implements SessionChannel {
                 throw new IOException("Incomplete message vượt deadline");
             }
         }
-        private void account(int count) {
+        private void account(int count) throws IOException {
             if (count > 0) {
+                if(!inboundBytes.allow(count)) { connections.performance.rateLimitRejections.increment(); throw new IOException("Inbound byte rate exceeded"); }
                 if (!partial) { partial = true; firstByteNanos = System.nanoTime(); }
                 consumed += count;
+                connections.receivedBytes.add(count);
             }
         }
         @Override public int read() throws IOException {

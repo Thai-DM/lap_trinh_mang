@@ -20,6 +20,7 @@ public final class RoomManager {
     private final LongSupplier nanoClock;
     private final java.util.function.Consumer<com.smashprofs.server.game.AuthoritativeMatchResult> onMatchResult;
     private boolean closed;
+    private final int maxRooms=Integer.getInteger("smashprofs.server.maxRooms",1024);
 
     /** Giữ chế độ registry độc lập của các bước trước, không tự tạo scheduler/thread. */
     public RoomManager() {
@@ -48,6 +49,7 @@ public final class RoomManager {
             if (closed) {
                 throw new IllegalStateException("RoomManager đã shutdown");
             }
+            if(!rooms.containsKey(id) && rooms.size()>=maxRooms) { throw new IllegalStateException("Room capacity reached"); }
             return rooms.computeIfAbsent(id, key -> new GameRoom(key, nanoClock,
                     runtime -> registerRuntime(key, runtime)));
         }
@@ -59,6 +61,7 @@ public final class RoomManager {
         synchronized (registryLock) {
             if (closed) { throw new IllegalStateException("RoomManager đã shutdown"); }
             if (rooms.containsKey(id)) { throw new IllegalArgumentException("roomId đã tồn tại"); }
+            if(rooms.size()>=maxRooms) { throw new IllegalStateException("Room capacity reached"); }
             // Constructor hoàn tất trước publish; dùng cùng registry lock với get-or-create/shutdown.
             GameRoom room = new GameRoom(id, nanoClock, runtime -> registerRuntime(id, runtime));
             rooms.put(id, room);
@@ -74,6 +77,7 @@ public final class RoomManager {
                 throw new IllegalStateException("Không khởi động trận của phòng đã đóng");
             }
             if (scheduler != null) {
+                runtime.setPerformanceMetrics(scheduler.getMetrics().performance);
                 // Capture đúng instance phòng, không cập nhật phòng mới nếu roomId bị xóa/tạo lại.
                 scheduler.register(runtime, completed -> {
                     owner.updateLifecycle();

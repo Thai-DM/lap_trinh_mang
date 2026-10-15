@@ -71,6 +71,21 @@ public final class GameServer {
                         ProtocolV1.MAX_FRAME_BYTES, 5000));
     }
 
+    /** Separate secured listener; existing constructors retain the exact v1 CONNECT contract. */
+    public static GameServer clusterWorker(String host, int port, int maxConnections, int snapshotsPerSecond,
+                                           SessionAdmission admission, RankingGateway ranking) {
+        return new GameServer(FixedTickScheduler::new, System::nanoTime,
+                (connections, rooms) -> new TcpServerTransport(host, port, maxConnections, connections,
+                        new TcpIoConfiguration(JsonTcpMessageCodec::new,
+                                MessageDispatcher.protocolV1(connections, rooms, Objects.requireNonNull(admission)),
+                                ProtocolV1.MAX_FRAME_BYTES, 5000)),
+                snapshotsPerSecond, HeartbeatConfiguration.DEFAULT, System::nanoTime,
+                HeartbeatManager::newExecutor, Objects.requireNonNull(ranking));
+    }
+
+    public synchronized com.smashprofs.server.metrics.ServerMetrics getMetrics() { return scheduler.getMetrics(); }
+    public synchronized StateBroadcaster getBroadcaster() { return broadcaster; }
+
     /** Giữ codec injection; dispatcher hỗ trợ v1 envelope và DTO nội bộ cũ. */
     public GameServer(String bindHost, int bindPort, int maxConnections, Supplier<TcpMessageCodec> codecFactory,
                       int maxMessageBytes, int incompleteMessageTimeoutMillis) {
@@ -159,6 +174,7 @@ public final class GameServer {
         MatchResultPublisher nextResults = new MatchResultPublisher(rankingGateway);
         RoomManager nextRooms = new RoomManager(nextScheduler, nanoClock, nextResults::offer);
         ConnectionManager nextConnections = new ConnectionManager();
+        nextConnections.performance=nextScheduler.getMetrics().performance;
         StateBroadcaster nextBroadcaster = new StateBroadcaster(nextRooms, nextConnections, snapshotsPerSecond);
         TcpServerTransport nextTransport = null;
         try {

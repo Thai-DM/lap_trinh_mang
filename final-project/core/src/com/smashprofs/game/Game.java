@@ -52,6 +52,14 @@ public class Game extends com.badlogic.gdx.Game {
 
 	public LobbyClient getLobbyClient() { return lobbyClient; }
 
+	public static Game forLobby(LobbyClient lobby) {
+		var game = new Game();
+		game.lobbyClient = java.util.Objects.requireNonNull(lobby);
+		game.networkClient = lobby.getNetworkClient();
+		mockMode = false;
+		return game;
+	}
+
 	/** UI transfers an already joined connection; no socket connect/write on the render thread. */
 	public void openOnlineLobby(LobbyClient joined) {
 		if (joined.getSnapshot().phase() != LobbyClient.Phase.JOINED) {

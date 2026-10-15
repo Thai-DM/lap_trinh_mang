@@ -13,6 +13,8 @@ import java.util.Objects;
 
 /** State nhảy/ground riêng từng player, chỉ MatchRuntime simulation owner cập nhật. */
 public final class PlayerJumpController implements AutoCloseable {
+    private volatile com.smashprofs.server.metrics.PerformanceMetrics metrics = com.smashprofs.server.metrics.PerformanceMetrics.DISABLED;
+    public void setPerformanceMetrics(com.smashprofs.server.metrics.PerformanceMetrics metrics) { this.metrics=Objects.requireNonNull(metrics); }
     // Player.java: applyForces(0,0), jumpForce và maxExtraJumps; không nhân client deltaTime.
     public static final float GRAVITY_IMPULSE = -0.098f;
     public static final float JUMP_FORCE = 2.2f;
@@ -41,7 +43,7 @@ public final class PlayerJumpController implements AutoCloseable {
         contacts = new GroundContactListener(players);
         Body first = players.getBody(states.keySet().iterator().next());
         requireUnlocked(first);
-        first.getWorld().setContactListener(projectileContacts == null ? contacts : new ContactListener() {
+        ContactListener combined = projectileContacts == null ? contacts : new ContactListener() {
             @Override public void beginContact(Contact contact) {
                 contacts.beginContact(contact);
                 projectileContacts.beginContact(contact);
@@ -58,7 +60,8 @@ public final class PlayerJumpController implements AutoCloseable {
                 contacts.postSolve(contact, impulse);
                 projectileContacts.postSolve(contact, impulse);
             }
-        });
+        };
+        first.getWorld().setContactListener(new ProfiledContactListener(combined,()->metrics));
     }
 
     /** Chỉ gọi cho edge input mới từ batch drain, không giữ/replay jumpPressed giữa các tick. */

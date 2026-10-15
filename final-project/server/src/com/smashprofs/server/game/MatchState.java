@@ -13,6 +13,12 @@ public final class MatchState {
     private final String roomId;
     private volatile long serverTick = 0L;
     private final Map<PlayerId, ServerPlayer> players;
+    private final java.util.List<ServerPlayer> orderedPlayers;
+    private final boolean stableRosters=Boolean.parseBoolean(System.getProperty("smashprofs.performance.stableRosters","true"));
+    java.util.List<ServerPlayer> playersInSlotOrder() {
+        return stableRosters?orderedPlayers:players.keySet().stream().map(players::get)
+                .sorted(java.util.Comparator.comparingInt(ServerPlayer::getSlotIndex)).toList();
+    }
 
     public MatchState(MatchSetup setup) {
         Objects.requireNonNull(setup, "setup không được null");
@@ -27,6 +33,7 @@ public final class MatchState {
         }
         // Mỗi lần khởi tạo tạo player riêng; không dùng lại player state của trận khác.
         players = Map.copyOf(initialPlayers);
+        orderedPlayers=players.values().stream().sorted(java.util.Comparator.comparingInt(ServerPlayer::getSlotIndex)).toList();
     }
 
     public String getMatchId() {

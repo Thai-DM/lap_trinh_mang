@@ -26,6 +26,12 @@ public class HeartbeatManagerTest {
     }
     private void seconds(long seconds) { clock.addAndGet(TimeUnit.SECONDS.toNanos(seconds)); manager.runMaintenance(); }
     private String ping(ClientSession session) { return session.heartbeat.outstanding; }
+    @Test public void stalledWriteIsClosedBeforeHeartbeatActivationWithoutAffectingOtherSessions() {
+        var stalled = session(false); var healthy = session(true);
+        channels.get(0).writeStarted = System.nanoTime() - TimeUnit.SECONDS.toNanos(6);
+        manager.runMaintenance();
+        assertFalse(stalled.isOpen()); assertTrue(healthy.isOpen()); assertEquals(1, connections.size());
+    }
     @Test public void heartbeatDoesNotStartBeforeConnect() { var session = session(false); seconds(50); assertNull(ping(session)); assertTrue(session.isOpen()); assertTrue(channels.get(0).deliveries.isEmpty()); }
     @Test public void heartbeatStartsAfterConnect() { var session = session(true); assertTrue(session.heartbeat.active); seconds(5); assertNotNull(ping(session)); }
     @Test public void pingUsesProtocolV1Envelope() throws Exception {
@@ -80,6 +86,8 @@ public class HeartbeatManagerTest {
     private static final class Channel implements SessionChannel {
         private final List<HeartbeatDelivery> deliveries = new ArrayList<>();
         private boolean open = true, accept = true;
+        private long writeStarted;
+        @Override public long writeStartedNanos() { return writeStarted; }
         @Override public boolean offerHeartbeat(HeartbeatDelivery delivery) { if (accept) { deliveries.add(delivery); } return accept; }
         @Override public void send(Object message) { fail("Maintenance không được send đồng bộ"); }
         @Override public synchronized void close() { open = false; }

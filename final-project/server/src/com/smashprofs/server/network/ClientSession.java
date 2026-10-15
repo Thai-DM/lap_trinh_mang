@@ -9,6 +9,16 @@ import java.util.function.Consumer;
  * Lưu metadata của một client session phía server.
  */
 public final class ClientSession {
+    private final TokenBucket inputRate=new TokenBucket(Integer.getInteger("smashprofs.network.inputsPerSecond",240),480);
+    private final TokenBucket controlRate=new TokenBucket(Integer.getInteger("smashprofs.network.controlsPerSecond",128),256);
+    private final TokenBucket createRate=new TokenBucket(Integer.getInteger("smashprofs.network.createsPerSecond",8),16);
+    private int rateViolations;
+    boolean allowRequest(com.smashprofs.common.protocol.MessageType type) {
+        boolean allowed=type==com.smashprofs.common.protocol.MessageType.PLAYER_INPUT?inputRate.allow(1):controlRate.allow(1);
+        if(allowed && type==com.smashprofs.common.protocol.MessageType.CREATE_ROOM) { allowed=createRate.allow(1); }
+        if(!allowed) { rateViolations++; } return allowed;
+    }
+    boolean rateLimitExceededRepeatedly() { return rateViolations>=8; }
     final HeartbeatManager.State heartbeat = new HeartbeatManager.State();
     private final String sessionId;
     private final SessionChannel channel;
@@ -31,6 +41,9 @@ public final class ClientSession {
     public String getSessionId() {
         return sessionId;
     }
+    public int getOutboundQueueDepth() { return channel.outboundQueueDepth(); }
+    public long getWriteStartedNanos() { return channel.writeStartedNanos(); }
+    public long getLastSendNanos() { return channel.lastSendNanos(); }
 
     public PlayerId getPlayerId() {
         return playerId;

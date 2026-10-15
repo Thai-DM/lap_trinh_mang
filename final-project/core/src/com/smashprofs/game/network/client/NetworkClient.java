@@ -55,6 +55,15 @@ public class NetworkClient {
     private final BlockingQueue<ProtocolMessage> heartbeatQueue = new LinkedBlockingQueue<>(1);
     private volatile PlayerId playerId;
     private String connectRequestId;
+    private com.fasterxml.jackson.databind.node.ObjectNode connectPayload = ProtocolV1.object();
+
+    /** Explicit cluster-v1 capability on a separate secured listener; normal constructors send {}. */
+    public static NetworkClient forCluster(String host, int port, String ticket, ConnectionListener listener) {
+        if (ticket == null || ticket.isBlank()) { throw new IllegalArgumentException("Assignment ticket required"); }
+        var client = new NetworkClient(host, port, listener);
+        client.connectPayload = ProtocolV1.object().put("capability", "cluster-v1").put("assignment", ticket);
+        return client;
+    }
 
     private Socket socket;
     private DataInputStream in;
@@ -133,7 +142,7 @@ public class NetworkClient {
                 socket.setSoTimeout(connectTimeoutMs); // Bounded ACK wait; disabled after successful handshake.
                 connectRequestId = UUID.randomUUID().toString();
                 sendQueue.add(new OutboundMessage(
-                        new ProtocolMessage(MessageType.CONNECT, connectRequestId, ProtocolV1.object()), null));
+                        new ProtocolMessage(MessageType.CONNECT, connectRequestId, connectPayload.deepCopy()), null));
             }
             in = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
             out = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));

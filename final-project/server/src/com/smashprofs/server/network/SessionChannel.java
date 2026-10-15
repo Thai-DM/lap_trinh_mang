@@ -4,6 +4,9 @@ package com.smashprofs.server.network;
  * Kênh giao tiếp đầu ra tối thiểu từ server tới một client.
  */
 public interface SessionChannel {
+    default int outboundQueueDepth() { return 0; }
+    default long writeStartedNanos() { return 0; }
+    default long lastSendNanos() { return 0; }
     /** Heartbeat chỉ enqueue control; kênh không hỗ trợ không fallback sang send đồng bộ. */
     default boolean offerHeartbeat(HeartbeatDelivery delivery) { return false; }
     /** Non-blocking snapshot boundary; channel cũ không hỗ trợ thì từ chối, không gọi send đồng bộ. */

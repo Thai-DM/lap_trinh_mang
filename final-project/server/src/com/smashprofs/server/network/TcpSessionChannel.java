@@ -39,6 +39,16 @@ final class TcpSessionChannel implements SessionChannel {
         }
     }
 
+    /** Trusted immutable holder: no byte[] reference escapes and no per-recipient payload clone. */
+    void writeSharedFrame(SharedSnapshotCache.Frame frame,int maxBytes) throws IOException {
+        if(frame.size()>maxBytes) { throw new IOException("Encoded bytes exceed connection limit"); }
+        synchronized(writeLock) {
+            if(!isOpen()) { throw new IOException("TCP socket closed"); }
+            try { frame.writeTo(socket.getOutputStream()); socket.getOutputStream().flush(); }
+            catch(IOException failure) { try { close(); } catch(RuntimeException cleanup) { failure.addSuppressed(cleanup); } throw failure; }
+        }
+    }
+
     @Override public void close() {
         if (closed.compareAndSet(false, true)) {
             try { socket.close(); }

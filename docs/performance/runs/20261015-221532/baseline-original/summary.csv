@@ -1,0 +1,3 @@
+scenario,clients,repeat,exitCode,startedClients,failureCount,protocolErrors,unexpectedDisconnects,deliveriesPerSecond,deliveriesPerClientPerSecond,receivedBytesPerSecond,worstWorkerP95Ms,worstWorkerP99Ms,peakWorkerCpu,peakTotalHeapBytes,peakTotalRssBytes,peakRooms,totalTickOverruns,totalCycles
+single,4,1,0,4,0,0,0,79.97036777992282,19.992591944980706,88746.71579193046,0.9651,1.7313,0.06079413284416158,41215568,134221824,1,1,2057
+single,4,2,0,4,0,0,0,79.98512543284033,19.996281358210084,88763.0930234674,0.9754,1.9702,0.2902663527697884,41894208,155947008,1,1,2054

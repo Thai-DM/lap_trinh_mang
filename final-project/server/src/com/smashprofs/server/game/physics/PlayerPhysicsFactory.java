@@ -67,6 +67,7 @@ public final class PlayerPhysicsFactory {
                     body.setUserData(participant.playerId());
                     fixtureCreator.accept(body, fixture);
                 }
+                players.cachedIds=Set.copyOf(players.bodies.keySet());
                 return players;
             } catch (RuntimeException | Error failure) {
                 try {
@@ -113,6 +114,8 @@ public final class PlayerPhysicsFactory {
     public static final class PlayerPhysicsBodies implements AutoCloseable {
         private final HeadlessPhysicsWorld physics;
         private final Map<PlayerId, Body> bodies = new LinkedHashMap<>();
+        private Set<PlayerId> cachedIds=Set.of();
+        private final boolean stableRosters=Boolean.parseBoolean(System.getProperty("smashprofs.performance.stableRosters","true"));
         private boolean closed;
 
         private PlayerPhysicsBodies(HeadlessPhysicsWorld physics) {
@@ -121,7 +124,7 @@ public final class PlayerPhysicsFactory {
 
         public Set<PlayerId> getPlayerIds() {
             synchronized (physics) {
-                return closed || physics.isDisposed() ? Set.of() : Set.copyOf(bodies.keySet());
+                return closed || physics.isDisposed() ? Set.of() : stableRosters?cachedIds:Set.copyOf(bodies.keySet());
             }
         }
 
@@ -177,6 +180,7 @@ public final class PlayerPhysicsFactory {
                     }
                 }
                 bodies.clear();
+                cachedIds=Set.of();
                 physics.releasePlayerPhysics(this);
                 closed = true;
             }

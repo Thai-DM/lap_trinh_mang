@@ -18,9 +18,11 @@ public final class StateBroadcaster implements AutoCloseable {
     private static final Logger LOGGER = Logger.getLogger(StateBroadcaster.class.getName());
     private final RoomManager rooms;
     private final ConnectionManager connections;
-    private final int interval;
+    private volatile int interval;
+    public void setSnapshotsPerSecond(int rate) { validateRate(rate); interval = MatchRuntime.TICKS_PER_SECOND / rate; }
     private final Map<String, Cursor> cursors = new HashMap<>();
     private final AtomicBoolean closed = new AtomicBoolean();
+    private final boolean indexedRecipients=Boolean.parseBoolean(System.getProperty("smashprofs.performance.indexedRecipients","true"));
     public StateBroadcaster(RoomManager rooms, ConnectionManager connections) {
         this(rooms, connections, DEFAULT_SNAPSHOTS_PER_SECOND);
     }
@@ -39,6 +41,7 @@ public final class StateBroadcaster implements AutoCloseable {
     public synchronized void broadcast() {
         if (closed.get()) { return; }
         var active = new HashSet<String>();
+        var index=indexedRecipients && rooms.getRoomCount()>=4?new RecipientIndex():null;
         for (GameRoom room : rooms.getRooms()) {
             MatchRuntime runtime = room.getMatchRuntime();
             if (runtime == null || runtime.isClosed() || room.isClosed()) { continue; }
@@ -65,7 +68,7 @@ public final class StateBroadcaster implements AutoCloseable {
             cursor.endRecipients.removeIf(session -> !session.isOpen() || connections.get(session.getSessionId()) != session);
             if (!cursor.startPublished && !terminal && runtime.isStarted()) {
                 // Hook sau cycle đã có: publish start trước bất kỳ offer snapshot nào, không đổi lifecycle.
-                for (ClientSession session : connections.getSessions()) {
+                for (ClientSession session : recipients(index,room.getRoomId())) {
                     var playerId = session.getPlayerId();
                     var setup = runtime.getMatchSetup();
                     if (playerId == null || !session.isOpen() || !setup.roomId().equals(session.getRoomId())
@@ -82,7 +85,7 @@ public final class StateBroadcaster implements AutoCloseable {
             }
             if (cursor.terminal || snapshot.serverTick() <= cursor.lastTick
                     || (!terminal && snapshot.serverTick() % interval != 0)) { continue; }
-            for (ClientSession session : connections.getSessions()) {
+            for (ClientSession session : recipients(index,room.getRoomId())) {
                 var playerId = session.getPlayerId();
                 if (playerId == null || !snapshot.roomId().equals(session.getRoomId()) || !session.isOpen()
                         || snapshot.players().stream().noneMatch(p -> p.playerId().equals(playerId))) { continue; }
@@ -91,6 +94,7 @@ public final class StateBroadcaster implements AutoCloseable {
                                 && rooms.getRoom(snapshot.roomId()) == room && room.getMatchRuntime() == runtime
                                 && session.isOpen() && connections.get(session.getSessionId()) == session
                                 && playerId.equals(session.getPlayerId()) && snapshot.roomId().equals(session.getRoomId()));
+                long enqueueStarted=System.nanoTime(); connections.performance.recipientVisits.increment();
                 try {
                     if (!closed.get()) {
                         if (terminal && result != null) {
@@ -103,16 +107,18 @@ public final class StateBroadcaster implements AutoCloseable {
                 catch (RuntimeException failure) {
                     // Channel vi phạm boundary không được làm dừng các recipient/room khác.
                     LOGGER.warning("Không offer được GAME_STATE/GAME_END cho một session");
-                }
+                } finally { connections.performance.record(com.smashprofs.server.metrics.PerformanceMetrics.Stage.SNAPSHOT_ENQUEUE,System.nanoTime()-enqueueStarted); }
             }
             cursor.lastTick = snapshot.serverTick(); cursor.terminal = terminal;
         }
         cursors.entrySet().removeIf(entry -> !active.contains(entry.getKey()));
+        connections.snapshotFrames.retainRooms(active);
         // Xóa snapshot chờ nếu room/runtime đã đóng; không cắt ngang frame đang ghi.
         for (ClientSession session : connections.getSessions()) { session.discardInvalidGameState(); }
     }
     @Override public void close() {
         closed.set(true);
+        connections.snapshotFrames.clear();
         synchronized (this) { cursors.clear(); }
         for (ClientSession session : connections.getSessions()) { session.discardInvalidGameState(); }
     }
@@ -124,5 +130,20 @@ public final class StateBroadcaster implements AutoCloseable {
         // Cursor gắn đúng runtime; terminal gate ngăn enqueue lặp cho từng session trong lifecycle này.
         final java.util.Set<ClientSession> endRecipients = new HashSet<>();
         Cursor(MatchRuntime runtime) { this.runtime = runtime; }
+    }
+    private java.util.List<ClientSession> recipients(RecipientIndex index,String room) {
+        return index==null?connections.getSessions():index.forRoom(room);
+    }
+    private final class RecipientIndex {
+        private Map<String,java.util.List<ClientSession>> byRoom;
+        java.util.List<ClientSession> forRoom(String room) {
+            if(byRoom==null) {
+                byRoom=new HashMap<>();
+                for(var session:connections.getSessions()) {
+                    String id=session.getRoomId(); if(id!=null) { byRoom.computeIfAbsent(id,k->new java.util.ArrayList<>(4)).add(session); }
+                }
+            }
+            return byRoom.getOrDefault(room,java.util.List.of());
+        }
     }
 }

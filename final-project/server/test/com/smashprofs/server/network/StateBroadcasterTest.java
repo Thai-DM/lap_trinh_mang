@@ -34,6 +34,29 @@ public class StateBroadcasterTest {
     }
     private void ticks(GameRoom room, int count) { for (int i = 0; i < count; i++) { room.getMatchRuntime().tick(); broadcaster.broadcast(); } }
     @Test public void broadcastRateDefaultsTo20Hz() { assertEquals(20, broadcaster.getSnapshotsPerSecond()); }
+    @Test public void indexedRecipientsPreserveRoomIsolationAndInvalidateChangedBindings() {
+        var channels = new ArrayList<RecordingChannel>(); var matches = new ArrayList<GameRoom>();
+        for (int i=0; i<4; i++) {
+            var room = rooms.getOrCreateRoom("indexed_"+i); matches.add(room);
+            var owner = new PlayerId("owner_"+i); var peer = new PlayerId("peer_"+i);
+            for (var id : List.of(owner, peer)) { room.joinPlayer(id); room.selectCharacter(id,"Alex"); room.setReady(id,true); }
+            assertTrue(room.startCountdown()); clock.addAndGet(TimeUnit.SECONDS.toNanos(3)); assertTrue(room.updateCountdown());
+            assertNotNull(room.prepareMatch()); assertNotNull(room.startMatch());
+            var output = new RecordingChannel(); channels.add(output);
+            var session = new ClientSession("indexed_session_"+i,output); session.bindPlayer(owner); session.joinRoom(room.getRoomId()); connections.register(session);
+            for(int tick=0;tick<3;tick++) { room.getMatchRuntime().tick(); }
+        }
+        broadcaster.broadcast();
+        for(int i=0;i<4;i++) {
+            assertEquals(1,channels.get(i).starts.size()); assertEquals(1,channels.get(i).deliveries.size());
+            assertEquals("indexed_"+i,channels.get(i).deliveries.get(0).snapshot().roomId());
+        }
+        var pending=channels.get(0).deliveries.get(0); connections.get("indexed_session_0").joinRoom("indexed_1");
+        assertFalse(pending.stillValid().getAsBoolean());
+        for(var room:matches) { for(int tick=0;tick<3;tick++) { room.getMatchRuntime().tick(); } }
+        broadcaster.broadcast();
+        assertEquals(1,channels.get(0).deliveries.size()); assertEquals(2,channels.get(1).deliveries.size());
+    }
     @Test public void invalidBroadcastConfigurationIsRejected() {
         for (int rate : new int[]{-1,0,7,19,40,61}) { assertThrows(IllegalArgumentException.class, () -> new StateBroadcaster(rooms, connections, rate)); }
         for (int rate : new int[]{10,20,30,60}) { assertEquals(rate, new StateBroadcaster(rooms, connections, rate).getSnapshotsPerSecond()); }

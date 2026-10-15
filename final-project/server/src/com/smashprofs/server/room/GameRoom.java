@@ -37,6 +37,15 @@ public final class GameRoom {
     private final Map<PlayerId, String> selectedCharacters = new HashMap<>();
     private final Set<PlayerId> readyPlayers = new HashSet<>();
     private RoomPhase phase = RoomPhase.WAITING;
+    private int minimumPlayers = 2;
+
+    /** Cluster matchmaking can reserve an exact group before any client joins. Legacy minimum stays 2. */
+    public synchronized void setMinimumPlayers(int count) {
+        if (count < 2 || count > 4) { throw new IllegalArgumentException("minimum players 2..4"); }
+        if (count == minimumPlayers) { return; }
+        if (closed || getPlayerCount() != 0 || phase != RoomPhase.WAITING) { throw new IllegalStateException("Configure before joining"); }
+        minimumPlayers = count;
+    }
     private long countdownStartedAtNanos;
     private long countdownRemainingNanos;
     private boolean countdownComplete;
@@ -233,7 +242,7 @@ public final class GameRoom {
             return false;
         }
         int playerCount = getPlayerCount();
-        if (playerCount < 2 || playerCount > 4) {
+        if (playerCount < minimumPlayers || playerCount > 4) {
             return false;
         }
         for (PlayerSlot slot : playerSlots) {

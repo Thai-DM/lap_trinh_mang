@@ -20,9 +20,13 @@ public class DesktopLauncher {
 
 	public static void main (String[] arg) {
 		LobbyConfiguration lobby;
+		com.smashprofs.game.network.client.LobbyClient clusterLobby = null;
 		try {
-			lobby = LobbyConfiguration.fromArguments(arg);
-		} catch (IllegalArgumentException invalid) {
+			if (arg != null && java.util.Arrays.stream(arg).anyMatch(a -> a.startsWith("--control-url="))) {
+				clusterLobby = com.smashprofs.game.network.client.ClusterLobbyConnector.fromArguments(arg);
+				lobby = null;
+			} else { lobby = LobbyConfiguration.fromArguments(arg); }
+		} catch (IllegalArgumentException | java.io.IOException invalid) {
 			System.err.println("[DesktopLauncher] " + invalid.getMessage());
 			System.err.println("Online: --server-host=127.0.0.1 --server-port=PORT --room=ROOM --create-room|--join-room");
 			return;
@@ -76,7 +80,9 @@ public class DesktopLauncher {
 		}
 
 		Game game;
-		if (lobby != null) {
+		if (clusterLobby != null) {
+			game = Game.forLobby(clusterLobby);
+		} else if (lobby != null) {
 			game = new Game(lobby);
 		} else if (mockMode) {
 			try {

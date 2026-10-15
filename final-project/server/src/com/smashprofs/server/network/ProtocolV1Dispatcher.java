@@ -17,7 +17,12 @@ final class ProtocolV1Dispatcher {
     private final JoinRoomHandler joins;
     private final PlayerReadyHandler ready;
     private final PlayerInputHandler inputs;
+    private final SessionAdmission admission;
     ProtocolV1Dispatcher(ConnectionManager connections, RoomManager rooms) {
+        this(connections, rooms, null);
+    }
+    ProtocolV1Dispatcher(ConnectionManager connections, RoomManager rooms, SessionAdmission admission) {
+        this.admission = admission;
         this.connections = connections;
         this.rooms = rooms;
         joins = new JoinRoomHandler(connections, rooms);
@@ -39,6 +44,7 @@ final class ProtocolV1Dispatcher {
         }
         if (response != null) {
             session.send(response);
+            if(session.rateLimitExceededRepeatedly()) { session.close(); }
             if (response.type() == MessageType.CONNECT_ACK && heartbeat != null) { heartbeat.connected(session); }
         }
         return accepted;
@@ -48,15 +54,20 @@ final class ProtocolV1Dispatcher {
         if (!session.isOpen() || connections.get(session.getSessionId()) != session) {
             throw error("INVALID_SESSION", requestId);
         }
+        if(!session.allowRequest(message.type())) {
+            connections.performance.rateLimitRejections.increment(); throw new ProtocolException("RATE_LIMITED","Request rate exceeded",requestId);
+        }
         ObjectNode payload = message.payload();
         if (message.type() == MessageType.CONNECT) {
-            ProtocolV1.fields(payload, requestId);
+            if (admission == null) { ProtocolV1.fields(payload, requestId); }
             // CONNECT lặp giữ nguyên ID; không lấy PlayerId/IP/port từ client.
-            if (session.getPlayerId() == null) { session.bindPlayer(new PlayerId(UUID.randomUUID().toString())); }
+            if (admission != null) { session.bindPlayer(admission.connect(session, message)); }
+            else if (session.getPlayerId() == null) { session.bindPlayer(new PlayerId(UUID.randomUUID().toString())); }
             return new ProtocolMessage(MessageType.CONNECT_ACK, requestId,
                     ProtocolV1.object().put("playerId", session.getPlayerId().value()));
         }
         if (session.getPlayerId() == null) { throw error("INVALID_SESSION", requestId); }
+        if (admission != null) { admission.authorize(session, message); }
         return switch (message.type()) {
             case CREATE_ROOM -> {
                 ProtocolV1.fields(payload, requestId, "roomId");

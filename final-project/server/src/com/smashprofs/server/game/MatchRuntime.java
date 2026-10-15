@@ -28,6 +28,16 @@ import java.util.concurrent.TimeUnit;
 
 /** Sở hữu state/queue/World riêng; simulation owner áp dụng movement, jump/gravity, boundary, melee rồi step. */
 public final class MatchRuntime implements AutoCloseable {
+    private volatile com.smashprofs.server.metrics.PerformanceMetrics metrics = com.smashprofs.server.metrics.PerformanceMetrics.DISABLED;
+    private long measuredTicks, measuredTickNanos, maxTickNanos;
+    public synchronized void setPerformanceMetrics(com.smashprofs.server.metrics.PerformanceMetrics metrics) {
+        this.metrics=Objects.requireNonNull(metrics); inputQueue.setPerformanceMetrics(metrics); jumpController.setPerformanceMetrics(metrics);
+    }
+    public synchronized Map<String,Object> tickMetrics() {
+        return Map.of("count",measuredTicks,"meanMs",measuredTicks==0?0:measuredTickNanos/(double)measuredTicks/1e6,"maxMs",maxTickNanos/1e6);
+    }
+    public synchronized void resetTickMetrics() { measuredTicks=0;measuredTickNanos=0;maxTickNanos=0; }
+    public synchronized int getPendingInputCount() { return inputQueue.getPendingCount(); }
     public static final int TICKS_PER_SECOND = 60;
     /** Timeout held input (movement và block) ban đầu 250 ms ở 60 Hz, không phải hằng số gameplay gốc. */
     public static final int DEFAULT_MOVEMENT_TIMEOUT_TICKS = TICKS_PER_SECOND / 4;
@@ -36,6 +46,12 @@ public final class MatchRuntime implements AutoCloseable {
     static final int POSITION_ITERATIONS = 2;
     static final long MATCH_DURATION_NANOS = TimeUnit.SECONDS.toNanos(120);
     private final MatchSetup setup;
+    private final boolean stableRosters=Boolean.parseBoolean(System.getProperty("smashprofs.performance.stableRosters","true"));
+    private List<MatchSetup.Participant> orderedParticipants;
+    private List<MatchSetup.Participant> participantsInSlotOrder() {
+        if(orderedParticipants==null) { orderedParticipants=setup.participants().stream().sorted(Comparator.comparingInt(MatchSetup.Participant::slotIndex)).toList(); }
+        return stableRosters?orderedParticipants:setup.participants().stream().sorted(Comparator.comparingInt(MatchSetup.Participant::slotIndex)).toList();
+    }
     private final Supplier<HeadlessPhysicsWorld> physicsFactory;
     private final PhysicsStepper physicsStepper;
     private final Consumer<HeadlessPhysicsWorld> initializationCheck;
@@ -195,10 +211,14 @@ public final class MatchRuntime implements AutoCloseable {
      *
      * @throws IllegalStateException nếu runtime chưa start thành công
      */
-    public synchronized InputQueue.OfferResult submitInput(PlayerInput input) {
+    public InputQueue.OfferResult submitInput(PlayerInput input) {
+        long entered=System.nanoTime();
+        synchronized(this) {
+        metrics.record(com.smashprofs.server.metrics.PerformanceMetrics.Stage.INPUT_LOCK_WAIT,System.nanoTime()-entered);
         requireStarted();
         if (isFinished()) { return InputQueue.OfferResult.MATCH_FINISHED; }
         return inputQueue.offer(input);
+        }
     }
 
     /**
@@ -214,7 +234,18 @@ public final class MatchRuntime implements AutoCloseable {
      *
      * @throws IllegalStateException nếu chưa start hoặc caller không phải simulation owner
      */
-    public synchronized List<PlayerInput> tick() {
+    public List<PlayerInput> tick() {
+        long entered=System.nanoTime();
+        synchronized(this) {
+            long started=System.nanoTime(); metrics.record(com.smashprofs.server.metrics.PerformanceMetrics.Stage.TICK_LOCK_WAIT,started-entered);
+            try { return tickOwned(); }
+            finally {
+                long duration=System.nanoTime()-started; measuredTicks++; measuredTickNanos+=duration; maxTickNanos=Math.max(maxTickNanos,duration);
+                metrics.record(com.smashprofs.server.metrics.PerformanceMetrics.Stage.ROOM_TICK,duration);
+            }
+        }
+    }
+    private List<PlayerInput> tickOwned() {
         requireStarted();
         if (isFinished()) { throw new IllegalStateException("Trận đã FINISHED, không tick tiếp"); }
         Thread caller = Thread.currentThread();
@@ -224,6 +255,7 @@ public final class MatchRuntime implements AutoCloseable {
             throw new IllegalStateException("tick phải chạy trên simulation owner của trận");
         }
         List<PlayerInput> effectiveInputs = inputQueue.drainForTick();
+        long phaseStarted=System.nanoTime();
         // Queue chấp nhận transport hợp lệ; simulation không áp dụng điều khiển cho player đã chết.
         // Vẫn trả batch đã drain và giữ Body chạy physics thụ động (Rocket có thể đang bám Body này).
         List<PlayerInput> actionableInputs = effectiveInputs.stream()
@@ -275,11 +307,11 @@ public final class MatchRuntime implements AutoCloseable {
         }
         stompController.cancelDeadOrRecoveredPlayers();
         // Thứ tự slot ổn định, không phụ thuộc thứ tự packet, roster hoặc HashMap.
+        metrics.record(com.smashprofs.server.metrics.PerformanceMetrics.Stage.MOVEMENT,System.nanoTime()-phaseStarted); phaseStarted=System.nanoTime();
         // HP/dead có hiệu lực ngay: slot bị đánh chết trước lượt sẽ không còn được tấn công trong tick này.
         Map<PlayerId, PlayerInput> inputByPlayer = new HashMap<>();
         for (PlayerInput input : actionableInputs) { inputByPlayer.put(input.playerId(), input); }
-        for (var participant : setup.participants().stream()
-                .sorted(Comparator.comparingInt(MatchSetup.Participant::slotIndex)).toList()) {
+        for (var participant : participantsInSlotOrder()) {
             PlayerId attackerId = participant.playerId();
             PlayerInput input = inputByPlayer.get(attackerId);
             // Cùng slot: melee trước stomp; giữa các player giữ policy slot-order/HP có hiệu lực ngay.
@@ -300,9 +332,9 @@ public final class MatchRuntime implements AutoCloseable {
         }
         stompController.cancelDeadOrRecoveredPlayers();
         // CombatManager: update projectile có sẵn trước shooting, sau đó resolve contact từ tick trước.
+        metrics.record(com.smashprofs.server.metrics.PerformanceMetrics.Stage.COMBAT,System.nanoTime()-phaseStarted); phaseStarted=System.nanoTime();
         projectileManager.updateProjectiles();
-        for (var participant : setup.participants().stream()
-                .sorted(Comparator.comparingInt(MatchSetup.Participant::slotIndex)).toList()) {
+        for (var participant : participantsInSlotOrder()) {
             PlayerInput input = inputByPlayer.get(participant.playerId());
             if (input != null && input.abilityPressed()) {
                 projectileManager.spawnProjectile(participant.playerId(), serverTick);
@@ -316,12 +348,16 @@ public final class MatchRuntime implements AutoCloseable {
             }
         }
         stompController.cancelDeadOrRecoveredPlayers();
+        metrics.record(com.smashprofs.server.metrics.PerformanceMetrics.Stage.PROJECTILES,System.nanoTime()-phaseStarted); phaseStarted=System.nanoTime();
         try {
             physicsStepper.step(physicsWorld.getWorld(), PHYSICS_TIME_STEP, VELOCITY_ITERATIONS, POSITION_ITERATIONS);
         } catch (RuntimeException | LinkageError failure) {
             // Không tăng tick hoặc giả lập rollback; scheduler hiện có sẽ cô lập runtime lỗi.
             throw new IllegalStateException("Box2D step thất bại cho trận " + getMatchId(), failure);
+        } finally {
+            metrics.record(com.smashprofs.server.metrics.PerformanceMetrics.Stage.PHYSICS_STEP,System.nanoTime()-phaseStarted);
         }
+        phaseStarted=System.nanoTime();
         jumpController.synchronizeAfterStep();
         boundaryController.synchronizeAfterStep();
         stompController.cancelDeadOrRecoveredPlayers();
@@ -329,7 +365,9 @@ public final class MatchRuntime implements AutoCloseable {
         projectileManager.collectHitsAfterStep();
         projectileManager.cleanupDestroyed();
         matchState.advanceTick();
+        metrics.record(com.smashprofs.server.metrics.PerformanceMetrics.Stage.POST_PHYSICS,System.nanoTime()-phaseStarted); phaseStarted=System.nanoTime();
         var completedSnapshot = GameSnapshotBuilder.build(matchState, playerBodies, jumpController, projectileManager);
+        metrics.record(com.smashprofs.server.metrics.PerformanceMetrics.Stage.SNAPSHOT_BUILD,System.nanoTime()-phaseStarted);
         long elapsedNanos = Math.max(0L, nanoClock.getAsLong() - matchStartedAtNanos);
         var result = MatchEndEvaluator.evaluate(completedSnapshot, elapsedNanos >= MATCH_DURATION_NANOS);
         latestSnapshot = completedSnapshot;
@@ -380,6 +418,7 @@ public final class MatchRuntime implements AutoCloseable {
         closed = true;
         latestSnapshot = null; // Không công bố trận đã đóng; snapshot caller giữ trước đó vẫn bất biến.
         heldInputs.clear();
+        if (inputQueue != null) { inputQueue.clear(); }
         if (matchState != null) {
             for (PlayerId playerId : matchState.getPlayerIds()) {
                 matchState.getPlayer(playerId).setBlocking(false);

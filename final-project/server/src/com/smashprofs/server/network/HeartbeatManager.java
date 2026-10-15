@@ -17,6 +17,8 @@ public final class HeartbeatManager implements AutoCloseable {
     private volatile boolean closed;
     private volatile Thread maintenanceThread;
     private ScheduledFuture<?> task;
+    private final long writeTimeoutNanos = TimeUnit.MILLISECONDS.toNanos(
+            Math.max(1, Long.getLong("smashprofs.network.writeTimeoutMillis", 5000L)));
 
     /** State thuộc session, không có map connection thứ hai. Truy cập dưới khóa session. */
     static final class State {
@@ -71,6 +73,11 @@ public final class HeartbeatManager implements AutoCloseable {
         } finally { maintenanceThread = null; }
     }
     private void maintain(ClientSession session) {
+        long writeStarted = session.getWriteStartedNanos();
+        if (writeStarted != 0 && System.nanoTime() - writeStarted >= writeTimeoutNanos) {
+            session.close();
+            return;
+        }
         HeartbeatDelivery delivery = null; boolean expired = false;
         synchronized (session) {
             var state = session.heartbeat;

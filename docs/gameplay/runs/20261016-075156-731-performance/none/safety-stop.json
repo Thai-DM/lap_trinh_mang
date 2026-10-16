@@ -1,0 +1,11 @@
+{
+  "status": "BLOCKED_MEMORY",
+  "freeBytes": 1197531136,
+  "clients": 4,
+  "variant": "final",
+  "guard": {
+    "minimumStartMB": 1500,
+    "minimumRunMB": 750
+  },
+  "completedDataPoints": 0
+}

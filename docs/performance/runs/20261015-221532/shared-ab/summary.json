@@ -1,0 +1,58 @@
+[
+  {
+    "case": "IDLE-4-baseline-1",
+    "clients": 4,
+    "workers": 1,
+    "variant": "baseline",
+    "profile": "IDLE",
+    "repeat": 1,
+    "correctness": "PASS",
+    "deliveriesPerClientPerSecond": 20.10497511738301,
+    "windowSeconds": [
+      45.0294656
+    ],
+    "cycleHz": [
+      60.00416857975294
+    ],
+    "roomTick": [
+      {
+        "maxMs": 10.5028,
+        "meanMs": 0.2979817912657291,
+        "budgetExceeds": 0,
+        "count": 2702,
+        "p50Ms": 0.186367,
+        "p95Ms": 0.851967,
+        "budgetExceedRatio": 0.0,
+        "p99Ms": 1.327103
+      }
+    ],
+    "workerCycle": [
+      {
+        "maxMs": 10.6064,
+        "meanMs": 0.40728275351591414,
+        "budgetExceeds": 0,
+        "count": 2702,
+        "p50Ms": 0.266239,
+        "p95Ms": 1.146879,
+        "budgetExceedRatio": 0.0,
+        "p99Ms": 1.671167
+      }
+    ],
+    "schedulingLag": [
+      {
+        "maxMs": 30.761144,
+        "meanMs": 6.598438857883049,
+        "budgetExceeds": 10,
+        "count": 2702,
+        "p50Ms": 5.701631,
+        "p95Ms": 15.073279,
+        "budgetExceedRatio": 0.003700962250185048,
+        "p99Ms": 16.383999
+      }
+    ],
+    "snapshotEncodes": 3600,
+    "snapshotCacheHits": 0,
+    "peakRssBytes": 141721600,
+    "performanceSlo": "PASS"
+  }
+]

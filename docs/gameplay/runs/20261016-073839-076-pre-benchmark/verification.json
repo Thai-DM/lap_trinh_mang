@@ -1,0 +1,16 @@
+﻿{
+    "date":  "2026-10-16T07:39:00.8810554+07:00",
+    "status":  "PASS",
+    "label":  "pre-benchmark",
+    "heapMiB":  128,
+    "suites":  [
+                   "com.smashprofs.server.game.StockGameplayTest",
+                   "com.smashprofs.server.game.ItemGameplayTest",
+                   "com.smashprofs.server.game.physics.WallMovementTest",
+                   "com.smashprofs.server.network.HeartbeatManagerTest",
+                   "com.smashprofs.server.cluster.LoadWorkloadTest",
+                   "com.smashprofs.server.game.GameplayTcpIntegrationTest",
+                   "com.smashprofs.tests.network.GameplayClientModelTest",
+                   "com.smashprofs.tests.network.ClusterLobbyIntegrationTest"
+               ]
+}

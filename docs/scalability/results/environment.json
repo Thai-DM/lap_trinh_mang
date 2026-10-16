@@ -1,0 +1,22 @@
+{
+  "platform": "Windows-10-10.0.19041-SP0",
+  "processor": "Intel64 Family 6 Model 140 Stepping 1, GenuineIntel",
+  "logicalProcessors": 8,
+  "availableMemoryBytesAtStart": 1966751744,
+  "jdk": "java version \"17.0.12\" 2024-07-16 LTS\nJava(TM) SE Runtime Environment (build 17.0.12+8-LTS-286)\nJava HotSpot(TM) 64-Bit Server VM (build 17.0.12+8-LTS-286, mixed mode, sharing)\n",
+  "seconds": 12,
+  "repeats": 2,
+  "counts": [
+    2,
+    4,
+    16,
+    32,
+    64,
+    100,
+    500,
+    1000
+  ],
+  "loopback": true,
+  "date": "2026-10-15",
+  "isolation": "fresh JVMs for each data point; bots share this host"
+}

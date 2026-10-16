@@ -1,0 +1,15 @@
+﻿{
+    "benchmarkStatus":  "BLOCKED_MEMORY before first after point",
+    "nativeLifecycleRounds":  30,
+    "focusedSubset":  311,
+    "baselineSummary":  "runs/20261015-221532/shared-ab/IDLE-4-baseline-1/summary.json",
+    "clientTests":  17,
+    "regressionManifest":  "runs/20261015-221532/regression-final/verification.json",
+    "independentWorkerJvmSuiteRerun":  false,
+    "status":  "PARTIAL",
+    "gitCommitResetMergeRebasePushPerformed":  false,
+    "nativeBytesMeasured":  false,
+    "safetyStop":  "runs/20261015-221532/shared-ab/safety-stop.json",
+    "date":  "2026-10-15T23:02:02.2995959+07:00",
+    "serverTests":  1407
+}

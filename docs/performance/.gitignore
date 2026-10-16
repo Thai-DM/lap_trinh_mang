@@ -1,0 +1,3 @@
+# Raw JVM recordings can include local environment and system properties.
+# Keep the summarized profiling evidence in Git; retain raw recordings locally.
+*.jfr

@@ -29,6 +29,7 @@ public class  Hud{
     private Label modeLabel; // label for the world
     private Label playerLabel; // label for the player
     private Label fpsLabel; // label for the current FPS
+    private Label networkLabel; // label for network metrics / status
     BitmapFont fpsFont; // font for the FPS number. Different styling than the default bitmap font.
     private SoundManager soundManager;
 
@@ -64,13 +65,30 @@ public class  Hud{
             fpsLabel = new Label( "FPS: "  + Gdx.graphics.getFramesPerSecond(), new Label.LabelStyle(fpsFont, Color.RED));
         }
 
+        networkLabel = new Label("", new Label.LabelStyle(fpsFont, Color.CYAN));
+
         table.add(playerOneHud).expandX().padTop(2);
         table.add(countdownLabel).expandX().padTop(2);
         table.add(playerTwoHud).expandX().padTop(2);
         table.row(); // new row
-        table.add(fpsLabel).right().padRight(6f).padTop(3f).colspan(3);
+        if (fpsLabel != null) {
+            table.add(fpsLabel).right().padRight(6f).padTop(3f).colspan(3);
+            table.row();
+        }
+        table.add(networkLabel).right().padRight(6f).padTop(1f).colspan(3);
         stage.addActor(table);
 
+    }
+
+    public void setNetworkStatus(String status) {
+        if (networkLabel != null && status != null) {
+            networkLabel.setText(status);
+            if (status.startsWith("[MẤT") || status.startsWith("[CHƯA")) {
+                networkLabel.setStyle(new Label.LabelStyle(fpsFont, Color.RED));
+            } else {
+                networkLabel.setStyle(new Label.LabelStyle(fpsFont, Color.CYAN));
+            }
+        }
     }
 
     public void updateHud(float delta, Player playerOne, Player playerTwo){

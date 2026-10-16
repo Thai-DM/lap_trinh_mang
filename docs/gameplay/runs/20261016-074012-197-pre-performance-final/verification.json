@@ -1,0 +1,12 @@
+﻿{
+    "date":  "2026-10-16T07:40:22.7444793+07:00",
+    "status":  "PASS",
+    "label":  "pre-performance-final",
+    "heapMiB":  128,
+    "suites":  [
+                   "com.smashprofs.server.game.ItemGameplayTest",
+                   "com.smashprofs.server.game.StockGameplayTest",
+                   "com.smashprofs.server.game.physics.WallMovementTest",
+                   "com.smashprofs.server.game.MatchRuntimeMovementTest"
+               ]
+}

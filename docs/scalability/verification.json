@@ -1,0 +1,51 @@
+{
+    "earlierMultiProcessIntegration":  {
+                                           "note":  "Not rerun with three JVMs after final small fixes because user accepted the RAM limit.",
+                                           "independentWorkerJVMs":  3,
+                                           "scenarios":  [
+                                                             "all clients START and snapshot",
+                                                             "three distinct child PIDs",
+                                                             "ticket replay rejected",
+                                                             "cross-room join rejected",
+                                                             "anonymous v1 CONNECT rejected on cluster listener",
+                                                             "worker kill gives LOST/ABORTED",
+                                                             "control loss fences remaining workers"
+                                                         ],
+                                           "suite":  "ClusterProcessIntegrationTest",
+                                           "evidence":  "Gradle :server:test --tests com.smashprofs.server.cluster.* completed BUILD SUCCESSFUL before low-memory stop",
+                                           "tcpClients":  16,
+                                           "status":  "PASS"
+                                       },
+    "java":  "17.0.12",
+    "startupShutdownScriptSmoke":  {
+                                       "workers":  1,
+                                       "status":  "PASS",
+                                       "controlPort":  28080,
+                                       "note":  "Start-Cluster.ps1 -SkipBuild and Stop-Cluster.ps1 succeeded after response-before-close fix; no load bots.",
+                                       "output":  "results/script-smoke.json"
+                                   },
+    "gitCommitMergeResetPushPerformed":  false,
+    "finalSourceCompilation":  "PASS: javac --release 17, 128 MiB compiler heap",
+    "offlineGameplayPhysicsChanged":  false,
+    "finalServerTests":  {
+                             "heapMiB":  128,
+                             "command":  "scripts/scalability/Verify-LowMemory.ps1 -JavaHome \u003cJDK17\u003e",
+                             "output":  "results/server-tests.txt",
+                             "count":  263,
+                             "failures":  0
+                         },
+    "date":  "2026-10-15",
+    "fullBenchmarkComparison":  "BLOCKED: RAM threshold; user requested recording the current resource limit",
+    "runtimeJarSha256":  "ADC8C5C1022B625AF04CD4A499734CC1DFE895BCC8FBF77E5048C8F5FFC8B091",
+    "clientTests":  {
+                        "output":  "results/client-tests.txt",
+                        "suites":  [
+                                       "ClusterLobbyIntegrationTest",
+                                       "LobbyClientTcpIntegrationTest",
+                                       "NetworkClientProtocolV1Test"
+                                   ],
+                        "note":  "PASS on final compiled server source after HTTP shutdown fix; JUnit OK (17 tests), native JVM exit code 0.",
+                        "count":  17,
+                        "failures":  0
+                    }
+}

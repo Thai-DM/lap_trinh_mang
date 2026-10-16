@@ -1,0 +1,6 @@
+﻿{
+    "phase":  "initial repeated benchmark",
+    "cpu":  "11th Gen Intel(R) Core(TM) i5-1135G7 @ 2.40GHz",
+    "note":  "Runtime built before final matchmaking roster gate; that gate does not affect CREATE/JOIN benchmark workload.",
+    "serverJarSha256":  "6A0EECE09583F5A3BBD430330C6318541EF5CB1329CC4976842FD9CB37C1F825"
+}

@@ -1,0 +1,26 @@
+﻿[
+    {
+        "original":  "baseline-original\\jfr-analysis-v2.events.json",
+        "sha256":  "51938E3CFB371398CF10B68D4C9850C025519673CF9B54C372A59CBC9F3AF3C2",
+        "archive":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\build\\performance\\jfr-exports\\20261015-221532\\baseline-original\\jfr-analysis-v2.events.json",
+        "length":  59543227
+    },
+    {
+        "original":  "baseline-original\\jfr-summary.events.json",
+        "sha256":  "51938E3CFB371398CF10B68D4C9850C025519673CF9B54C372A59CBC9F3AF3C2",
+        "archive":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\build\\performance\\jfr-exports\\20261015-221532\\baseline-original\\jfr-summary.events.json",
+        "length":  59543227
+    },
+    {
+        "original":  "shared-ab\\IDLE-4-baseline-1\\jfr-steady-summary-v2.events.json",
+        "sha256":  "87BFCEF50680FD00B3DF0946B7F8AD6D7E5C98F82BEB041518A45625B3F3561F",
+        "archive":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\build\\performance\\jfr-exports\\20261015-221532\\shared-ab\\IDLE-4-baseline-1\\jfr-steady-summary-v2.events.json",
+        "length":  350249132
+    },
+    {
+        "original":  "shared-ab\\IDLE-4-baseline-1\\jfr-steady-summary.events.json",
+        "sha256":  "87BFCEF50680FD00B3DF0946B7F8AD6D7E5C98F82BEB041518A45625B3F3561F",
+        "archive":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\build\\performance\\jfr-exports\\20261015-221532\\shared-ab\\IDLE-4-baseline-1\\jfr-steady-summary.events.json",
+        "length":  350249132
+    }
+]

@@ -9,12 +9,15 @@ import java.util.*;
 public class GenerateUiFont {
     public static void main(String[] args) throws Exception {
         Path output = Path.of(args[0]); Files.createDirectories(output);
-        generate(output, "body", 20, Font.PLAIN);
-        generate(output, "small", 15, Font.PLAIN);
+        generate(output, "body", 21, Font.BOLD);
+        generate(output, "small", 16, Font.BOLD);
         generate(output, "heading", 32, Font.BOLD);
     }
     static void generate(Path output, String name, int size, int style) throws Exception {
-        Font font = new Font(Font.SANS_SERIF, style, size);
+        Font font = new Font("Segoe UI", style, size);
+        if (!font.getFamily().toLowerCase(Locale.ROOT).contains("segoe")) {
+            font = new Font(Font.SANS_SERIF, style, size);
+        }
         var probe = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
         Graphics2D measure = probe.createGraphics(); measure.setFont(font);
         FontMetrics metrics = measure.getFontMetrics(); int height = metrics.getHeight(), ascent = metrics.getAscent();
@@ -36,6 +39,8 @@ public class GenerateUiFont {
         var atlas = new BufferedImage(1024,atlasHeight,BufferedImage.TYPE_INT_ARGB);
         Graphics2D graphics=atlas.createGraphics(); graphics.setFont(font); graphics.setColor(Color.WHITE);
         graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
+        graphics.setRenderingHint(RenderingHints.KEY_RENDERING,RenderingHints.VALUE_RENDER_QUALITY);
         x=0;y=0;
         for(int c:characters) {
             var bounds=font.createGlyphVector(measure.getFontRenderContext(),Character.toString(c)).getPixelBounds(null,0,0);

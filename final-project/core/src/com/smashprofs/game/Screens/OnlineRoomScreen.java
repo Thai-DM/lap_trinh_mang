@@ -2,10 +2,16 @@ package com.smashprofs.game.Screens;
 
 import com.badlogic.gdx.*;
 import com.badlogic.gdx.graphics.*;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.Touchable;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
+import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.smashprofs.common.model.MatchRules;
@@ -14,136 +20,590 @@ import com.smashprofs.game.network.client.*;
 import com.smashprofs.game.ui.OnlineUi;
 import java.util.*;
 
-/** One lobby for roster, rules, character and readiness. All decisions remain server-owned. */
+/**
+ * Brawlhalla-styled Custom Online Game Room.
+ * Features:
+ * - Top header with room code, quick stats badge, copy button, and settings button.
+ * - Horizontal character selection roster with neon glow highlights.
+ * - 4 player pedestals displaying character sprites in real-time as players join and select heroes.
+ * - Comic modal dialog for host game rules configuration (Stock, Time, Items, Max Players).
+ * - High-contrast crisp typography and comic artwork aesthetics.
+ */
 public class OnlineRoomScreen implements Screen {
-    private static final String[] CHARACTERS={"Alex","Maurice","Luca","Leo","Viktor"};
-    private static final String[] PORTRAITS={"Sprites/Alex/alex_stand.png","Sprites/Momo/momo_strip.png","Sprites/Luca/luca_stand.png","Sprites/Leo/leo_stand.png","Sprites/Viktor/viktor_stand.png"};
-    private static final Integer[] TIMES={0,60,90,120,180,300},LIVES={1,2,3,5};
+    private static final String[] CHARACTERS = {"Alex", "Maurice", "Luca", "Leo", "Viktor"};
+    private static final String[] PORTRAIT_FILES = {
+        "Sprites/Alex/alex_stand.png",
+        "Sprites/Momo/momo_strip.png",
+        "Sprites/Luca/luca_stand.png",
+        "Sprites/Leo/leo_stand.png",
+        "Sprites/Viktor/viktor_stand.png"
+    };
+    private static final Integer[] TIMES = {0, 60, 90, 120, 180, 300}, LIVES = {1, 2, 3, 5};
+
     private final Game game;
     private final LobbyClient lobby;
-    private final OnlineUi ui=new OnlineUi();
-    private final Stage stage=new Stage(new FitViewport(1280,720));
-    private final Label count,status,rule,ownership,draftNotice,readyHint;
-    private final Label[] names=new Label[4],details=new Label[4];
-    private final TextButton[] characters=new TextButton[5];
-    private final ArrayList<Texture> textures=new ArrayList<>();
-    private final SelectBox<String> max,time,lives,drops;
-    private final TextButton apply,reset,ready,copy;
+    private final OnlineUi ui = new OnlineUi();
+    private final Stage stage = new Stage(new FitViewport(1280, 720));
+    private final SpriteBatch batch = new SpriteBatch();
+    private final ShapeRenderer shapes = new ShapeRenderer();
+    private final ArrayList<Texture> textures = new ArrayList<>();
+    private final TextureRegion[] characterRegions = new TextureRegion[5];
+
+    // Header & Info
     private final String roomId;
-    private String selected="Alex";
-    private long displayedRules=-1;
+    private final Label roomRuleSummary, memberCountLabel;
+    private final TextButton copyBtn, settingsBtn, leaveBtn;
     private float copiedSeconds;
+
+    // Character Selection Roster
+    private final Table[] characterCards = new Table[5];
+    private String selected = "Alex";
+
+    // 4 Player Pedestals
+    private final Table[] slotPedestalCard = new Table[4];
+    private final Table[] slotPedestalBase = new Table[4];
+    private final Image[] slotCharacterImg = new Image[4];
+    private final Label[] slotNameLabel = new Label[4];
+    private final Label[] slotHeroLabel = new Label[4];
+    private final Table[] slotStatusBadge = new Table[4];
+    private final Label[] slotStatusLabel = new Label[4];
+
+    // Action & Status
+    private final TextButton readyBtn;
+    private final Label readyHint, statusLabel;
+
+    // Game Rules Modal
+    private final Table settingsModal;
+    private final SelectBox<String> maxSelect, timeSelect, livesSelect, dropsSelect;
+    private final TextButton applyRulesBtn, resetRulesBtn;
+    private final Label ownershipLabel, draftNoticeLabel;
+    private long displayedRules = -1;
+
+    private final Texture bgTexture;
     private boolean disposed;
 
     public OnlineRoomScreen(Game game) {
-        this.game=game;this.lobby=Objects.requireNonNull(game.getLobbyClient());roomId=lobby.getSnapshot().roomId();
-        var root=new Table();root.setFillParent(true);root.pad(24);root.defaults().left();
-        var header=new Table();
-        var title=new Table();title.add(ui.small("SẢNH ĐẤU  /  MÃ PHÒNG")).left();title.row();title.add(ui.heading(roomId)).left();
-        header.add(title).expandX().left();
-        copy=ui.button("Sao chép mã",()->{ Gdx.app.getClipboard().setContents(roomId);copiedSeconds=2; });
-        header.add(copy).height(44).padRight(10);header.add(ui.button("Rời phòng",this::leave)).height(44);
-        root.add(header).growX();root.row();
-        count=ui.small("Đang kết nối…");root.add(count).padTop(6);root.row();
-        var roster=new Table();
-        for(int i=0;i<4;i++) {
-            var card=ui.panel();card.pad(15);card.defaults().left();
-            names[i]=ui.label("P"+(i+1));details[i]=ui.small("Chờ người chơi");
-            card.add(names[i]).width(250);card.row();card.add(details[i]).width(250).padTop(8);
-            roster.add(card).width(298).height(94).padRight(i==3?0:12);
+        this.game = game;
+        this.lobby = Objects.requireNonNull(game.getLobbyClient());
+        this.roomId = lobby.getSnapshot().roomId();
+
+        // 1. Background
+        bgTexture = new Texture(Gdx.files.internal("mainmenu/bgmenu.png"));
+        textures.add(bgTexture);
+
+        // 2. Load 5 Character sprites (Frame 0, 100x100)
+        for (int i = 0; i < PORTRAIT_FILES.length; i++) {
+            var tex = new Texture(Gdx.files.internal(PORTRAIT_FILES[i]));
+            tex.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
+            textures.add(tex);
+            characterRegions[i] = new TextureRegion(tex, 0, 0, 100, 100);
         }
-        root.add(roster).growX().padTop(12);root.row();
-        var columns=new Table();
-        var settings=ui.panel();settings.pad(18);settings.defaults().left();
-        var settingsHeader=new Table();settingsHeader.add(ui.label("Luật trận đấu")).expandX().left();ownership=ui.small("");settingsHeader.add(ownership);
-        settings.add(settingsHeader).colspan(2).growX();settings.row();
-        max=select("2 người","3 người","4 người");time=select("Không giới hạn","60 giây","90 giây","120 giây","180 giây","300 giây");
-        lives=select("1 mạng","2 mạng","3 mạng","5 mạng");
-        drops=select("Tắt","Thấp · 30 giây/lần","Vừa · 15 giây/lần","Cao · 8 giây/lần");
-        settings.add(ui.small("Số người tối đa")).padTop(12);settings.add(ui.small("Thời gian")).padTop(12);settings.row();
-        settings.add(max).width(252).height(38).padRight(12).padTop(4);settings.add(time).width(252).height(38).padTop(4);settings.row();
-        settings.add(ui.small("Số mạng mỗi người")).padTop(10);settings.add(ui.small("Vật phẩm")).padTop(10);settings.row();
-        settings.add(lives).width(252).height(38).padRight(12).padTop(4);settings.add(drops).width(252).height(38).padTop(4);settings.row();
-        apply=ui.button("Lưu luật phòng",()->lobby.updateSettings(draft()));
-        reset=ui.button("Hoàn tác",()->{ if(lobby.getSettings()!=null) { sync(lobby.getSettings().rules()); } });
-        settings.add(apply).growX().height(38).padRight(12).padTop(12);settings.add(reset).growX().height(38).padTop(12);settings.row();
-        draftNotice=ui.small("");settings.add(draftNotice).colspan(2).padTop(6);
-        var character=ui.panel();character.pad(18);character.defaults().left();
-        character.add(ui.label("Chọn nhân vật của bạn")).colspan(5);character.row();
-        for(int i=0;i<CHARACTERS.length;i++) {
-            final String name=CHARACTERS[i];var texture=new Texture(PORTRAITS[i]);textures.add(texture);
-            var image=new Image(new TextureRegionDrawable(new TextureRegion(texture,0,0,100,100)));
-            var button=new TextButton(name,ui.skin);
-            button.addListener(new com.badlogic.gdx.scenes.scene2d.utils.ClickListener() {
-                @Override public void clicked(com.badlogic.gdx.scenes.scene2d.InputEvent event,float x,float y) { if(!button.isDisabled()) { selected=name; } }
+
+        // --- ROOT LAYOUT ---
+        var root = new Table();
+        root.setFillParent(true);
+        root.pad(16, 28, 12, 28);
+        root.defaults().top();
+
+        // ================= HEADER BAR =================
+        var header = new Table();
+
+        // Left buttons: Rời phòng + Cài đặt luật
+        leaveBtn = ui.comicButton("< RỜI PHÒNG", "comic-white", this::leave);
+        settingsBtn = ui.comicButton("⚙ CÀI ĐẶT LUẬT [X]", "comic-primary", this::toggleSettings);
+        header.add(leaveBtn).height(44).padRight(10);
+        header.add(settingsBtn).height(44);
+
+        // Center room summary badge
+        var summaryBox = new Table();
+        summaryBox.setBackground(ui.comicBox(Color.valueOf("051428"), OnlineUi.BRAWL_BORDER, 2.5f, 2, 2));
+        summaryBox.pad(4, 16, 4, 16);
+        roomRuleSummary = ui.small("PHÒNG #" + roomId, Color.WHITE);
+        summaryBox.add(roomRuleSummary);
+        header.add(summaryBox).expandX().center();
+
+        // Right: Member count + Copy code button
+        var memberBadge = new Table();
+        memberBadge.setBackground(ui.comicBox(Color.valueOf("051428"), OnlineUi.BRAWL_BORDER, 2f, 0, 0));
+        memberBadge.pad(4, 10, 4, 10);
+        memberCountLabel = ui.small("1/4 NGƯỜI", OnlineUi.BRAWL_CYAN);
+        memberBadge.add(memberCountLabel);
+        header.add(memberBadge).height(44).padRight(10);
+
+        copyBtn = ui.comicButton("SAO CHÉP MÃ", "comic-gold", () -> {
+            Gdx.app.getClipboard().setContents(roomId);
+            copiedSeconds = 2f;
+        });
+        header.add(copyBtn).height(44);
+
+        root.add(header).growX();
+        root.row();
+
+        // ================= CHARACTER SELECTION ROSTER (UPPER ROW) =================
+        var rosterBox = new Table();
+        rosterBox.padTop(10).padBottom(4);
+        var rosterTitle = ui.small("CHỌN NHÂN VẬT CỦA BẠN", Color.valueOf("B8D8FF"));
+        rosterBox.add(rosterTitle).center().padBottom(6);
+        rosterBox.row();
+
+        var heroesRow = new Table();
+        for (int i = 0; i < CHARACTERS.length; i++) {
+            final String name = CHARACTERS[i];
+            var card = new Table();
+            card.setTouchable(Touchable.enabled);
+            card.setBackground(ui.comicBox(Color.valueOf("091424"), OnlineUi.BRAWL_BORDER, 2.5f, 3, 3));
+            card.pad(4, 8, 4, 8);
+
+            var portraitImg = new Image(characterRegions[i]);
+            card.add(portraitImg).size(60, 60).center();
+            card.row();
+            var nameLbl = ui.small(name, Color.WHITE);
+            card.add(nameLbl).center().padTop(2);
+
+            card.addListener(new ClickListener() {
+                @Override public void clicked(InputEvent event, float x, float y) {
+                    if (lobby.getSnapshot().canReady() && lobby.getSnapshot().phase() != LobbyClient.Phase.WAITING_FOR_START) {
+                        selected = name;
+                    }
+                }
             });
-            button.clearChildren();button.add(image).size(56);button.row();button.add(ui.small(name)).padBottom(4);
-            characters[i]=button;character.add(button).width(99).height(94).padRight(i==4?0:5).padTop(12);
+
+            characterCards[i] = card;
+            heroesRow.add(card).width(115).height(92).padRight(i == 4 ? 0 : 14);
         }
-        character.row();ready=ui.primary("Sẵn sàng",this::toggleReady);character.add(ready).colspan(5).growX().height(46).padTop(14);character.row();
-        readyHint=ui.small("Chọn nhân vật, rồi bấm Sẵn sàng.");readyHint.setWrap(true);character.add(readyHint).colspan(5).width(515).height(40).padTop(6);
-        columns.add(settings).width(606).height(280).padRight(16);columns.add(character).width(606).height(280);
-        root.add(columns).growX().padTop(12);root.row();
-        var explanation=ui.panel();explanation.pad(12);explanation.defaults().left();
-        explanation.add(ui.small("HP VÀ SỐ MẠNG LÀ HAI CHỈ SỐ RIÊNG")).left();explanation.row();
-        var stock=ui.small(OnlineRoomPresentation.stockRule());explanation.add(stock).padTop(4);explanation.row();
-        rule=ui.small("");explanation.add(rule).padTop(4);root.add(explanation).growX().padTop(12);root.row();
-        status=ui.small("");status.setWrap(true);root.add(status).growX().height(38).padTop(8);stage.addActor(root);
+        rosterBox.add(heroesRow).center();
+        root.add(rosterBox).growX();
+        root.row();
+
+        // ================= 4 PLAYER PEDESTALS (LOWER AREA) =================
+        var pedestalsRow = new Table();
+        pedestalsRow.defaults().top();
+
+        for (int i = 0; i < 4; i++) {
+            var pedestal = new Table();
+            pedestal.setBackground(ui.comicBox(OnlineUi.BRAWL_DARK, OnlineUi.BRAWL_BORDER, 3.5f, 4, 6));
+            pedestal.pad(6, 6, 8, 6);
+
+            // Upper area: Character standing on glowing circle platform
+            var stageArea = new Table();
+
+            slotCharacterImg[i] = new Image(characterRegions[0]);
+            stageArea.add(slotCharacterImg[i]).size(140, 140).center().padBottom(-14);
+            stageArea.row();
+
+            slotPedestalBase[i] = new Table();
+            slotPedestalBase[i].setBackground(ui.comicBox(Color.valueOf("004AA5"), Color.valueOf("00FFA2"), 2.5f, 1, 1));
+            slotPedestalBase[i].add().size(175, 18);
+            stageArea.add(slotPedestalBase[i]).center();
+
+            pedestal.add(stageArea).growX().padTop(4).padBottom(6);
+            pedestal.row();
+
+            // Tablet / Info beneath pedestal
+            var tablet = new Table();
+            tablet.setBackground(ui.comicBox(Color.valueOf("061324"), OnlineUi.BRAWL_BORDER, 2f, 0, 0));
+            tablet.pad(6, 8, 8, 8);
+
+            slotNameLabel[i] = ui.small("P" + (i + 1) + "  ·  TRỐNG", Color.WHITE);
+            slotHeroLabel[i] = ui.heading("ALEX", Color.WHITE);
+
+            slotStatusBadge[i] = new Table();
+            slotStatusBadge[i].setBackground(ui.comicBox(Color.valueOf("0D1B2A"), OnlineUi.BRAWL_BORDER, 1.5f, 0, 0));
+            slotStatusLabel[i] = ui.small("ĐANG CHỜ NGƯỜI", OnlineUi.MUTED);
+            slotStatusBadge[i].add(slotStatusLabel[i]).pad(2, 6, 2, 6);
+
+            tablet.add(slotNameLabel[i]).center();
+            tablet.row();
+            tablet.add(slotHeroLabel[i]).center().padTop(2).padBottom(4);
+            tablet.row();
+            tablet.add(slotStatusBadge[i]).center();
+
+            pedestal.add(tablet).growX().bottom();
+
+            slotPedestalCard[i] = pedestal;
+            pedestalsRow.add(pedestal).width(286).height(330).padRight(i == 3 ? 0 : 20);
+        }
+
+        root.add(pedestalsRow).padTop(4);
+        root.row();
+
+        // ================= BOTTOM ACTION BAR =================
+        var actionBar = new Table();
+        readyBtn = ui.comicButton("SẴN SÀNG  [ENTER]", "comic-primary", this::toggleReady);
+        actionBar.add(readyBtn).width(360).height(48).center();
+        actionBar.row();
+
+        readyHint = ui.small("Mỗi người chọn nhân vật rồi bấm Sẵn sàng.", Color.valueOf("E0F0FF"));
+        actionBar.add(readyHint).center().padTop(4);
+        actionBar.row();
+
+        statusLabel = ui.small("A/D di chuyển · W nhảy · S dậm · V/Space tấn công · F tuyệt chiêu · Ctrl đỡ đòn", Color.valueOf("94B8E6"));
+        actionBar.add(statusLabel).center().padTop(2);
+
+        root.add(actionBar).growX().padTop(6);
+        stage.addActor(root);
+
+        // ================= GAME RULES MODAL OVERLAY =================
+        maxSelect = select("2 người", "3 người", "4 người");
+        timeSelect = select("Không giới hạn", "60 giây", "90 giây", "120 giây", "180 giây", "300 giây");
+        livesSelect = select("1 mạng", "2 mạng", "3 mạng", "5 mạng");
+        dropsSelect = select("Tắt", "Thấp · 30s/lần", "Vừa · 15s/lần", "Cao · 8s/lần");
+
+        applyRulesBtn = ui.comicButton("LƯU LUẬT PHÒNG", "comic-primary", () -> lobby.updateSettings(draft()));
+        resetRulesBtn = ui.comicButton("HOÀN TÁC", "comic-white", () -> {
+            if (lobby.getSettings() != null) {
+                sync(lobby.getSettings().rules());
+            }
+        });
+
+        ownershipLabel = ui.small("BẠN LÀ CHỦ PHÒNG", OnlineUi.BRAWL_CYAN);
+        draftNoticeLabel = ui.small("Luật đã đồng bộ với máy chủ.", OnlineUi.MUTED);
+
+        settingsModal = createSettingsModal();
+        stage.addActor(settingsModal);
     }
-    private SelectBox<String> select(String...items) { var box=new SelectBox<String>(ui.skin);box.setItems(items);return box; }
-    private MatchRules draft() { return new MatchRules(max.getSelectedIndex()+2,TIMES[time.getSelectedIndex()],LIVES[lives.getSelectedIndex()],MatchRules.DropRate.values()[drops.getSelectedIndex()],true); }
+
+    private Table createSettingsModal() {
+        var overlay = new Table();
+        overlay.setFillParent(true);
+        overlay.setBackground(ui.skin.newDrawable("pixel", new Color(0, 0, 0, 0.78f)));
+        overlay.setVisible(false);
+
+        var dialog = new Table();
+        dialog.setBackground(ui.comicBox(Color.valueOf("09182E"), OnlineUi.BRAWL_CYAN, 4.5f, 8, 10));
+        dialog.pad(18, 24, 18, 24);
+
+        // Header: Title + Close button
+        var dlgHeader = new Table();
+        var dlgTitle = ui.comicHeading("CÀI ĐẶT LUẬT PHÒNG", Color.WHITE);
+        var closeBtn = ui.comicButton("X", "comic-white", this::toggleSettings);
+        dlgHeader.add(dlgTitle).expandX().left();
+        dlgHeader.add(closeBtn).size(42, 42).right();
+        dialog.add(dlgHeader).growX().padBottom(14);
+        dialog.row();
+
+        // Dropdowns grid
+        dialog.add(ui.small("Số người tối đa (2 - 4 người)", Color.valueOf("B8D8FF"))).left().padTop(6);
+        dialog.add(ui.small("Thời gian trận đấu", Color.valueOf("B8D8FF"))).left().padTop(6).padLeft(16);
+        dialog.row();
+
+        dialog.add(maxSelect).width(245).height(42).padTop(4);
+        dialog.add(timeSelect).width(245).height(42).padTop(4).padLeft(16);
+        dialog.row();
+
+        dialog.add(ui.small("Số mạng mỗi người", Color.valueOf("B8D8FF"))).left().padTop(12);
+        dialog.add(ui.small("Vật phẩm rơi trong trận", Color.valueOf("B8D8FF"))).left().padTop(12).padLeft(16);
+        dialog.row();
+
+        dialog.add(livesSelect).width(245).height(42).padTop(4);
+        dialog.add(dropsSelect).width(245).height(42).padTop(4).padLeft(16);
+        dialog.row();
+
+        // Ownership info & draftNotice
+        dialog.add(ownershipLabel).colspan(2).padTop(14).center();
+        dialog.row();
+        dialog.add(draftNoticeLabel).colspan(2).padTop(4).center();
+        dialog.row();
+
+        // Buttons: Lưu luật, Hoàn tác
+        var btnRow = new Table();
+        btnRow.add(applyRulesBtn).width(235).height(48).padRight(14);
+        btnRow.add(resetRulesBtn).width(235).height(48);
+        dialog.add(btnRow).colspan(2).padTop(16).center();
+
+        overlay.add(dialog).center();
+        return overlay;
+    }
+
+    private SelectBox<String> select(String... items) {
+        var box = new SelectBox<String>(ui.skin);
+        box.setItems(items);
+        return box;
+    }
+
+    private MatchRules draft() {
+        return new MatchRules(
+            maxSelect.getSelectedIndex() + 2,
+            TIMES[timeSelect.getSelectedIndex()],
+            LIVES[livesSelect.getSelectedIndex()],
+            MatchRules.DropRate.values()[dropsSelect.getSelectedIndex()],
+            true
+        );
+    }
+
     private void sync(MatchRules rules) {
-        max.setSelectedIndex(rules.maxPlayers()-2);time.setSelectedIndex(Arrays.asList(TIMES).indexOf(rules.matchSeconds()));
-        lives.setSelectedIndex(Arrays.asList(LIVES).indexOf(rules.lives()));drops.setSelectedIndex(rules.dropRate().ordinal());
+        maxSelect.setSelectedIndex(rules.maxPlayers() - 2);
+        timeSelect.setSelectedIndex(Arrays.asList(TIMES).indexOf(rules.matchSeconds()));
+        livesSelect.setSelectedIndex(Arrays.asList(LIVES).indexOf(rules.lives()));
+        dropsSelect.setSelectedIndex(rules.dropRate().ordinal());
     }
-    private void toggleReady() {
-        if(lobby.getSnapshot().phase()==LobbyClient.Phase.WAITING_FOR_START) { lobby.unready(); }else { lobby.ready(selected); }
-    }
-    private void leave() { game.leaveOnlineLobby();game.setScreen(new OnlineLobbyScreen(game)); }
-    @Override public void show() { Gdx.input.setInputProcessor(stage); }
-    @Override public void render(float delta) {
-        if(disposed) { return; }var state=lobby.getSnapshot();
-        if(state.isMatchStarted()) { game.setScreen(new PlayScreen(game));return; }
-        if(Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) { leave();return; }
-        var settings=lobby.getSettings();boolean joined=state.canReady();boolean waiting=state.phase()==LobbyClient.Phase.WAITING_FOR_START;
-        boolean host=settings!=null && state.localPlayerId()!=null && settings.hostId().equals(state.localPlayerId().value());
-        if(settings!=null && settings.rulesVersion()!=displayedRules) { sync(settings.rules());displayedRules=settings.rulesVersion(); }
-        for(var box:new SelectBox[]{max,time,lives,drops}) { box.setDisabled(!host || !joined || settings==null || state.serverPhase().equals("COUNTDOWN")); }
-        boolean dirty=settings!=null && !draft().equals(settings.rules());
-        boolean belowCount=settings!=null && draft().maxPlayers()<settings.playerCount();
-        apply.setDisabled(!host || !joined || !dirty || belowCount || state.serverPhase().equals("COUNTDOWN"));
-        reset.setDisabled(!host || !joined || !dirty);
-        ownership.setText(host?"BẠN LÀ CHỦ PHÒNG":"CHỈ CHỦ PHÒNG ĐƯỢC SỬA");ownership.setColor(host?OnlineUi.ACCENT:OnlineUi.MUTED);
-        draftNotice.setText(waiting && host?"Hủy sẵn sàng trước khi chỉnh luật.":belowCount?"Không thể giảm chỗ dưới số người đang có.":dirty?"Chưa lưu. Lưu luật sẽ hủy sẵn sàng của mọi người.":"Luật đã đồng bộ với máy chủ.");
-        draftNotice.setColor(dirty?OnlineUi.GOLD:OnlineUi.MUTED);
-        for(int i=0;i<characters.length;i++) { characters[i].setDisabled(!joined);characters[i].setChecked(CHARACTERS[i].equals(selected)); }
-        ready.setDisabled(settings==null || !joined && !waiting || dirty && host);
-        ready.setText(waiting?"Đã sẵn sàng  ·  Bấm để hủy":state.phase()==LobbyClient.Phase.READY_PENDING?"Đang xác nhận…":"Sẵn sàng  [Enter]");
-        if(Gdx.input.isKeyJustPressed(Input.Keys.ENTER) && !ready.isDisabled()) { toggleReady(); }
-        var members=settings!=null && !settings.members().isEmpty()?settings.members():state.members();
-        int capacity=settings==null?4:settings.rules().maxPlayers();long readied=members.stream().filter(LobbyClient.Member::ready).count();
-        count.setText(members.size()+"/"+capacity+" người  ·  "+readied+" đã sẵn sàng  ·  Gửi mã phòng cho bạn bè để tham gia");
-        for(int i=0;i<4;i++) {
-            final int slot=i;var member=members.stream().filter(m->m.slotIndex()==slot).findFirst().orElse(null);
-            if(member==null) { names[i].setText("P"+(i+1)+"  ·  "+(i>=capacity?"Đã khóa":"Trống"));names[i].setColor(OnlineUi.MUTED);details[i].setText(i>=capacity?"Tăng giới hạn để mở chỗ":"Đang chờ người chơi");continue; }
-            boolean local=member.playerId().equals(state.localPlayerId());boolean owner=settings!=null && settings.hostId().equals(member.playerId().value());
-            names[i].setText("P"+(i+1)+(local?" · Bạn":"")+(owner?" · Chủ phòng":""));names[i].setColor(local?OnlineUi.ACCENT:OnlineUi.TEXT);
-            details[i].setText((member.characterId()==null?"Chưa chọn":member.characterId())+"  ·  "+(member.ready()?"Sẵn sàng":"Chưa sẵn sàng"));
-            details[i].setColor(member.ready()?OnlineUi.ACCENT:OnlineUi.MUTED);
+
+    private void toggleSettings() {
+        boolean next = !settingsModal.isVisible();
+        settingsModal.setVisible(next);
+        if (next && lobby.getSettings() != null) {
+            sync(lobby.getSettings().rules());
         }
-        readyHint.setText(members.size()<2?"Cần ít nhất 2 người. Sao chép mã để mời bạn bè.":waiting?"Trận tự bắt đầu sau 3 giây khi tất cả sẵn sàng.":dirty && host?"Lưu hoặc bỏ thay đổi luật trước khi sẵn sàng.":"Mỗi người chọn nhân vật rồi bấm Sẵn sàng.");
-        if(settings!=null) { rule.setText(OnlineRoomPresentation.winRule(settings.rules())); }
-        String message=state.errorCode()!=null?OnlineRoomPresentation.error(state.errorCode(),state.statusText()):switch(state.phase()) {
-            case CONNECTING,CREATING,JOINING,IDLE->"Đang mở phòng…";case READY_PENDING->"Đang chờ máy chủ xác nhận…";
-            case WAITING_FOR_START->"Bạn đã sẵn sàng. Đang đợi những người chơi còn lại.";
-            case ERROR,DISCONNECTED->"Mất kết nối. Bấm Rời phòng để thử lại.";default->"A/D di chuyển · W nhảy · S dậm · V/Space tấn công · F tuyệt chiêu · Ctrl đỡ đòn";
-        };
-        status.setText(message);status.setColor(state.errorCode()!=null || state.phase()==LobbyClient.Phase.DISCONNECTED?OnlineUi.DANGER:OnlineUi.MUTED);
-        copiedSeconds=Math.max(0,copiedSeconds-delta);copy.setText(copiedSeconds>0?"Đã sao chép!":"Sao chép mã");
-        ScreenUtils.clear(OnlineUi.BACKGROUND);stage.getViewport().apply();stage.act(delta);stage.draw();
     }
-    @Override public void resize(int w,int h) { stage.getViewport().update(w,h,true); }
-    @Override public void pause() { } @Override public void resume() { }
+
+    private void toggleReady() {
+        if (lobby.getSnapshot().phase() == LobbyClient.Phase.WAITING_FOR_START) {
+            lobby.unready();
+        } else {
+            lobby.ready(selected);
+        }
+    }
+
+    private void leave() {
+        game.leaveOnlineLobby();
+        game.setScreen(new OnlineLobbyScreen(game));
+    }
+
+    private TextureRegion getCharacterRegion(String name) {
+        if (name != null) {
+            for (int i = 0; i < CHARACTERS.length; i++) {
+                if (CHARACTERS[i].equalsIgnoreCase(name)) {
+                    return characterRegions[i];
+                }
+            }
+        }
+        return characterRegions[0];
+    }
+
+    @Override
+    public void show() {
+        Gdx.input.setInputProcessor(stage);
+    }
+
+    @Override
+    public void render(float delta) {
+        if (disposed) { return; }
+        var state = lobby.getSnapshot();
+        if (state.isMatchStarted()) {
+            game.setScreen(new PlayScreen(game));
+            return;
+        }
+
+        // Hotkeys
+        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
+            if (settingsModal.isVisible()) {
+                settingsModal.setVisible(false);
+            } else {
+                leave();
+            }
+            return;
+        }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.X)) {
+            toggleSettings();
+        }
+
+        var settings = lobby.getSettings();
+        boolean joined = state.canReady();
+        boolean waiting = state.phase() == LobbyClient.Phase.WAITING_FOR_START;
+        boolean host = settings != null && state.localPlayerId() != null && settings.hostId().equals(state.localPlayerId().value());
+
+        // Sync rules from server if updated by host
+        if (settings != null && settings.rulesVersion() != displayedRules) {
+            sync(settings.rules());
+            displayedRules = settings.rulesVersion();
+        }
+
+        // Disable settings editing if not host or during countdown
+        for (var box : new SelectBox[]{maxSelect, timeSelect, livesSelect, dropsSelect}) {
+            box.setDisabled(!host || !joined || settings == null || state.serverPhase().equals("COUNTDOWN"));
+        }
+        boolean dirty = settings != null && !draft().equals(settings.rules());
+        boolean belowCount = settings != null && draft().maxPlayers() < settings.playerCount();
+        applyRulesBtn.setDisabled(!host || !joined || !dirty || belowCount || state.serverPhase().equals("COUNTDOWN"));
+        resetRulesBtn.setDisabled(!host || !joined || !dirty);
+
+        ownershipLabel.setText(host ? "BẠN LÀ CHỦ PHÒNG" : "CHỈ CHỦ PHÒNG ĐƯỢC PHÉP SỬA LUẬT");
+        ownershipLabel.setColor(host ? OnlineUi.BRAWL_CYAN : OnlineUi.MUTED);
+        draftNoticeLabel.setText(
+            waiting && host ? "Hủy sẵn sàng trước khi chỉnh luật." :
+            belowCount ? "Không thể giảm chỗ dưới số người đang có trong phòng." :
+            dirty ? "Chưa lưu! Bấm Lưu luật phòng để đồng bộ tới mọi người." :
+            "Luật đã đồng bộ với máy chủ."
+        );
+        draftNoticeLabel.setColor(dirty ? OnlineUi.BRAWL_GOLD : OnlineUi.MUTED);
+
+        // Update Top Header Room Summary
+        if (settings != null) {
+            var r = settings.rules();
+            String timeStr = r.matchSeconds() == 0 ? "Vô hạn" : r.matchSeconds() + "s";
+            roomRuleSummary.setText("PHÒNG #" + roomId + "   ·   " + r.lives() + " MẠNG   ·   " + timeStr + "   ·   TỐI ĐA " + r.maxPlayers() + " NGƯỜI");
+        } else {
+            roomRuleSummary.setText("PHÒNG #" + roomId);
+        }
+
+        // Update Character Selection Roster Highlighting
+        for (int i = 0; i < CHARACTERS.length; i++) {
+            boolean isCurSelected = CHARACTERS[i].equalsIgnoreCase(selected);
+            if (isCurSelected) {
+                characterCards[i].setBackground(ui.comicBox(Color.valueOf("0D2F4F"), Color.valueOf("00FFA2"), 3.5f, 2, 2));
+            } else {
+                characterCards[i].setBackground(ui.comicBox(Color.valueOf("081424"), OnlineUi.BRAWL_BORDER, 2.5f, 2, 2));
+            }
+        }
+
+        // Ready Button State
+        readyBtn.setDisabled(settings == null || !joined && !waiting || dirty && host);
+        readyBtn.setText(
+            waiting ? "HỦY SẴN SÀNG  [ENTER]" :
+            state.phase() == LobbyClient.Phase.READY_PENDING ? "ĐANG XÁC NHẬN…" :
+            "SẴN SÀNG  [ENTER]"
+        );
+        if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER) && !readyBtn.isDisabled() && !settingsModal.isVisible()) {
+            toggleReady();
+        }
+
+        // Update 4 Player Pedestals
+        var members = settings != null && !settings.members().isEmpty() ? settings.members() : state.members();
+        int capacity = settings == null ? 4 : settings.rules().maxPlayers();
+        long readied = members.stream().filter(LobbyClient.Member::ready).count();
+        memberCountLabel.setText(members.size() + "/" + capacity + " NGƯỜI");
+
+        for (int i = 0; i < 4; i++) {
+            final int slot = i;
+            var member = members.stream().filter(m -> m.slotIndex() == slot).findFirst().orElse(null);
+
+            if (member == null) {
+                slotCharacterImg[i].setVisible(false);
+                if (i >= capacity) {
+                    slotNameLabel[i].setText("P" + (i + 1) + "  ·  ĐÃ KHÓA");
+                    slotNameLabel[i].setColor(Color.valueOf("6B7280"));
+                    slotHeroLabel[i].setText("---");
+                    slotHeroLabel[i].setColor(Color.valueOf("4B5563"));
+                    slotStatusLabel[i].setText("CHỖ ĐÃ KHÓA");
+                    slotStatusLabel[i].setColor(Color.valueOf("6B7280"));
+                    slotStatusBadge[i].setBackground(ui.comicBox(Color.valueOf("060B12"), OnlineUi.BRAWL_BORDER, 1.5f, 0, 0));
+                    slotPedestalCard[i].setBackground(ui.comicBox(Color.valueOf("060B12B0"), OnlineUi.BRAWL_BORDER, 2f, 0, 0));
+                    slotPedestalBase[i].setBackground(ui.comicBox(Color.valueOf("0D1624"), OnlineUi.BRAWL_BORDER, 2f, 0, 0));
+                } else {
+                    slotNameLabel[i].setText("P" + (i + 1) + "  ·  TRỐNG");
+                    slotNameLabel[i].setColor(OnlineUi.MUTED);
+                    slotHeroLabel[i].setText("ĐANG CHỜ...");
+                    slotHeroLabel[i].setColor(Color.valueOf("6B7280"));
+                    slotStatusLabel[i].setText("ĐANG CHỜ NGƯỜI");
+                    slotStatusLabel[i].setColor(OnlineUi.MUTED);
+                    slotStatusBadge[i].setBackground(ui.comicBox(Color.valueOf("0B1624"), OnlineUi.BRAWL_BORDER, 1.5f, 0, 0));
+                    slotPedestalCard[i].setBackground(ui.comicBox(Color.valueOf("091220D0"), OnlineUi.BRAWL_BORDER, 2.5f, 3, 3));
+                    slotPedestalBase[i].setBackground(ui.comicBox(Color.valueOf("122238"), OnlineUi.BRAWL_BORDER, 2f, 0, 0));
+                }
+                continue;
+            }
+
+            // Member is in room!
+            boolean local = member.playerId().equals(state.localPlayerId());
+            boolean owner = settings != null && settings.hostId().equals(member.playerId().value());
+
+            String charName = member.characterId() != null ? member.characterId() : (local ? selected : "Alex");
+            slotCharacterImg[i].setDrawable(new TextureRegionDrawable(getCharacterRegion(charName)));
+            slotCharacterImg[i].setVisible(true);
+
+            String pLabel = "P" + (i + 1) + (local ? " · BẠN" : "") + (owner ? " ★" : "");
+            slotNameLabel[i].setText(pLabel);
+            slotNameLabel[i].setColor(local ? OnlineUi.BRAWL_CYAN : (owner ? OnlineUi.BRAWL_GOLD : Color.WHITE));
+
+            slotHeroLabel[i].setText(charName.toUpperCase(Locale.ROOT));
+            slotHeroLabel[i].setColor(Color.WHITE);
+
+            if (member.ready()) {
+                slotStatusLabel[i].setText("ĐÃ SẴN SÀNG");
+                slotStatusLabel[i].setColor(Color.valueOf("052B28"));
+                slotStatusBadge[i].setBackground(ui.comicBox(OnlineUi.BRAWL_CYAN, OnlineUi.BRAWL_BORDER, 1.5f, 0, 0));
+                slotPedestalBase[i].setBackground(ui.comicBox(Color.valueOf("0E4438"), OnlineUi.BRAWL_CYAN, 3f, 2, 2));
+                slotPedestalCard[i].setBackground(ui.comicBox(OnlineUi.BRAWL_DARK, OnlineUi.BRAWL_CYAN, 3.5f, 4, 6));
+            } else {
+                slotStatusLabel[i].setText("CHƯA SẴN SÀNG");
+                slotStatusLabel[i].setColor(Color.valueOf("2E2818"));
+                slotStatusBadge[i].setBackground(ui.comicBox(OnlineUi.BRAWL_GOLD, OnlineUi.BRAWL_BORDER, 1.5f, 0, 0));
+                slotPedestalBase[i].setBackground(ui.comicBox(Color.valueOf("004AA5"), Color.valueOf("35B4FF"), 3f, 2, 2));
+                slotPedestalCard[i].setBackground(ui.comicBox(OnlineUi.BRAWL_DARK, OnlineUi.BRAWL_BORDER, 3.5f, 4, 6));
+            }
+        }
+
+        // Ready Hint & Status Text
+        readyHint.setText(
+            members.size() < 2 ? "Cần ít nhất 2 người để bắt đầu. Hãy sao chép mã phòng để mời bạn bè!" :
+            waiting ? "Trận đấu sẽ tự động bắt đầu sau 3 giây khi tất cả người chơi sẵn sàng!" :
+            dirty && host ? "Bạn đang chỉnh luật: Hãy bấm Lưu luật phòng trước khi bấm Sẵn sàng." :
+            "Mỗi người hãy chọn một nhân vật yêu thích rồi bấm Sẵn sàng."
+        );
+
+        String message = state.errorCode() != null ? OnlineRoomPresentation.error(state.errorCode(), state.statusText()) : switch (state.phase()) {
+            case CONNECTING, CREATING, JOINING, IDLE -> "Đang mở phòng đấu…";
+            case READY_PENDING -> "Đang chờ máy chủ xác nhận trạng thái…";
+            case WAITING_FOR_START -> "Bạn đã sẵn sàng! Đang đợi những người chơi còn lại…";
+            case ERROR, DISCONNECTED -> "Mất kết nối với máy chủ. Bấm Rời phòng để thử lại.";
+            default -> "A/D di chuyển · W nhảy · S dậm · V/Space tấn công · F tuyệt chiêu · Ctrl đỡ đòn";
+        };
+        statusLabel.setText(message);
+        statusLabel.setColor(state.errorCode() != null || state.phase() == LobbyClient.Phase.DISCONNECTED ? OnlineUi.DANGER : Color.valueOf("94B8E6"));
+
+        // Copy button timer feedback
+        copiedSeconds = Math.max(0, copiedSeconds - delta);
+        copyBtn.setText(copiedSeconds > 0 ? "ĐÃ SAO CHÉP!" : "SAO CHÉP MÃ");
+
+        // 1. Clear with Brawlhalla Royal Blue
+        ScreenUtils.clear(Color.valueOf("0056BD"));
+
+        // 2. Draw Textured Background with atmospheric tint
+        batch.setProjectionMatrix(stage.getCamera().combined);
+        batch.begin();
+        batch.setColor(0.08f, 0.32f, 0.72f, 0.40f);
+        batch.draw(bgTexture, 0, 0, 1280, 720);
+        batch.setColor(Color.WHITE);
+        batch.end();
+
+        // 3. Draw Jagged White Lightning Corners
+        Gdx.gl.glEnable(GL20.GL_BLEND);
+        shapes.setProjectionMatrix(stage.getCamera().combined);
+        shapes.begin(ShapeRenderer.ShapeType.Filled);
+
+        shapes.setColor(Color.valueOf("2BD9FFE8"));
+        shapes.triangle(0, 520, 0, 720, 360, 720);
+        shapes.setColor(1f, 1f, 1f, 0.95f);
+        shapes.triangle(0, 520, 40, 560, 10, 570);
+        shapes.triangle(10, 570, 120, 620, 80, 640);
+        shapes.triangle(80, 640, 240, 680, 200, 700);
+        shapes.triangle(200, 700, 360, 720, 220, 640);
+
+        shapes.setColor(Color.valueOf("2BD9FFE8"));
+        shapes.triangle(1280, 0, 920, 0, 1280, 200);
+        shapes.setColor(1f, 1f, 1f, 0.95f);
+        shapes.triangle(920, 0, 970, 0, 1020, 50);
+        shapes.triangle(1020, 50, 980, 40, 1120, 100);
+        shapes.triangle(1120, 100, 1080, 90, 1280, 190);
+
+        shapes.end();
+
+        // 4. Draw Stage UI Elements
+        stage.getViewport().apply();
+        stage.act(delta);
+        stage.draw();
+    }
+
+    @Override
+    public void resize(int w, int h) {
+        stage.getViewport().update(w, h, true);
+    }
+
+    @Override public void pause() { }
+    @Override public void resume() { }
     @Override public void hide() { dispose(); }
-    @Override public void dispose() { if(disposed) { return; }disposed=true;if(Gdx.input.getInputProcessor()==stage) { Gdx.input.setInputProcessor(null); }stage.dispose();ui.close();textures.forEach(Texture::dispose); }
+
+    @Override
+    public void dispose() {
+        if (disposed) { return; }
+        disposed = true;
+        if (Gdx.input.getInputProcessor() == stage) {
+            Gdx.input.setInputProcessor(null);
+        }
+        stage.dispose();
+        batch.dispose();
+        shapes.dispose();
+        ui.close();
+        textures.forEach(Texture::dispose);
+    }
 }

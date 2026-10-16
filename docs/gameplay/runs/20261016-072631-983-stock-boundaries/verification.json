@@ -1,0 +1,9 @@
+﻿{
+    "date":  "2026-10-16T07:26:43.1238645+07:00",
+    "status":  "PASS",
+    "label":  "stock-boundaries",
+    "heapMiB":  128,
+    "suites":  [
+                   "com.smashprofs.server.game.StockGameplayTest"
+               ]
+}

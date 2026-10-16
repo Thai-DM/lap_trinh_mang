@@ -19,6 +19,7 @@ import java.util.logging.Logger;
 public final class TcpServerTransport implements AutoCloseable {
     private static final Logger LOGGER = Logger.getLogger(TcpServerTransport.class.getName());
     private final Object lifecycleLock = new Object();
+    private final TokenBucket acceptRate=new TokenBucket(Integer.getInteger("smashprofs.network.acceptsPerSecond",128),256);
     private final String bindHost;
     private final int bindPort;
     private final int maxConnections;
@@ -56,6 +57,9 @@ public final class TcpServerTransport implements AutoCloseable {
                 var room = lobbyRooms.getRoom(session.getRoomId());
                 if (room != null && room.leavePlayer(session.getPlayerId())) { session.leaveRoom(); }
             }
+            var room=session.getRoomId()==null?null:lobbyRooms.getRoom(session.getRoomId());
+            if(room!=null && room.getRules().gameplay() && room.getPhase()==com.smashprofs.server.room.RoomPhase.FINISHED
+                    && connections.getSessions().stream().noneMatch(s->s.isOpen() && room.getRoomId().equals(s.getRoomId()))) { lobbyRooms.removeRoom(room.getRoomId()); }
         }
         onClosed.accept(session);
     }
@@ -174,6 +178,7 @@ public final class TcpServerTransport implements AutoCloseable {
         ClientSession session = null;
         TcpClientConnection connection = null;
         try {
+            if(!acceptRate.allow(1)) { connections.performance.rateLimitRejections.increment(); socket.close(); return; }
             synchronized (lifecycleLock) {
                 if (!accepting || closed || connections.size() >= maxConnections) {
                     socket.close();

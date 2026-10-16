@@ -23,6 +23,7 @@ final class OnlineSpriteAssets implements AutoCloseable {
     Sprite player(String character) {
         var sprite = new Sprite(animations(character).stand().getKeyFrame(0));
         sprite.setSize(0.25f, 0.25f); // Original 25 / PPM; world meters.
+        sprite.setOriginCenter();
         return sprite;
     }
     TextureRegion frame(WireGameSnapshot.Player player, float time) {

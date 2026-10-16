@@ -19,6 +19,7 @@ public final class ArenaBoundaryController implements AutoCloseable {
     private final Bounds bounds;
     private final Set<PlayerId> recovering = new HashSet<>();
     private boolean closed;
+    private final boolean stableRosters=Boolean.parseBoolean(System.getProperty("smashprofs.performance.stableRosters","true"));
 
     public ArenaBoundaryController(PlayerPhysicsFactory.PlayerPhysicsBodies players, PlayerJumpController jumps) {
         this(players, jumps, ORIGINAL_BOUNDS);
@@ -38,7 +39,7 @@ public final class ArenaBoundaryController implements AutoCloseable {
      */
     public Set<PlayerId> applyBoundaries() {
         requireOpen();
-        Set<PlayerId> startedFalls = new HashSet<>();
+        Set<PlayerId> startedFalls = stableRosters?null:new HashSet<>();
         for (PlayerId playerId : players.getPlayerIds()) {
             var body = players.getBody(playerId);
             if (body.getWorld().isLocked()) {
@@ -55,6 +56,7 @@ public final class ArenaBoundaryController implements AutoCloseable {
             // Gốc xử lý edge trước fall: recovery ghi đè Y và damp X sau pushback nếu cùng xảy ra.
             if (body.getPosition().y < bounds.fallThresholdMeters()) {
                 if (recovering.add(playerId)) {
+                    if(startedFalls==null) { startedFalls=new HashSet<>(); }
                     startedFalls.add(playerId);
                 }
                 body.setLinearVelocity(body.getLinearVelocity().x * RECOVERY_X_DAMPING, RECOVERY_Y_SPEED);
@@ -63,7 +65,7 @@ public final class ArenaBoundaryController implements AutoCloseable {
                 recovering.remove(playerId);
             }
         }
-        return Set.copyOf(startedFalls);
+        return startedFalls==null?Set.of():Set.copyOf(startedFalls);
     }
 
     /** Kết thúc event ngay khi kết quả step trở về Y >= threshold; không giả lập grounded/jump. */

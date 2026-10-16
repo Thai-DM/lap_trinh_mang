@@ -30,6 +30,7 @@ public class Game extends com.badlogic.gdx.Game {
 	private NetworkClient networkClient;
 	private MockServer mockServer;
 	private LobbyClient lobbyClient;
+	public boolean startOnlineMenu;
 
 	public Game() {
 		this(null, null);
@@ -52,6 +53,14 @@ public class Game extends com.badlogic.gdx.Game {
 
 	public LobbyClient getLobbyClient() { return lobbyClient; }
 
+	public static Game forLobby(LobbyClient lobby) {
+		var game = new Game();
+		game.lobbyClient = java.util.Objects.requireNonNull(lobby);
+		game.networkClient = lobby.getNetworkClient();
+		mockMode = false;
+		return game;
+	}
+
 	/** UI transfers an already joined connection; no socket connect/write on the render thread. */
 	public void openOnlineLobby(LobbyClient joined) {
 		if (joined.getSnapshot().phase() != LobbyClient.Phase.JOINED) {
@@ -67,7 +76,7 @@ public class Game extends com.badlogic.gdx.Game {
 			new Thread(previous::stop, "Game-MockServerClose").start();
 		}
 		mockMode = false; lobbyClient = joined; networkClient = joined.getNetworkClient();
-		setScreen(new CharacterSelectScreen(this));
+        setScreen(joined.supportsGameplay()?new com.smashprofs.game.Screens.OnlineRoomScreen(this):new CharacterSelectScreen(this));
 	}
 
 	public void leaveOnlineLobby() {
@@ -120,12 +129,15 @@ public class Game extends com.badlogic.gdx.Game {
 		batch = new SpriteBatch();
 
 		if (lobbyClient != null) {
-			setScreen(new CharacterSelectScreen(this));
+			setScreen(lobbyClient.supportsGameplay()?new com.smashprofs.game.Screens.OnlineRoomScreen(this):new CharacterSelectScreen(this));
 			lobbyClient.startAsync(); // TCP connect never runs on the render thread.
 		} else if(mockMode || unitTestMode) {
 			log.warn("Mock or unit test mode enabled, skipping intro screen");
 			log.warn("Redirecting to PlayScreen...");
 			setScreen(new PlayScreen(this));
+		}
+		else if(startOnlineMenu) {
+			setScreen(new com.smashprofs.game.Screens.OnlineLobbyScreen(this));
 		}
 		else {
 			log.info("Redirecting to IntroScreen...");

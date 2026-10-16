@@ -7,7 +7,11 @@ import static com.smashprofs.game.network.client.GameStartRoster.*;
 
 /** Immutable TCP v1 values in world meters. No legacy DTO, libGDX, or physics objects. */
 public record WireGameSnapshot(String matchId, String roomId, long serverTick, String phase,
-                               long remainingTimeMs, List<Player> players, List<Projectile> projectiles) {
+                               long remainingTimeMs, List<Player> players, List<Projectile> projectiles,
+                               com.smashprofs.common.model.GameplaySnapshot gameplay) {
+    public WireGameSnapshot(String matchId,String roomId,long serverTick,String phase,long remainingTimeMs,List<Player> players,List<Projectile> projectiles) {
+        this(matchId,roomId,serverTick,phase,remainingTimeMs,players,projectiles,null);
+    }
     public record Player(String playerId, int slotIndex, String characterId, float x, float y,
                          float velocityX, float velocityY, float hp, boolean grounded,
                          boolean blocking, boolean dead, boolean facingRight) { }
@@ -18,7 +22,7 @@ public record WireGameSnapshot(String matchId, String roomId, long serverTick, S
     public WireGameSnapshot {
         require(matchId != null && !matchId.isBlank(), "Invalid matchId");
         LobbyConfiguration.validateRoomId(roomId);
-        require(serverTick >= 0 && remainingTimeMs >= 0 && remainingTimeMs <= 120000, "Invalid snapshot clock");
+        require(serverTick >= 0 && remainingTimeMs >= 0 && remainingTimeMs <= (gameplay==null?120000:300000), "Invalid snapshot clock");
         require(phase != null && Set.of("PLAYING", "FINISHED").contains(phase), "Invalid match phase");
         require(players != null && players.size() >= 2 && players.size() <= 4, "Expected 2..4 players");
         Set<String> ids = new HashSet<>();
@@ -40,6 +44,10 @@ public record WireGameSnapshot(String matchId, String roomId, long serverTick, S
         }
         players = players.stream().sorted(Comparator.comparingInt(Player::slotIndex)).toList();
         projectiles = projectiles.stream().sorted(Comparator.comparingLong(Projectile::projectileId)).toList();
+        if(gameplay!=null) {
+            require(gameplay.players().size()==players.size(),"Gameplay roster size");
+            for(var p:players) { var progress=gameplay.player(p.playerId());require(p.dead()!=progress.status().equals("ACTIVE"),"Gameplay life state mismatch"); }
+        }
     }
 
     public Player player(String playerId) {
@@ -58,7 +66,7 @@ public record WireGameSnapshot(String matchId, String roomId, long serverTick, S
     }
 
     public static WireGameSnapshot parse(ObjectNode payload) {
-        require(payload.size() == 7, "Invalid GAME_STATE fields");
+        require(payload.size() == (payload.has("gameplay")?8:7), "Invalid GAME_STATE fields");
         var playerArray = payload.get("players");
         var projectileArray = payload.get("projectiles");
         require(playerArray != null && playerArray.isArray() && projectileArray != null && projectileArray.isArray(), "Invalid snapshot arrays");
@@ -77,7 +85,8 @@ public record WireGameSnapshot(String matchId, String roomId, long serverTick, S
                     number(p, "velocityX"), number(p, "velocityY")));
         }
         return new WireGameSnapshot(text(payload, "matchId"), text(payload, "roomId"), integer(payload, "serverTick"),
-                text(payload, "phase"), integer(payload, "remainingTimeMs"), players, projectiles);
+                text(payload, "phase"), integer(payload, "remainingTimeMs"), players, projectiles,
+                payload.has("gameplay")?com.smashprofs.common.protocol.GameplayProtocol.snapshot(payload.get("gameplay")):null);
     }
 
     private static float number(JsonNode node, String field) {

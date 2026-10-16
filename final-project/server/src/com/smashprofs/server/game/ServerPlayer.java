@@ -55,6 +55,8 @@ public final class ServerPlayer {
     public boolean isDead() {
         return dead;
     }
+    void respawn() { hp=100;dead=false;blocking=false; }
+    void heal(float amount) { if(!dead && Float.isFinite(amount) && amount>0) { hp=Math.min(100,hp+amount); } }
 
     public boolean isBlocking() {
         return blocking;

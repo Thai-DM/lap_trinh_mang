@@ -26,6 +26,9 @@ public final class FixedTickScheduler {
     private volatile Thread cycleThread;
     private Runnable lifecycleUpdate;
     private Runnable afterCycle;
+    private long expectedCycleNanos;
+    private final com.smashprofs.server.metrics.ServerMetrics metrics = new com.smashprofs.server.metrics.ServerMetrics();
+    public com.smashprofs.server.metrics.ServerMetrics getMetrics() { return metrics; }
 
     /** Hook metadata sau các tick hoàn tất, không tạo loop/thread thứ hai. */
     public void setAfterCycle(Runnable update) {
@@ -63,6 +66,7 @@ public final class FixedTickScheduler {
                 return;
             }
             running = true;
+            expectedCycleNanos=System.nanoTime();
             try {
                 task = executor.scheduleAtFixedRate(this::runCycle, 0L, TICK_PERIOD_NANOS,
                         TimeUnit.NANOSECONDS);
@@ -178,6 +182,9 @@ public final class FixedTickScheduler {
 
     /** Cập nhật lobby trước, lấy snapshot runtime sau; không giữ khóa registry khi gọi callback/tick. */
     private void runCycle() {
+        long cycleStarted = System.nanoTime();
+        metrics.performance.record(com.smashprofs.server.metrics.PerformanceMetrics.Stage.SCHEDULING_LAG,Math.max(0,cycleStarted-expectedCycleNanos));
+        expectedCycleNanos+=TICK_PERIOD_NANOS;
         Runnable update;
         synchronized (registryLock) {
             if (!running) {
@@ -191,6 +198,7 @@ public final class FixedTickScheduler {
                 try {
                     update.run();
                 } catch (RuntimeException failure) {
+                    metrics.errors.increment();
                     // Lỗi boundary ngoài room cũng phải được báo và ngừng retry, không làm chết tick task.
                     synchronized (registryLock) {
                         lifecycleUpdate = null;
@@ -213,13 +221,17 @@ public final class FixedTickScheduler {
                                 || registration.runtime.isClosed()) {
                             continue;
                         }
-                        if (!registration.runtime.isFinished()) { registration.runtime.tick(); }
+                        if (!registration.runtime.isFinished()) {
+                            metrics.performance.record(com.smashprofs.server.metrics.PerformanceMetrics.Stage.ROOM_SCHEDULING_DELAY,System.nanoTime()-cycleStarted);
+                            registration.runtime.tick();
+                        }
                         finished = registration.runtime.isFinished();
                     }
                     if (finished && unregister(registration.runtime)) {
                         registration.onFinished.accept(registration.runtime);
                     }
                 } catch (RuntimeException failure) {
+                    metrics.errors.increment();
                     synchronized (registryLock) {
                         registration.active = false;
                         registrations.remove(registration.runtime, registration);
@@ -232,9 +244,10 @@ public final class FixedTickScheduler {
             synchronized (registryLock) { publication = running ? afterCycle : null; }
             if (publication != null) {
                 try { publication.run(); }
-                catch (RuntimeException failure) { logger.log(Level.WARNING, "Lỗi publication metadata sau tick", failure); }
+                catch (RuntimeException failure) { metrics.errors.increment(); logger.log(Level.WARNING, "Lỗi publication metadata sau tick", failure); }
             }
         } finally {
+            metrics.recordCycle(System.nanoTime() - cycleStarted);
             cycleThread = null;
         }
     }

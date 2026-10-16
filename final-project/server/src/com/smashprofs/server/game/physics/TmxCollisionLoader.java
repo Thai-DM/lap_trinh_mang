@@ -108,7 +108,21 @@ public final class TmxCollisionLoader {
                         + sourceName + ", object ID=" + id);
             }
         }
-        return new MapCollisionDefinition(sourceName, mapWidth, mapHeight, rectangles);
+        var lavaZones=new ArrayList<MapCollisionDefinition.CollisionRectangle>();
+        for(int index=0;index<matchingLayers.getLength();index++) {
+            Element candidate=(Element)matchingLayers.item(index);
+            if(!"lava_hazard".equals(candidate.getAttribute("name"))) { continue; }
+            if(candidate.getParentNode()!=map) { throw new IllegalArgumentException("Nested lava layer"); }
+            for(String offset:List.of("offsetx","offsety","x","y")) { if(number(candidate,offset,0)!=0) { throw new IllegalArgumentException("Lava offset unsupported"); } }
+            var objects=candidate.getElementsByTagName("object");
+            for(int i=0;i<objects.getLength();i++) {
+                Element object=(Element)objects.item(i);rejectUnsupportedGeometry(object);
+                float width=number(object,"width",0),height=number(object,"height",0);
+                if(width<=0 || height<=0) { throw new IllegalArgumentException("Invalid lava zone"); }
+                lavaZones.add(new MapCollisionDefinition.CollisionRectangle(Integer.parseInt(object.getAttribute("id")),number(object,"x",0),mapHeight-number(object,"y",0)-height,width,height));
+            }
+        }
+        return new MapCollisionDefinition(sourceName, mapWidth, mapHeight, rectangles,lavaZones);
     }
 
     private static void rejectUnsupportedGeometry(Element object) {

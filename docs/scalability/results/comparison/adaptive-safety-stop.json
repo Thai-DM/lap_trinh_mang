@@ -1,0 +1,8 @@
+{
+  "scenario": "adaptive",
+  "clients": 2,
+  "repeat": 1,
+  "availableMemoryBytes": 501211136,
+  "status": "SAFETY_STOP_BEFORE_START",
+  "thresholdMB": 1000
+}

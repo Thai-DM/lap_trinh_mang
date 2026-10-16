@@ -7,6 +7,15 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /** Quản lý các client session mà server đang biết tới theo sessionId. */
 public final class ConnectionManager {
+    final SharedSnapshotCache snapshotFrames=new SharedSnapshotCache();
+    final boolean shareSnapshots=Boolean.parseBoolean(System.getProperty("smashprofs.performance.sharedSnapshots","true"));
+    public volatile com.smashprofs.server.metrics.PerformanceMetrics performance = com.smashprofs.server.metrics.PerformanceMetrics.DISABLED;
+    public final java.util.concurrent.atomic.LongAdder sentBytes = new java.util.concurrent.atomic.LongAdder();
+    public final java.util.concurrent.atomic.LongAdder snapshotBytes = new java.util.concurrent.atomic.LongAdder();
+    public final java.util.concurrent.atomic.LongAdder receivedBytes = new java.util.concurrent.atomic.LongAdder();
+    public final java.util.concurrent.atomic.LongAdder sentMessages = new java.util.concurrent.atomic.LongAdder();
+    public final java.util.concurrent.atomic.LongAdder receivedMessages = new java.util.concurrent.atomic.LongAdder();
+    public final java.util.concurrent.atomic.LongAdder errors = new java.util.concurrent.atomic.LongAdder();
     private final ConcurrentHashMap<String, ClientSession> sessions = new ConcurrentHashMap<>();
     private final Object registryLock = new Object();
 

@@ -1,158 +1,70 @@
 package com.smashprofs.game.Screens;
 
 import com.badlogic.gdx.*;
-import com.badlogic.gdx.graphics.*;
-import com.badlogic.gdx.graphics.g2d.*;
-import com.badlogic.gdx.scenes.scene2d.*;
+import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
-import com.badlogic.gdx.scenes.scene2d.utils.*;
-import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.smashprofs.game.Game;
-import com.smashprofs.game.network.client.WireMatchResult;
-import java.util.Locale;
+import com.smashprofs.game.network.client.*;
+import com.smashprofs.game.ui.OnlineUi;
+import java.util.*;
 
-/** Presentation of an already validated immutable v1 result; offline WinScreen stays unchanged. */
+/** Readable final standings from the immutable server result, with a path back to online play. */
 final class OnlineResultScreen implements Screen {
+    private final Stage stage=new Stage(new FitViewport(1280,720));
+    private final OnlineUi ui=new OnlineUi();
     private final Game game;
-    private final WireMatchResult result;
-    private final String localId;
-    private final SpriteBatch batch = new SpriteBatch();
-    private final Stage stage = new Stage(new FitViewport(960, 540), batch);
-    private final BitmapFont font = new BitmapFont();
-    private final OnlineSpriteAssets assets = new OnlineSpriteAssets();
-    private Texture cardTexture;
     private boolean disposed;
-
-    OnlineResultScreen(WireMatchResult result, String localId) {
-        this(null, result, localId);
-    }
-
-    OnlineResultScreen(Game game, WireMatchResult result, String localId) {
-        this.game = game;
-        this.result = result;
-        this.localId = localId;
-        font.getData().setScale(0.95f);
-
-        // Root table filling screen with map background
-        var root = new Table();
-        root.setFillParent(true);
-        root.background(new TextureRegionDrawable(assets.texture("winscreen/winbg.png")));
-
-        // Translucent dark card behind result content for high contrast and readability
-        var card = new Table();
-        var pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
-        pixmap.setColor(new Color(0.06f, 0.07f, 0.12f, 0.85f));
-        pixmap.fill();
-        cardTexture = new Texture(pixmap);
-        pixmap.dispose();
-        card.background(new TextureRegionDrawable(cardTexture));
-        card.pad(16, 32, 16, 32);
-
-        // Trophy icon
-        var trophy = new Image(assets.texture("winscreen/pokal.png"));
-        card.add(trophy).size(85, 105).padBottom(8);
-        card.row();
-
-        // Winner heading
-        var winner = result.winner();
-        boolean isDraw = result.isDraw();
-        boolean isYouWinner = winner != null && winner.playerId().equals(localId);
-
-        String title;
-        Color titleColor;
-        if (isDraw) {
-            title = "DRAW MATCH";
-            titleColor = Color.LIGHT_GRAY;
-        } else if (isYouWinner) {
-            title = "★ VICTORY ★\n" + winner.characterId() + " (YOU)";
-            titleColor = Color.GOLD;
-        } else {
-            title = "WINNER: " + winner.characterId() + " (Slot " + winner.slotIndex() + ")";
-            titleColor = Color.CYAN;
-        }
-        var heading = new Label(title, new Label.LabelStyle(font, titleColor));
-        heading.setAlignment(Align.center);
-        card.add(heading).padBottom(6);
-        card.row();
-
-        // Reason & Room subtitle
-        String reasonDesc = switch (result.finishReason()) {
-            case "LAST_PLAYER_STANDING" -> "Last Player Standing";
-            case "TIME_LIMIT" -> "Time Limit Exceeded";
-            case "ALL_PLAYERS_ELIMINATED" -> "Double K.O.";
-            default -> result.finishReason();
+    OnlineResultScreen(Game game,WireMatchResult result,String localId) {
+        this.game=game;var root=new Table();root.pad(24);root.defaults().left();
+        root.add(ui.small("KẾT QUẢ TRẬN ĐẤU  /  PHÒNG "+result.roomId()));root.row();
+        var winner=result.winner();String champion=result.isDraw()?"TRẬN ĐẤU HÒA":(winner.playerId().equals(localId)?"BẠN ĐÃ CHIẾN THẮNG":"P"+(winner.slotIndex()+1)+" · "+winner.characterId()+" CHIẾN THẮNG");
+        var title=ui.heading(champion);title.setColor(OnlineUi.ACCENT);root.add(title).padTop(16);root.row();
+        String reason=switch(result.finishReason()) {
+            case "TIME_LIMIT"->"Hết thời gian · Xét HP cao nhất; bằng HP thì hòa.";
+            case "LAST_PLAYER_STANDING"->"Chỉ còn một người có mạng.";
+            default->"Không còn người chơi có mạng.";
         };
-        var subLabel = new Label("Room: " + result.roomId() + "  |  " + reasonDesc, new Label.LabelStyle(font, Color.GRAY));
-        subLabel.setAlignment(Align.center);
-        card.add(subLabel).padBottom(12);
-        card.row();
-
-        // Scoreboard participants rows
-        for (var p : result.participants()) {
-            boolean isLocal = p.playerId().equals(localId);
-            boolean isPWinner = winner != null && p.playerId().equals(winner.playerId());
-
-            String tag = isPWinner ? " [WINNER]" : p.eliminated() ? " [K.O.]" : " [SURVIVED]";
-            String rowText = String.format(Locale.ROOT, "Slot %d | %s%s | HP: %.1f%s",
-                    p.slotIndex(), p.characterId(), isLocal ? " (YOU)" : "", p.finalHp(), tag);
-
-            Color rowColor = isPWinner ? Color.GOLD : isLocal ? Color.CYAN : Color.WHITE;
-            var rowLabel = new Label(rowText, new Label.LabelStyle(font, rowColor));
-            rowLabel.setAlignment(Align.center);
-            card.add(rowLabel).padBottom(5);
-            card.row();
+        root.add(ui.label(reason)).padTop(8);root.row();
+        var table=ui.panel();table.defaults().pad(12).left();
+        String[] headers={"Người chơi","HP cuối","Mạng","Sát thương","K.O.","Lần chết","Vật phẩm","Vũ khí"};
+        for(String header:headers) { table.add(ui.small(header)); }table.row();
+        for(var p:result.participants()) {
+            var identity=ui.label("P"+(p.slotIndex()+1)+" · "+p.characterId()+(p.playerId().equals(localId)?" · Bạn":""));
+            identity.setColor(p.playerId().equals(localId)?OnlineUi.ACCENT:OnlineUi.TEXT);table.add(identity).minWidth(230);
+            table.add(ui.label(Integer.toString(Math.round(p.finalHp()))));
+            if(result.gameplay()!=null) {
+                var s=result.gameplay().player(p.playerId());
+                for(String value:new String[]{""+s.lives(),String.format(Locale.ROOT,"%.0f",s.damageDealt()),""+s.kills(),""+s.deaths(),""+s.itemsCollected(),""+s.weaponsCollected()}) { table.add(ui.label(value)); }
+            } else { for(int i=0;i<6;i++) { table.add(ui.label("—")); } }
+            table.row();
         }
-
-        // Return to Menu button
-        var menuBtn = new Image(assets.texture("winscreen/menuButtonInactive.png"));
-        menuBtn.addListener(new ClickListener() {
-            @Override public void clicked(InputEvent event, float x, float y) { returnToMenu(); }
-            @Override public void enter(InputEvent event, float x, float y, int pointer, Actor fromActor) {
-                menuBtn.setDrawable(new TextureRegionDrawable(assets.texture("winscreen/menuButtonActive.png")));
+        root.add(table).growX().padTop(24);root.row();
+        if(result.gameplay()!=null) {
+            var awards=new Table();String[] types={"DAMAGE","WEAPONS","KO"};String[] titles={"VUA SÁT THƯƠNG","THỢ NHẶT VŨ KHÍ","NHIỀU K.O. NHẤT"};
+            for(int i=0;i<types.length;i++) {
+                var ids=result.gameplay().leaders(types[i]);String names=ids.isEmpty()?"Chưa có danh hiệu":ids.stream().map(id->name(result,id)).collect(java.util.stream.Collectors.joining(", "));
+                var card=ui.panel();card.pad(16);card.add(ui.small(titles[i])).left();card.row();var label=ui.wrapped(names+(ids.size()>1?" · Đồng hạng":""));card.add(label).width(330).padTop(10);
+                awards.add(card).width(370).height(96).padRight(10);
             }
-            @Override public void exit(InputEvent event, float x, float y, int pointer, Actor toActor) {
-                menuBtn.setDrawable(new TextureRegionDrawable(assets.texture("winscreen/menuButtonInactive.png")));
-            }
-        });
-        card.add(menuBtn).size(160, 52).padTop(10);
-        card.row();
-
-        var tip = new Label("Press Esc or Click button to return to Menu", new Label.LabelStyle(font, Color.LIGHT_GRAY));
-        tip.setAlignment(Align.center);
-        card.add(tip).padTop(4);
-
-        root.add(card).center();
-        stage.addActor(root);
-    }
-
-    private void returnToMenu() {
-        if (game != null) {
-            try { game.getLobbyClient().close(); } catch (Exception ignored) {}
-            game.setScreen(new MainMenuScreen(game));
-        } else {
-            Gdx.app.exit();
+            root.add(awards).growX().padTop(16);root.row();
+            root.add(ui.small("Thời lượng: "+String.format(Locale.ROOT,"%.1f",result.gameplay().durationTicks()/60f)+" giây · Số liệu do máy chủ ghi nhận.")).padTop(16);root.row();
         }
+        root.add(ui.primary("Chơi trận khác",this::back)).width(330).height(48).padTop(16);root.row();
+        root.add(ui.small("Trở về màn hình Tạo phòng / Vào phòng.  [Esc]")).padTop(10);
+        var scroll=new ScrollPane(root,new ScrollPane.ScrollPaneStyle());scroll.setScrollingDisabled(true,false);
+        var frame=new Table();frame.setFillParent(true);frame.add(scroll).grow();stage.addActor(frame);
     }
-
+    private static String name(WireMatchResult result,String id) { return result.participants().stream().filter(p->p.playerId().equals(id)).map(p->"P"+(p.slotIndex()+1)+" · "+p.characterId()).findFirst().orElse("Người chơi"); }
+    private void back() { game.leaveOnlineLobby();game.setScreen(new OnlineLobbyScreen(game)); }
     @Override public void show() { Gdx.input.setInputProcessor(stage); }
     @Override public void render(float delta) {
-        if (disposed) { return; }
-        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) { returnToMenu(); }
-        ScreenUtils.clear(Color.BLACK);
-        stage.getViewport().apply();
-        stage.act(delta);
-        stage.draw();
+        if(disposed) { return; }if(Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) { back();return; }
+        ScreenUtils.clear(OnlineUi.BACKGROUND);stage.getViewport().apply();stage.act(delta);stage.draw();
     }
-    @Override public void resize(int width, int height) { stage.getViewport().update(width, height, true); }
-    @Override public void pause() { }
-    @Override public void resume() { }
+    @Override public void resize(int w,int h) { stage.getViewport().update(w,h,true); }
+    @Override public void pause() { } @Override public void resume() { }
     @Override public void hide() { dispose(); }
-    @Override public void dispose() {
-        if (disposed) { return; } disposed = true;
-        if (Gdx.input.getInputProcessor() == stage) { Gdx.input.setInputProcessor(null); }
-        if (cardTexture != null) { cardTexture.dispose(); cardTexture = null; }
-        stage.dispose(); font.dispose(); assets.close(); batch.dispose();
-    }
+    @Override public void dispose() { if(disposed) { return; }disposed=true;if(Gdx.input.getInputProcessor()==stage) { Gdx.input.setInputProcessor(null); }stage.dispose();ui.close(); }
 }

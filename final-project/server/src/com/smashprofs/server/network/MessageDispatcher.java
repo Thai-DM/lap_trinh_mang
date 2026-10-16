@@ -21,9 +21,13 @@ public final class MessageDispatcher {
 
     /** Boundary TCP v1; các API dispatcher/handler nội bộ cũ vẫn giữ nguyên. */
     public static MessageDispatcher protocolV1(ConnectionManager connections, RoomManager rooms) {
+        return protocolV1(connections, rooms, null);
+    }
+
+    public static MessageDispatcher protocolV1(ConnectionManager connections, RoomManager rooms, SessionAdmission admission) {
         return new MessageDispatcher((session, type, payload) -> { }, new PlayerInputHandler(connections, rooms),
                 new JoinRoomHandler(connections, rooms), new PlayerReadyHandler(connections, rooms),
-                new ProtocolV1Dispatcher(connections, rooms));
+                new ProtocolV1Dispatcher(connections, rooms, admission));
     }
 
     public MessageDispatcher(InboundHandler handler) {

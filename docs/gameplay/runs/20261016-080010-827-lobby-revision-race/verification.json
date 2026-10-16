@@ -1,0 +1,12 @@
+﻿{
+    "date":  "2026-10-16T08:00:52.1688899+07:00",
+    "status":  "PASS",
+    "label":  "lobby-revision-race",
+    "heapMiB":  128,
+    "suites":  [
+                   "com.smashprofs.server.room.HostRulesTest",
+                   "com.smashprofs.server.game.GameplayTcpIntegrationTest",
+                   "com.smashprofs.tests.network.GameplayClusterIntegrationTest",
+                   "com.smashprofs.tests.network.LobbyClientTcpIntegrationTest"
+               ]
+}

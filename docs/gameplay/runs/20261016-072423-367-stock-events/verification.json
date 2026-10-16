@@ -1,0 +1,12 @@
+﻿{
+    "date":  "2026-10-16T07:24:37.7072305+07:00",
+    "status":  "PASS",
+    "label":  "stock-events",
+    "heapMiB":  128,
+    "suites":  [
+                   "com.smashprofs.server.game.StockGameplayTest",
+                   "com.smashprofs.server.network.TcpSnapshotBackpressureTest",
+                   "com.smashprofs.server.network.SharedSnapshotCacheTest",
+                   "com.smashprofs.server.network.StateBroadcasterTest"
+               ]
+}

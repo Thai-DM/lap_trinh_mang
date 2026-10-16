@@ -55,7 +55,7 @@ public class OnlineLobbyFormModelTest {
             await(conditions, () -> (joined[0] = first.takeJoinedClient()) != null);
             assertTrue(retry.connect("127.0.0.1", port, "existing", LobbyConfiguration.Mode.CREATE));
             await(conditions, () -> { retry.takeJoinedClient(); return retry.hasError(); });
-            assertTrue(retry.getStatus().contains("INVALID_ROOM_STATE")); assertFalse(retry.isConnecting());
+            assertTrue(retry.getStatus().contains("Phòng đã tồn tại")); assertFalse(retry.isConnecting());
             assertTrue(retry.connect("127.0.0.1", port, "another", LobbyConfiguration.Mode.CREATE));
             await(conditions, () -> (joined[1] = retry.takeJoinedClient()) != null);
             joined[0].closeAndWait(5000); joined[1].closeAndWait(5000);

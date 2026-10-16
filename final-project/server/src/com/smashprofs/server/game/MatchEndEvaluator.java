@@ -7,7 +7,7 @@ final class MatchEndEvaluator {
     private MatchEndEvaluator() { }
 
     static AuthoritativeMatchResult evaluate(AuthoritativeGameSnapshot snapshot, boolean timeLimitReached) {
-        var survivors = snapshot.players().stream().filter(player -> !player.dead()).toList();
+        var survivors = snapshot.players().stream().filter(player -> snapshot.gameplay()==null?!player.dead():snapshot.gameplay().player(player.playerId().value()).lives()>0).toList();
         PlayerId winner = null;
         AuthoritativeMatchResult.FinishReason reason;
         if (survivors.isEmpty()) {
@@ -27,8 +27,8 @@ final class MatchEndEvaluator {
         }
         var participants = snapshot.players().stream().map(player ->
                 new AuthoritativeMatchResult.ParticipantResult(player.playerId(), player.slotIndex(),
-                        player.characterId(), player.hp(), player.dead())).toList();
+                        player.characterId(), player.hp(), snapshot.gameplay()==null?player.dead():snapshot.gameplay().player(player.playerId().value()).lives()==0)).toList();
         return new AuthoritativeMatchResult(snapshot.matchId(), snapshot.roomId(), snapshot.serverTick(),
-                winner, reason, participants);
+                winner, reason, participants,snapshot.gameplay());
     }
 }

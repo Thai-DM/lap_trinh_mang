@@ -12,6 +12,8 @@ import java.util.Objects;
 
 /** Queue input có giới hạn theo player; chưa áp dụng input vào state hoặc tạo thread. */
 public final class InputQueue {
+    private volatile com.smashprofs.server.metrics.PerformanceMetrics metrics = com.smashprofs.server.metrics.PerformanceMetrics.DISABLED;
+    public void setPerformanceMetrics(com.smashprofs.server.metrics.PerformanceMetrics metrics) { this.metrics=Objects.requireNonNull(metrics); }
     private static final int DEFAULT_CAPACITY_PER_PLAYER = 32;
     private final int capacityPerPlayer;
     private final Map<PlayerId, PlayerBuffer> buffers = new LinkedHashMap<>();
@@ -27,7 +29,7 @@ public final class InputQueue {
         }
         this.capacityPerPlayer = capacityPerPlayer;
         for (MatchSetup.Participant participant : setup.participants()) {
-            buffers.put(participant.playerId(), new PlayerBuffer());
+            buffers.put(participant.playerId(), new PlayerBuffer(capacityPerPlayer));
         }
     }
 
@@ -37,6 +39,14 @@ public final class InputQueue {
      * clientTick chỉ là metadata, không dùng làm thời gian chính thức.
      */
     public synchronized OfferResult offer(PlayerInput input) {
+        long started=System.nanoTime();
+        try {
+            var result=validateAndOffer(input);
+            if(result!=OfferResult.ACCEPTED) { metrics.inputRejections.increment(); }
+            return result;
+        } finally { metrics.record(com.smashprofs.server.metrics.PerformanceMetrics.Stage.INPUT_VALIDATION,System.nanoTime()-started); }
+    }
+    private OfferResult validateAndOffer(PlayerInput input) {
         if (input == null || input.playerId() == null || input.playerId().value() == null
                 || input.playerId().value().isBlank() || input.sequence() < 0
                 || !Float.isFinite(input.moveAxis()) || input.moveAxis() < -1.0f || input.moveAxis() > 1.0f) {
@@ -52,6 +62,7 @@ public final class InputQueue {
         if (buffer.pending.size() >= capacityPerPlayer) {
             return OfferResult.QUEUE_FULL;
         }
+        buffer.acceptedAt[buffer.pending.size()]=System.nanoTime();
         buffer.pending.addLast(input);
         buffer.lastAcceptedSequence = input.sequence();
         return OfferResult.ACCEPTED;
@@ -63,6 +74,11 @@ public final class InputQueue {
      * Xóa input đã gom, không giữ edge hoặc tự tạo entry cho tick sau.
      */
     public synchronized List<PlayerInput> drainForTick() {
+        long started=System.nanoTime();
+        try { return drainOwned(started); }
+        finally { metrics.record(com.smashprofs.server.metrics.PerformanceMetrics.Stage.INPUT_DEQUEUE,System.nanoTime()-started); }
+    }
+    private List<PlayerInput> drainOwned(long now) {
         List<PlayerInput> drained = new ArrayList<>();
         for (PlayerBuffer buffer : buffers.values()) {
             PlayerInput latest = buffer.pending.peekLast();
@@ -73,7 +89,9 @@ public final class InputQueue {
             boolean stomp = false;
             boolean melee = false;
             boolean ability = false;
+            int index=0;
             for (PlayerInput input : buffer.pending) {
+                metrics.record(com.smashprofs.server.metrics.PerformanceMetrics.Stage.INPUT_QUEUE_WAIT,now-buffer.acceptedAt[index++]);
                 jump |= input.jumpPressed();
                 stomp |= input.stompPressed();
                 melee |= input.meleePressed();
@@ -108,10 +126,13 @@ public final class InputQueue {
         INVALID_INPUT,
         UNKNOWN_PLAYER,
         QUEUE_FULL,
-        MATCH_FINISHED // MatchRuntime reject lifecycle; queue không tự đánh giá kết quả trận.
+        MATCH_FINISHED, // MatchRuntime reject lifecycle; queue không tự đánh giá kết quả trận.
+        PLAYER_INACTIVE
     }
 
     private static final class PlayerBuffer {
+        final long[] acceptedAt;
+        PlayerBuffer(int capacity) { acceptedAt=new long[capacity]; }
         private final ArrayDeque<PlayerInput> pending = new ArrayDeque<>();
         private long lastAcceptedSequence = -1L;
     }

@@ -60,6 +60,18 @@ public final class ProjectileManager implements ContactListener, AutoCloseable {
     private final List<PendingHit> pendingHits = new ArrayList<>();
     private long nextProjectileId = 1L;
     private boolean closed;
+    private boolean gameplayLimits;
+    public void enableGameplayLimits() { gameplayLimits=true; }
+    public void expireGameplayProjectiles(long tick) {
+        if(!gameplayLimits) { return; }
+        var world=requireWorld();var iterator=active.values().iterator();
+        while(iterator.hasNext()) {
+            var p=iterator.next();
+            if(tick-p.getSpawnTick()>=600 || state.getPlayer(p.getOwnerPlayerId()).isDead()) {
+                world.destroyBody(p.body());p.releaseBody();iterator.remove();collided.remove(p.getProjectileId());contactTargets.remove(p.getProjectileId());
+            }
+        }
+    }
 
     public ProjectileManager(HeadlessPhysicsWorld physics, MatchState state, PlayerPhysicsBodies players) {
         this.physics = Objects.requireNonNull(physics, "physics không được null");
@@ -76,6 +88,7 @@ public final class ProjectileManager implements ContactListener, AutoCloseable {
         if (owner == null || owner.isDead()) { return false; }
         ProjectileType type = ProjectileType.forCharacter(owner.getCharacterId());
         if (type == null) { return false; }
+        if(gameplayLimits && active.size()+(type==ProjectileType.STAR?4:1)>64) { return false; }
         AbilityKey ability = new AbilityKey(ownerId, type);
         if (serverTick < nextAllowedTick.getOrDefault(ability, 0L)) { return false; }
         var origin = players.getPosition(ownerId);

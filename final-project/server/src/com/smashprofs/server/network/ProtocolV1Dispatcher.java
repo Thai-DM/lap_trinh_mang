@@ -17,7 +17,12 @@ final class ProtocolV1Dispatcher {
     private final JoinRoomHandler joins;
     private final PlayerReadyHandler ready;
     private final PlayerInputHandler inputs;
+    private final SessionAdmission admission;
     ProtocolV1Dispatcher(ConnectionManager connections, RoomManager rooms) {
+        this(connections, rooms, null);
+    }
+    ProtocolV1Dispatcher(ConnectionManager connections, RoomManager rooms, SessionAdmission admission) {
+        this.admission = admission;
         this.connections = connections;
         this.rooms = rooms;
         joins = new JoinRoomHandler(connections, rooms);
@@ -39,6 +44,7 @@ final class ProtocolV1Dispatcher {
         }
         if (response != null) {
             session.send(response);
+            if(session.rateLimitExceededRepeatedly()) { session.close(); }
             if (response.type() == MessageType.CONNECT_ACK && heartbeat != null) { heartbeat.connected(session); }
         }
         return accepted;
@@ -48,22 +54,34 @@ final class ProtocolV1Dispatcher {
         if (!session.isOpen() || connections.get(session.getSessionId()) != session) {
             throw error("INVALID_SESSION", requestId);
         }
+        if(!session.allowRequest(message.type())) {
+            connections.performance.rateLimitRejections.increment(); throw new ProtocolException("RATE_LIMITED","Request rate exceeded",requestId);
+        }
         ObjectNode payload = message.payload();
         if (message.type() == MessageType.CONNECT) {
-            ProtocolV1.fields(payload, requestId);
+            if (admission == null) { ProtocolV1.fields(payload, requestId,"gameplay"); }
+            if(payload.has("gameplay")) {
+                if(!GameplayProtocol.CAPABILITY.equals(payload.path("gameplay").asText())) { throw ProtocolV1.invalid(requestId); }
+                session.enableGameplay();
+            }
             // CONNECT lặp giữ nguyên ID; không lấy PlayerId/IP/port từ client.
-            if (session.getPlayerId() == null) { session.bindPlayer(new PlayerId(UUID.randomUUID().toString())); }
+            if (admission != null) { session.bindPlayer(admission.connect(session, message)); }
+            else if (session.getPlayerId() == null) { session.bindPlayer(new PlayerId(UUID.randomUUID().toString())); }
             return new ProtocolMessage(MessageType.CONNECT_ACK, requestId,
                     ProtocolV1.object().put("playerId", session.getPlayerId().value()));
         }
         if (session.getPlayerId() == null) { throw error("INVALID_SESSION", requestId); }
+        if (admission != null) { admission.authorize(session, message); }
         return switch (message.type()) {
             case CREATE_ROOM -> {
-                ProtocolV1.fields(payload, requestId, "roomId");
+                ProtocolV1.fields(payload, requestId, "roomId", "gameplay");
                 String roomId = ProtocolV1.roomId(payload, requestId);
+                boolean enhanced=payload.has("gameplay") && ProtocolV1.bool(payload,"gameplay",requestId);
+                if(enhanced && !session.supportsGameplay()) { throw error("GAMEPLAY_CAPABILITY_REQUIRED",requestId); }
                 final GameRoom created;
                 try { created = rooms.createRoom(roomId); }
                 catch (IllegalArgumentException duplicate) { throw error("INVALID_ROOM_STATE", requestId); }
+                if(enhanced) { created.configureGameplay(session.getPlayerId()); }
                 // Chỉ create: không sửa session binding, không join/ready/start; send nằm ngoài khóa routing.
                 yield new ProtocolMessage(MessageType.ROOM_CREATED, requestId,
                         ProtocolV1.object().put("roomId", created.getRoomId()));
@@ -71,6 +89,8 @@ final class ProtocolV1Dispatcher {
             case JOIN_ROOM -> {
                 ProtocolV1.fields(payload, requestId, "roomId");
                 String roomId = ProtocolV1.roomId(payload, requestId);
+                var target=rooms.getRoom(roomId);
+                if(target!=null && target.getRules().gameplay() && !session.supportsGameplay()) { throw error("GAMEPLAY_CAPABILITY_REQUIRED",requestId); }
                 var result = joins.handle(session, roomId);
                 if (!result.isSuccess()) {
                     throw error(switch (result.status()) {
@@ -82,6 +102,18 @@ final class ProtocolV1Dispatcher {
                     }, requestId);
                 }
                 yield roomState(roomId, requestId);
+            }
+            case ROOM_SETTINGS_UPDATE -> {
+                if(!session.supportsGameplay() || session.getRoomId()==null) { throw error("INVALID_ROOM_STATE",requestId); }
+                ProtocolV1.fields(payload,requestId,"roomId","rules");
+                String roomId=ProtocolV1.roomId(payload,requestId);
+                if(!roomId.equals(session.getRoomId())) { throw error("UNAUTHORIZED_PLAYER",requestId); }
+                var room=rooms.getRoom(roomId); if(room==null) { throw error("ROOM_NOT_FOUND",requestId); }
+                try { room.updateSettings(session.getPlayerId(),GameplayProtocol.rules(payload.get("rules"))); }
+                catch(SecurityException denied) { throw error("UNAUTHORIZED_PLAYER",requestId); }
+                catch(IllegalArgumentException invalid) { throw ProtocolV1.invalid(requestId); }
+                catch(IllegalStateException locked) { throw error("INVALID_ROOM_STATE",requestId); }
+                yield settingsState(room,requestId);
             }
             case PLAYER_READY -> {
                 ProtocolV1.fields(payload, requestId, "roomId", "characterId", "ready");
@@ -107,6 +139,9 @@ final class ProtocolV1Dispatcher {
             }
             case PLAYER_INPUT -> {
                 var result = inputs.handle(session, ProtocolV1.playerInput(message, session.getPlayerId()));
+                // Valid in-flight input can arrive before a client has received its death/respawn snapshot.
+                // Its session/identity/room are still validated; discard it without a per-frame ERROR storm.
+                if(result==PlayerInputHandler.RoutingResult.PLAYER_INACTIVE) { yield null; }
                 if (result != PlayerInputHandler.RoutingResult.ACCEPTED) {
                     String code = switch (result) {
                         case INVALID_SESSION, PLAYER_NOT_BOUND -> "INVALID_SESSION";
@@ -142,6 +177,7 @@ final class ProtocolV1Dispatcher {
         synchronized (room) {
             if (room.isClosed() || rooms.getRoom(roomId) != room) { throw error("ROOM_NOT_FOUND", requestId); }
             payload.put("phase", room.getPhase().name());
+            if(room.getRules().gameplay()) { payload.set("settings",settingsState(room,null).payload()); }
             for (var slot : room.getPlayerSlots()) {
                 var member = members.addObject().put("playerId", slot.playerId().value()).put("slotIndex", slot.slotIndex())
                         .put("ready", room.isPlayerReady(slot.playerId()));
@@ -150,6 +186,22 @@ final class ProtocolV1Dispatcher {
             }
         }
         return new ProtocolMessage(MessageType.ROOM_STATE, requestId, payload);
+    }
+    static ProtocolMessage settingsState(GameRoom room,String requestId) {
+        synchronized(room) {
+            var payload=ProtocolV1.object().put("roomId",room.getRoomId()).put("version",room.getSettingsVersion())
+                    .put("rulesVersion",room.getRulesVersion())
+                    .put("hostId",room.getHost()==null?"":room.getHost().value()).put("playerCount",room.getPlayerCount());
+            payload.set("rules",GameplayProtocol.rules(room.getRules()));
+            var players=payload.putArray("players");
+            for(var slot:room.getPlayerSlots()) {
+                var member=players.addObject().put("playerId",slot.playerId().value()).put("slotIndex",slot.slotIndex())
+                        .put("ready",room.isPlayerReady(slot.playerId()));
+                var character=room.getSelectedCharacter(slot.playerId());
+                if(character==null) { member.putNull("characterId"); } else { member.put("characterId",character); }
+            }
+            return new ProtocolMessage(MessageType.ROOM_SETTINGS_STATE,requestId,payload);
+        }
     }
     private static ProtocolException error(String code, String requestId) {
         return new ProtocolException(code, switch (code) {

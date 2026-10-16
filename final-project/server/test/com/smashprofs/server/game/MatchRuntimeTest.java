@@ -30,6 +30,17 @@ public class MatchRuntimeTest {
         return runtime;
     }
 
+    @Test public void closingAnUnfinishedMatchReleasesQueuedInputsAndNativeWorld() {
+        int worlds = com.smashprofs.server.game.physics.HeadlessPhysicsWorld.liveWorldCount();
+        var runtime = createRuntime(setup()); runtime.start();
+        var player = runtime.getParticipants().get(0).playerId();
+        runtime.submitInput(new com.smashprofs.common.model.PlayerInput(player, 0, 0, 1, false, false, false, false, false));
+        assertEquals(1, runtime.getPendingInputCount());
+        runtime.close(); runtime.close();
+        assertEquals(0, runtime.getPendingInputCount()); assertNull(runtime.getLatestSnapshot());
+        assertEquals(worlds, com.smashprofs.server.game.physics.HeadlessPhysicsWorld.liveWorldCount());
+    }
+
     @Test
     public void runtimeCanBeCreatedFromMatchSetup() {
         MatchRuntime runtime = createRuntime(setup());

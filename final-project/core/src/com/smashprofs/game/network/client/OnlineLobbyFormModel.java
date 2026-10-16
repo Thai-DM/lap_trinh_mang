@@ -3,7 +3,7 @@ package com.smashprofs.game.network.client;
 /** Render-thread form state. LobbyClient owns background I/O until handed to Game. */
 public final class OnlineLobbyFormModel implements AutoCloseable {
     private LobbyClient pending;
-    private String status = "Enter the running server address and a room ID.";
+    private String status = "Mở server trước, sau đó tạo phòng hoặc nhập mã để chơi cùng bạn bè.";
     private boolean error;
 
     public boolean connect(String host, String port, String room, LobbyConfiguration.Mode mode) {
@@ -11,13 +11,14 @@ public final class OnlineLobbyFormModel implements AutoCloseable {
         try {
             String address = host == null ? "" : host.strip();
             if (address.chars().anyMatch(Character::isWhitespace)) {
-                throw new IllegalArgumentException("Server address cannot contain spaces.");
+                throw new IllegalArgumentException("Địa chỉ máy chủ không được chứa khoảng trắng.");
             }
             int number;
             try { number = Integer.parseInt(port == null ? "" : port.strip()); }
-            catch (NumberFormatException invalid) { throw new IllegalArgumentException("Port must be a number from 1 to 65535."); }
+            catch (NumberFormatException invalid) { throw new IllegalArgumentException("Cổng phải là số từ 1 đến 65535."); }
             var configuration = new LobbyConfiguration(address, number, room, mode);
             pending = new LobbyClient(configuration);
+            pending.enableGameplay();
             error = false;
             pending.startAsync();
             return true;
@@ -36,16 +37,17 @@ public final class OnlineLobbyFormModel implements AutoCloseable {
             var joined = pending; pending = null; return joined;
         }
         if (snapshot.phase() == LobbyClient.Phase.ERROR || snapshot.phase() == LobbyClient.Phase.DISCONNECTED) {
+            status=OnlineRoomPresentation.error(snapshot.errorCode(),snapshot.statusText());
             pending.close(); pending = null; error = true;
         }
         return null;
     }
     public boolean isConnecting() { return pending != null; }
     public boolean hasError() { return error; }
-    public String getStatus() { return pending == null ? status : pending.getSnapshot().statusText(); }
+    public String getStatus() { return pending == null ? status : "Đang kết nối máy chủ và mở phòng…"; }
     public void cancel() {
         if (pending != null) { pending.close(); pending = null; }
-        status = "Connection cancelled. You can try another server or room."; error = false;
+        status = "Đã hủy kết nối. Bạn có thể thử lại."; error = false;
     }
     @Override public void close() { if (pending != null) { pending.close(); pending = null; } }
 }

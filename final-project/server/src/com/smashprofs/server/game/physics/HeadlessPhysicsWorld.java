@@ -11,6 +11,8 @@ import java.util.Objects;
  * Caller phải bảo đảm không có step/mutation đang chạy khi đóng tài nguyên.
  */
 public final class HeadlessPhysicsWorld implements AutoCloseable {
+    private static final java.util.concurrent.atomic.AtomicInteger LIVE_WORLDS=new java.util.concurrent.atomic.AtomicInteger();
+    public static int liveWorldCount() { return LIVE_WORLDS.get(); }
     private World world;
     private boolean disposed;
     private Object mapCollisionOwner;
@@ -19,6 +21,7 @@ public final class HeadlessPhysicsWorld implements AutoCloseable {
     /** Chỉ factory tạo wrapper và chuyển quyền sở hữu World mới vào đây. */
     HeadlessPhysicsWorld(World world) {
         this.world = Objects.requireNonNull(world, "world không được null");
+        LIVE_WORLDS.incrementAndGet();
     }
 
     /**
@@ -42,6 +45,7 @@ public final class HeadlessPhysicsWorld implements AutoCloseable {
     public synchronized void dispose() {
         if (!disposed) {
             world.dispose();
+            LIVE_WORLDS.decrementAndGet();
             disposed = true;
             world = null; // Không giữ Java Body/Fixture references của World đã dispose.
             mapCollisionOwner = null;

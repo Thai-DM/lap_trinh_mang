@@ -1,0 +1,12 @@
+﻿{
+    "date":  "2026-10-16T07:46:10.6876509+07:00",
+    "status":  "PASS",
+    "label":  "inactive-input-fix",
+    "heapMiB":  128,
+    "suites":  [
+                   "com.smashprofs.server.network.PlayerInputHandlerTest",
+                   "com.smashprofs.server.network.TcpProtocolV1Test",
+                   "com.smashprofs.server.game.StockGameplayTest",
+                   "com.smashprofs.server.game.GameplayTcpIntegrationTest"
+               ]
+}

@@ -18,3 +18,15 @@ dependencies {
 }
 
 eclipse.project.name = appName + "-server"
+
+// Self-contained local prototype; no rendering/backend or additional infrastructure dependency.
+tasks.register('installCluster', Sync) {
+    dependsOn jar
+    into rootProject.layout.buildDirectory.dir('cluster')
+    from(tasks.jar)
+    from(configurations.runtimeClasspath)
+}
+
+test {
+    systemProperty 'cluster.classpath', sourceSets.main.runtimeClasspath.asPath
+}

@@ -1,0 +1,8 @@
+JUnit version 4.13.1
+.Cluster room: r_f78022ff58b145378106dbec790498b6 worker=client-worker
+Cluster room: r_f78022ff58b145378106dbec790498b6 worker=client-worker
+................
+Time: 22.557
+
+OK (17 tests)
+

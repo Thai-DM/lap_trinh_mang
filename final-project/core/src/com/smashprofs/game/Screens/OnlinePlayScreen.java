@@ -169,7 +169,7 @@ final class OnlinePlayScreen implements Screen {
             minX = Math.min(minX, p.state().x()); maxX = Math.max(maxX, p.state().x());
             minY = Math.min(minY, p.state().y()); maxY = Math.max(maxY, p.state().y());
         }
-        float aspect = Gdx.graphics.getWidth() / (float) Math.max(1, Gdx.graphics.getHeight());
+        aspect = Gdx.graphics.getWidth() / (float) Math.max(1, Gdx.graphics.getHeight());
         if(!hasActive) { return; }
         float width = Math.max(5.5f, Math.max(maxX - minX + 1.5f, (maxY - minY + 1) * aspect));
         viewport.setWorldSize(width, width / aspect);

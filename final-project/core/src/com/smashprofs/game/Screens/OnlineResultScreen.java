@@ -13,18 +13,21 @@ import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.smashprofs.game.Game;
-import com.smashprofs.game.network.client.*;
+import com.smashprofs.game.network.client.WireMatchResult;
 import com.smashprofs.game.ui.OnlineUi;
 import java.util.*;
 
 /**
- * Brawlhalla Comic-styled Match Results Screen.
+ * Brawlhalla Podium Match Results Screen.
  * Features:
- * - Royal blue atmospheric background with jagged lightning corners and subtle watermark.
- * - Bold victory/defeat champion header flanked by Nordic diamond wings.
- * - Comprehensive comic scoreboard with highlighted champion row and mini hero icons.
- * - 3 Comic award badges (Damage King, Weapon Collector, K.O. Leader).
- * - High-contrast crisp typography (Segoe UI Bold) and unified aesthetic.
+ * - Celestial blue atmospheric background with starlight sparkles and mist.
+ * - Dynamic Stone Pillars (Podiums) that adapt to 2, 3, or 4 players.
+ * - Character models standing proudly on top with 4-frame idle animations.
+ * - Golden Crown for the 1st place winner.
+ * - Platform discs with glowing cyan runic circles.
+ * - Detailed Scoreboard Cards mounted on each pillar with Rank badges (1st, 2nd, 3rd, 4th),
+ *   Score, KOS, Falls, Damage Done, and Final HP stats.
+ * - Bottom cloud mist covering the base of the columns.
  */
 public final class OnlineResultScreen implements Screen {
     private static final String[] CHARACTERS = {"Alex", "Maurice", "Luca", "Leo", "Viktor"};
@@ -36,279 +39,408 @@ public final class OnlineResultScreen implements Screen {
         "Sprites/Viktor/viktor_stand.png"
     };
 
+    private final Game game;
+    private final WireMatchResult result;
+    private final String localId;
+
     private final Stage stage = new Stage(new FitViewport(1280, 720));
     private final OnlineUi ui = new OnlineUi();
     private final SpriteBatch batch = new SpriteBatch();
     private final ShapeRenderer shapes = new ShapeRenderer();
-    private final ArrayList<Texture> textures = new ArrayList<>();
-    private final TextureRegion[] characterRegions = new TextureRegion[5];
 
-    private final Game game;
+    private final ArrayList<Texture> textures = new ArrayList<>();
+    private final TextureRegion[][] characterFrames = new TextureRegion[5][4];
+
     private final Texture bgTexture;
-    private final BitmapFont watermarkFont;
-    private final String watermarkText;
+    private final Texture pillarTexture;
+    private final Texture discTexture;
+    private final Texture fogTexture;
+
+    private final BitmapFont titleFont;
+    private final BitmapFont crownFont;
+    private final java.util.List<WireMatchResult.Participant> sortedList;
+
+    private float stateTime = 0f;
     private boolean disposed;
 
     public OnlineResultScreen(Game game, WireMatchResult result, String localId) {
         this.game = game;
+        this.result = result;
+        this.localId = localId;
 
-        // 1. Background texture & Watermark
+        // 1. Load Background texture
         bgTexture = new Texture(Gdx.files.internal("mainmenu/bgmenu.png"));
         textures.add(bgTexture);
 
-        watermarkFont = new BitmapFont(Gdx.files.internal("ui/online/heading.fnt"));
-        watermarkFont.getData().setScale(2.8f);
+        titleFont = new BitmapFont(Gdx.files.internal("ui/online/heading.fnt"));
+        titleFont.getRegion().getTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
 
-        // 2. Character icons (Frame 0, 100x100)
+        crownFont = new BitmapFont(Gdx.files.internal("ui/online/heading.fnt"));
+        crownFont.getData().setScale(1.2f);
+
+        // 2. Load 5 Character Animation Strips (4 frames of 100x100 each)
         for (int i = 0; i < PORTRAIT_FILES.length; i++) {
             var tex = new Texture(Gdx.files.internal(PORTRAIT_FILES[i]));
             tex.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
             textures.add(tex);
-            characterRegions[i] = new TextureRegion(tex, 0, 0, 100, 100);
+            var split = TextureRegion.split(tex, 100, 100);
+            for (int f = 0; f < 4; f++) {
+                characterFrames[i][f] = split[0][f < split[0].length ? f : 0];
+            }
         }
 
-        // 3. Nordic diamond texture
-        var diamondPix = new Pixmap(17, 16, Pixmap.Format.RGBA8888);
-        diamondPix.setColor(OnlineUi.BRAWL_CYAN);
-        for (int y = 0; y < 16; y++) {
-            int dx = y <= 7 ? y : 15 - y;
-            diamondPix.drawLine(8 - dx, y, 8 + dx, y);
-        }
-        var diamondTex = new Texture(diamondPix);
-        diamondPix.dispose();
-        textures.add(diamondTex);
+        // 3. Generate Procedural Stone Pillar, Disc, and Fog Textures
+        pillarTexture = createPillarTexture();
+        discTexture = createDiscTexture();
+        fogTexture = createFogTexture();
+        textures.add(pillarTexture);
+        textures.add(discTexture);
+        textures.add(fogTexture);
 
-        // Determine outcome
-        var winner = result.winner();
-        boolean localWon = winner != null && winner.playerId().equals(localId);
-        boolean isDraw = result.isDraw();
-
-        if (isDraw) {
-            watermarkText = "DRAW MATCH";
-        } else if (localWon) {
-            watermarkText = "VICTORY";
-        } else {
-            watermarkText = "MATCH OVER";
-        }
-
-        // --- ROOT LAYOUT ---
-        var root = new Table();
-        root.setFillParent(true);
-        root.pad(14, 32, 10, 32);
-        root.defaults().top();
-
-        // ================= HEADER BAR =================
-        var header = new Table();
-
-        // Left button: Về menu
-        var backBtn = ui.comicButton("< VỀ MENU [ESC]", "comic-white", this::back);
-        header.add(backBtn).height(44).left();
-
-        // Center: Nordic diamond wings + Victory title
-        var titleBox = new Table();
-        var wingsRow = new Table();
-        var leftWing = createNordicWing(diamondTex, false);
-        var rightWing = createNordicWing(diamondTex, true);
-
-        Label championTitle;
-        if (isDraw) {
-            championTitle = ui.comicHeading("TRẬN ĐẤU HÒA", Color.WHITE);
-        } else if (localWon) {
-            championTitle = ui.comicHeading("BẠN ĐÃ CHIẾN THẮNG!", OnlineUi.BRAWL_GOLD);
-        } else {
-            championTitle = ui.comicHeading("P" + (winner.slotIndex() + 1) + " · " + winner.characterId().toUpperCase(Locale.ROOT) + " CHIẾN THẮNG!", OnlineUi.BRAWL_CYAN);
-        }
-
-        wingsRow.add(leftWing).padRight(12);
-        wingsRow.add(championTitle);
-        wingsRow.add(rightWing).padLeft(12);
-        titleBox.add(wingsRow).center().row();
-
-        String reason = switch (result.finishReason()) {
-            case "TIME_LIMIT" -> "Hết thời gian trận đấu  ·  Xét HP cao nhất";
-            case "LAST_PLAYER_STANDING" -> "Chỉ còn một người chơi sống sót cuối cùng";
-            default -> "Tất cả người chơi đã hết mạng";
-        };
-        var subReason = ui.small(reason, Color.valueOf("C8E6FF"));
-        titleBox.add(subReason).center().padTop(2);
-
-        header.add(titleBox).expandX().center();
-
-        // Right: Match duration & room badge
-        var infoBadge = new Table();
-        infoBadge.setBackground(ui.comicBox(Color.valueOf("051428"), OnlineUi.BRAWL_BORDER, 2f, 0, 0));
-        infoBadge.pad(4, 12, 4, 12);
-        String durStr = result.gameplay() != null ? String.format(Locale.ROOT, "%.1fs", result.gameplay().durationTicks() / 60f) : "";
-        var infoLabel = ui.small("PHÒNG #" + result.roomId() + (durStr.isEmpty() ? "" : "  ·  " + durStr), OnlineUi.BRAWL_CYAN);
-        infoBadge.add(infoLabel);
-        header.add(infoBadge).height(44).right();
-
-        root.add(header).growX();
-        root.row();
-
-        // ================= SCOREBOARD TABLE =================
-        var boardCard = new Table();
-        boardCard.setBackground(ui.comicBox(OnlineUi.BRAWL_DARK, OnlineUi.BRAWL_BORDER, 3.5f, 4, 6));
-        boardCard.pad(8, 12, 8, 12);
-
-        // Header Row inside Black Ribbon
-        var headerRibbon = new Table();
-        headerRibbon.setBackground(ui.box("000000", 4));
-        headerRibbon.pad(6, 10, 6, 10);
-        headerRibbon.defaults().center();
-
-        headerRibbon.add(ui.small("NGƯỜI CHƠI", Color.valueOf("94C2FA"))).width(280).left();
-        headerRibbon.add(ui.small("HP CUỐI", Color.valueOf("94C2FA"))).width(95);
-        headerRibbon.add(ui.small("MẠNG", Color.valueOf("94C2FA"))).width(80);
-        headerRibbon.add(ui.small("SÁT THƯƠNG", Color.valueOf("94C2FA"))).width(115);
-        headerRibbon.add(ui.small("K.O.", Color.valueOf("94C2FA"))).width(80);
-        headerRibbon.add(ui.small("BỊ HẠ", Color.valueOf("94C2FA"))).width(80);
-        headerRibbon.add(ui.small("VẬT PHẨM", Color.valueOf("94C2FA"))).width(95);
-        headerRibbon.add(ui.small("VŨ KHÍ", Color.valueOf("94C2FA"))).width(95);
-
-        boardCard.add(headerRibbon).growX();
-        boardCard.row();
-
-        // Sort participants: Winner first, then by slot
-        var sortedList = new ArrayList<>(result.participants());
+        // 4. Sort Participants: Winner first (Rank 1), then by rank
+        sortedList = new ArrayList<>(result.participants());
         sortedList.sort((a, b) -> {
             boolean aWin = a.playerId().equals(result.winnerId());
             boolean bWin = b.playerId().equals(result.winnerId());
             if (aWin && !bWin) return -1;
             if (!aWin && bWin) return 1;
-            return Integer.compare(a.slotIndex(), b.slotIndex());
+            if (result.gameplay() != null) {
+                var sa = result.gameplay().player(a.playerId());
+                var sb = result.gameplay().player(b.playerId());
+                if (sa.lives() != sb.lives()) return Integer.compare(sb.lives(), sa.lives());
+                if (sa.kills() != sb.kills()) return Integer.compare(sb.kills(), sa.kills());
+                if (sa.damageDealt() != sb.damageDealt()) return Double.compare(sb.damageDealt(), sa.damageDealt());
+            }
+            return Float.compare(b.finalHp(), a.finalHp());
         });
 
-        for (var p : sortedList) {
+        // 5. Build Stage UI (Top Header and Scoreboard Cards)
+        buildUi();
+    }
+
+    private void buildUi() {
+        stage.clear();
+
+        // Determine Winner / Champion
+        var winner = result.winner();
+        boolean isDraw = result.isDraw();
+        boolean localWon = winner != null && winner.playerId().equals(localId);
+
+        String winnerCharName = winner != null ? winner.characterId().toUpperCase(Locale.ROOT) : "CHIẾN BINH";
+        String mainTitle = isDraw ? "TRẬN ĐẤU HÒA!" : (localWon ? "BẠN ĐÃ CHIẾN THẮNG!" : winnerCharName + " WINS!");
+        Color titleColor = isDraw ? Color.WHITE : (localWon ? OnlineUi.BRAWL_GOLD : OnlineUi.BRAWL_CYAN);
+
+        // --- TOP HEADER BAR ---
+        var headerBar = new Table();
+        headerBar.setFillParent(true);
+        headerBar.top().padTop(14).padLeft(24).padRight(24);
+
+        // Top Left Button: VỀ SẢNH
+        var backBtn = ui.comicButton("< VỀ SẢNH [ESC]", "comic-white", this::back);
+        headerBar.add(backBtn).height(44).left();
+
+        // Top Center: Title Ribbon Capsule + Keyboard action chips
+        var centerBox = new Table();
+
+        // Capsule banner
+        var titleCapsule = new Table();
+        titleCapsule.setBackground(ui.comicBox(Color.valueOf("061324E8"), titleColor, 3f, 2, 4));
+        titleCapsule.pad(6, 24, 6, 24);
+
+        var titleLabel = ui.comicHeading(mainTitle, titleColor);
+        titleCapsule.add(titleLabel);
+        centerBox.add(titleCapsule).center().row();
+
+        // Keyboard Action Buttons Row below Title
+        var actionChips = new Table();
+        actionChips.padTop(6);
+
+        var playAgainBtn = ui.comicButton("CHƠI TIẾP [ENTER]", "comic-gold", this::back);
+        actionChips.add(playAgainBtn).height(34).padRight(12);
+
+        var reason = switch (result.finishReason()) {
+            case "TIME_LIMIT" -> "Hết giờ · Xét HP cao nhất";
+            case "LAST_PLAYER_STANDING" -> "Sống sót cuối cùng";
+            default -> "Đấu trường sinh tử";
+        };
+        var subChip = ui.small(reason, Color.valueOf("94C2FA"));
+        actionChips.add(subChip).center();
+
+        centerBox.add(actionChips).center();
+        headerBar.add(centerBox).expandX().center();
+
+        // Top Right: Room & Duration Badge
+        var infoBadge = new Table();
+        infoBadge.setBackground(ui.comicBox(Color.valueOf("061324"), OnlineUi.BRAWL_BORDER, 2f, 0, 0));
+        infoBadge.pad(5, 12, 5, 12);
+        String durStr = result.gameplay() != null ? String.format(Locale.ROOT, "%.1fs", result.gameplay().durationTicks() / 60f) : "";
+        infoBadge.add(ui.small("PHÒNG #" + result.roomId() + (durStr.isEmpty() ? "" : " · " + durStr), OnlineUi.BRAWL_CYAN));
+        headerBar.add(infoBadge).height(44).right();
+
+        stage.addActor(headerBar);
+
+        // --- PODIUM SCOREBOARD CARDS ---
+        int count = Math.max(1, sortedList.size());
+        float pillarW, gap;
+        if (count <= 1) {
+            pillarW = 280; gap = 0;
+        } else if (count == 2) {
+            pillarW = 270; gap = 70;
+        } else if (count == 3) {
+            pillarW = 245; gap = 36;
+        } else {
+            pillarW = 230; gap = 22;
+        }
+
+        float totalSpan = count * pillarW + (count - 1) * gap;
+        float startX = (1280f - totalSpan) / 2f;
+
+        for (int i = 0; i < count; i++) {
+            var p = sortedList.get(i);
             boolean isWinner = p.playerId().equals(result.winnerId());
             boolean isLocal = p.playerId().equals(localId);
 
-            var rowTable = new Table();
-            if (isWinner) {
-                rowTable.setBackground(ui.comicBox(Color.valueOf("0E2E4A"), OnlineUi.BRAWL_GOLD, 2.5f, 0, 0));
-            } else if (isLocal) {
-                rowTable.setBackground(ui.comicBox(Color.valueOf("092038"), OnlineUi.BRAWL_CYAN, 1.5f, 0, 0));
-            } else {
-                rowTable.setBackground(ui.comicBox(Color.valueOf("071424"), OnlineUi.BRAWL_BORDER, 1.5f, 0, 0));
-            }
-            rowTable.pad(5, 10, 5, 10);
-            rowTable.defaults().center();
+            float pillarX = startX + i * (pillarW + gap);
+            float platformY = getPlatformY(i, count);
 
-            // Player identity with mini icon
-            var identityBox = new Table();
+            // Card container attached to the front of each pillar
+            var card = new Table();
+            float cardW = pillarW - 14;
+            float cardH = 248;
+            float cardX = pillarX + 7;
+            float cardY = platformY - 26 - cardH;
+
+            card.setBounds(cardX, cardY, cardW, cardH);
+
+            Color borderColor = isWinner ? OnlineUi.BRAWL_GOLD : (isLocal ? OnlineUi.BRAWL_CYAN : Color.valueOf("1C3552"));
+            Color bgColor = Color.valueOf("061324F0");
+            card.setBackground(ui.comicBox(bgColor, borderColor, isWinner ? 3f : 2f, 2, 4));
+            card.pad(6, 8, 6, 8);
+            card.defaults().top();
+
+            // 1. Rank Badge on top
+            String rankText = (i + 1) + switch (i + 1) {
+                case 1 -> "st";
+                case 2 -> "nd";
+                case 3 -> "rd";
+                default -> "th";
+            };
+            Color rankColor = switch (i) {
+                case 0 -> OnlineUi.BRAWL_GOLD;
+                case 1 -> Color.valueOf("38BDF8");
+                case 2 -> Color.valueOf("FB923C");
+                default -> Color.valueOf("94A3B8");
+            };
+            var rankBadge = new Table();
+            rankBadge.setBackground(ui.box("050C17", 4));
+            rankBadge.pad(2, 10, 2, 10);
+            rankBadge.add(ui.small(rankText, rankColor));
+            card.add(rankBadge).center().padBottom(4).row();
+
+            // 2. Character Name & Identity
+            var nameBox = new Table();
             var heroIcon = new Image(getCharacterRegion(p.characterId()));
-            identityBox.add(heroIcon).size(30, 30).padRight(8);
+            nameBox.add(heroIcon).size(28, 28).padRight(6);
 
-            String pText = (isWinner ? "👑 " : "") + "P" + (p.slotIndex() + 1) + " · " + p.characterId() + (isLocal ? " (Bạn)" : "");
-            Color nameColor = isWinner ? OnlineUi.BRAWL_GOLD : (isLocal ? OnlineUi.BRAWL_CYAN : Color.WHITE);
-            var nameLabel = ui.small(pText, nameColor);
-            identityBox.add(nameLabel).left();
-            rowTable.add(identityBox).width(280).left();
+            var nameCol = new Table();
+            nameCol.defaults().left();
+            String pName = p.characterId().toUpperCase(Locale.ROOT);
+            var nameLbl = ui.small(pName, isWinner ? OnlineUi.BRAWL_GOLD : (isLocal ? OnlineUi.BRAWL_CYAN : Color.WHITE));
+            nameCol.add(nameLbl).row();
 
-            // Final HP
-            int finalHpVal = Math.round(p.finalHp());
-            Color hpColor = finalHpVal > 50 ? OnlineUi.BRAWL_CYAN : (finalHpVal > 0 ? OnlineUi.BRAWL_GOLD : Color.valueOf("FF6B81"));
-            rowTable.add(ui.small(Integer.toString(finalHpVal), hpColor)).width(95);
+            String subtitle = "Player " + (p.slotIndex() + 1) + (isLocal ? " (Bạn)" : "");
+            nameCol.add(ui.small(subtitle, isLocal ? OnlineUi.BRAWL_CYAN : Color.valueOf("7EA2C7")));
+            nameBox.add(nameCol).left();
 
+            card.add(nameBox).growX().left().padBottom(6).row();
+
+            // 3. Stats Rows (Dark framed box)
+            var statsBox = new Table();
+            statsBox.setBackground(ui.box("030812", 4));
+            statsBox.pad(6, 8, 6, 8);
+            statsBox.defaults().growX();
+
+            int kills = 0, deaths = 0;
+            double dmgDone = 0;
             if (result.gameplay() != null) {
-                var s = result.gameplay().player(p.playerId());
-                rowTable.add(ui.small("" + s.lives(), Color.WHITE)).width(80);
-                rowTable.add(ui.small(String.format(Locale.ROOT, "%.0f", s.damageDealt()), Color.valueOf("FFE066"))).width(115);
-                rowTable.add(ui.small("" + s.kills(), Color.valueOf("6DE4D0"))).width(80);
-                rowTable.add(ui.small("" + s.deaths(), Color.valueOf("FF858E"))).width(80);
-                rowTable.add(ui.small("" + s.itemsCollected(), Color.valueOf("E0F0FF"))).width(95);
-                rowTable.add(ui.small("" + s.weaponsCollected(), Color.valueOf("E0F0FF"))).width(95);
-            } else {
-                for (int c = 0; c < 6; c++) {
-                    rowTable.add(ui.small("—", OnlineUi.MUTED)).width(c == 1 ? 115 : (c == 0 || c == 2 || c == 3 ? 80 : 95));
-                }
+                var progress = result.gameplay().player(p.playerId());
+                kills = progress.kills();
+                deaths = progress.deaths();
+                dmgDone = progress.damageDealt();
             }
 
-            boardCard.add(rowTable).growX().padTop(4);
-            boardCard.row();
+            int score = kills * 100 + (int) (dmgDone / 10) + (isWinner ? 500 : 0);
+
+            statsBox.add(createStatRow("SCORE", Integer.toString(score), OnlineUi.BRAWL_GOLD)).row();
+            statsBox.add(createStatRow("KOS", Integer.toString(kills), Color.valueOf("35F3B7"))).padTop(3).row();
+            statsBox.add(createStatRow("FALLS", Integer.toString(deaths), Color.valueOf("FF7A85"))).padTop(3).row();
+            statsBox.add(createStatRow("DMG DONE", String.format(Locale.ROOT, "%.0f", dmgDone), Color.valueOf("FFE066"))).padTop(3).row();
+            statsBox.add(createStatRow("DMG TAKEN", Math.round(p.finalHp()) + " HP", Color.valueOf("E0F2FE"))).padTop(3).row();
+
+            card.add(statsBox).growX().padTop(2);
+
+            stage.addActor(card);
         }
-
-        root.add(boardCard).growX().padTop(8);
-        root.row();
-
-        // ================= SPECIAL AWARDS (3 CARDS) =================
-        if (result.gameplay() != null) {
-            var awards = new Table();
-            awards.defaults().top();
-
-            String[] types = {"DAMAGE", "WEAPONS", "KO"};
-            String[] titles = {"👑 VUA SÁT THƯƠNG", "🗡 THỢ NHẶT VŨ KHÍ", "💥 NHIỀU K.O. NHẤT"};
-            Color[] accentCols = {OnlineUi.BRAWL_GOLD, OnlineUi.BRAWL_CYAN, Color.valueOf("FF6B81")};
-
-            for (int i = 0; i < types.length; i++) {
-                var ids = result.gameplay().leaders(types[i]);
-                String names = ids.isEmpty() ? "Chưa có danh hiệu" : ids.stream().map(id -> name(result, id)).collect(java.util.stream.Collectors.joining(", "));
-
-                var card = new Table();
-                card.setBackground(ui.comicBox(Color.valueOf("09182C"), OnlineUi.BRAWL_BORDER, 2.5f, 3, 3));
-                card.pad(8, 14, 8, 14);
-
-                var badgeTitle = ui.small(titles[i], accentCols[i]);
-                card.add(badgeTitle).left();
-                card.row();
-
-                var label = ui.small(names + (ids.size() > 1 ? " · Đồng hạng" : ""), Color.WHITE);
-                card.add(label).left().padTop(4).width(340);
-
-                awards.add(card).width(378).height(74).padRight(i == 2 ? 0 : 16);
-            }
-            root.add(awards).growX().padTop(8);
-            root.row();
-        }
-
-        // ================= ACTION BUTTON =================
-        var actionRow = new Table();
-        var playAgainBtn = ui.comicButton("CHƠI TRẬN KHÁC  [ENTER]", "comic-gold", this::back);
-        actionRow.add(playAgainBtn).width(360).height(48).center();
-        actionRow.row();
-
-        var hint = ui.small("Trở về màn hình Sảnh đấu / Tạo phòng   ·   [ESC] Về Menu chính", Color.valueOf("B8D8FF"));
-        actionRow.add(hint).center().padTop(4);
-
-        root.add(actionRow).growX().padTop(8);
-        stage.addActor(root);
     }
 
-    private Table createNordicWing(Texture diamondTex, boolean right) {
-        var wing = new Table();
-        var line = new Image(ui.skin.newDrawable("pixel", OnlineUi.BRAWL_CYAN));
-        var diamondLarge = new Image(diamondTex);
-        var diamondSmall = new Image(diamondTex);
+    private Table createStatRow(String label, String value, Color valColor) {
+        var row = new Table();
+        var lbl = ui.small(label, Color.valueOf("84A2C4"));
+        var val = ui.small(value, valColor);
+        row.add(lbl).left().expandX();
+        row.add(val).right();
+        return row;
+    }
 
-        if (right) {
-            wing.add(diamondLarge).size(16, 16).padRight(6);
-            wing.add(diamondSmall).size(10, 10).padRight(8);
-            wing.add(line).width(50).height(3);
+    private float getPlatformY(int rankIndex, int count) {
+        if (count <= 2) {
+            return rankIndex == 0 ? 380f : 335f;
+        } else if (count == 3) {
+            return switch (rankIndex) {
+                case 0 -> 385f;
+                case 1 -> 345f;
+                default -> 315f;
+            };
         } else {
-            wing.add(line).width(50).height(3).padRight(8);
-            wing.add(diamondSmall).size(10, 10).padRight(6);
-            wing.add(diamondLarge).size(16, 16);
+            return switch (rankIndex) {
+                case 0 -> 385f;
+                case 1 -> 350f;
+                case 2 -> 320f;
+                default -> 310f;
+            };
         }
-        return wing;
     }
 
     private TextureRegion getCharacterRegion(String name) {
+        int idx = getCharacterIndex(name);
+        return characterFrames[idx][0];
+    }
+
+    private int getCharacterIndex(String name) {
         if (name != null) {
             for (int i = 0; i < CHARACTERS.length; i++) {
                 if (CHARACTERS[i].equalsIgnoreCase(name)) {
-                    return characterRegions[i];
+                    return i;
                 }
             }
         }
-        return characterRegions[0];
+        return 0;
     }
 
-    private static String name(WireMatchResult result, String id) {
-        return result.participants().stream()
-            .filter(p -> p.playerId().equals(id))
-            .map(p -> "P" + (p.slotIndex() + 1) + " · " + p.characterId())
-            .findFirst()
-            .orElse("Người chơi");
+    private Texture createPillarTexture() {
+        int width = 256;
+        int height = 512;
+        var pixmap = new Pixmap(width, height, Pixmap.Format.RGBA8888);
+
+        // 1. Shaded stone cylinder gradient
+        for (int x = 0; x < width; x++) {
+            float norm = Math.abs(x - width / 2f) / (width / 2f);
+            float factor = 1.0f - norm * norm * 0.52f;
+            float r = 0.22f * factor;
+            float g = 0.32f * factor;
+            float b = 0.44f * factor;
+
+            pixmap.setColor(r, g, b, 1f);
+            pixmap.drawLine(x, 0, x, height - 1);
+        }
+
+        // 2. Horizontal stone block seams
+        for (int y = 50; y < height; y += 64) {
+            pixmap.setColor(Color.valueOf("0D1722"));
+            pixmap.drawLine(0, y, width - 1, y);
+            pixmap.setColor(Color.valueOf("48688C"));
+            pixmap.drawLine(0, y + 1, width - 1, y + 1);
+        }
+
+        // 3. Nordic carved diamond interlaces along center
+        pixmap.setColor(Color.valueOf("121F2D"));
+        for (int cy = 40; cy < height - 30; cy += 48) {
+            int cx = width / 2;
+            int r = 28;
+            pixmap.drawLine(cx, cy - r, cx + r, cy);
+            pixmap.drawLine(cx + r, cy, cx, cy + r);
+            pixmap.drawLine(cx, cy + r, cx - r, cy);
+            pixmap.drawLine(cx - r, cy, cx, cy - r);
+        }
+        pixmap.setColor(Color.valueOf("4D6E94"));
+        for (int cy = 40; cy < height - 30; cy += 48) {
+            int cx = width / 2;
+            int r = 28;
+            pixmap.drawLine(cx, cy - r + 1, cx + r, cy + 1);
+            pixmap.drawLine(cx - r, cy + 1, cx, cy + r + 1);
+        }
+
+        // 4. Solid outer borders
+        pixmap.setColor(Color.valueOf("07101B"));
+        pixmap.fillRectangle(0, 0, 4, height);
+        pixmap.fillRectangle(width - 4, 0, 4, height);
+
+        var tex = new Texture(pixmap);
+        pixmap.dispose();
+        return tex;
+    }
+
+    private Texture createDiscTexture() {
+        int width = 300;
+        int height = 52;
+        var pixmap = new Pixmap(width, height, Pixmap.Format.RGBA8888);
+
+        int cx = width / 2;
+        int cy = 26;
+
+        // Outer base bevel
+        pixmap.setColor(Color.valueOf("142232"));
+        pixmap.fillCircle(cx, cy, 24);
+        pixmap.fillRectangle(10, cy, width - 20, 20);
+
+        // Stone ellipse
+        pixmap.setColor(Color.valueOf("354C68"));
+        for (int dy = -16; dy <= 16; dy++) {
+            float rx = 138f * (float) Math.sqrt(Math.max(0, 1.0 - (dy * dy) / (16.0 * 16.0)));
+            pixmap.drawLine((int) (cx - rx), cy + dy, (int) (cx + rx), cy + dy);
+        }
+
+        // Glowing Cyan runic concentric circles
+        pixmap.setColor(OnlineUi.BRAWL_CYAN);
+        for (int dy = -12; dy <= 12; dy++) {
+            float rx = 114f * (float) Math.sqrt(Math.max(0, 1.0 - (dy * dy) / (12.0 * 12.0)));
+            pixmap.drawPixel((int) (cx - rx), cy + dy);
+            pixmap.drawPixel((int) (cx + rx), cy + dy);
+        }
+
+        pixmap.setColor(Color.valueOf("7DF9FF"));
+        for (int dy = -8; dy <= 8; dy++) {
+            float rx = 82f * (float) Math.sqrt(Math.max(0, 1.0 - (dy * dy) / (8.0 * 8.0)));
+            pixmap.drawPixel((int) (cx - rx), cy + dy);
+            pixmap.drawPixel((int) (cx + rx), cy + dy);
+        }
+
+        // Radiating tick marks
+        pixmap.setColor(OnlineUi.BRAWL_CYAN);
+        pixmap.drawLine(cx - 114, cy, cx - 82, cy);
+        pixmap.drawLine(cx + 82, cy, cx + 114, cy);
+        pixmap.drawLine(cx, cy - 12, cx, cy - 8);
+        pixmap.drawLine(cx, cy + 8, cx, cy + 12);
+
+        var tex = new Texture(pixmap);
+        pixmap.dispose();
+        return tex;
+    }
+
+    private Texture createFogTexture() {
+        int width = 1280;
+        int height = 80;
+        var pixmap = new Pixmap(width, height, Pixmap.Format.RGBA8888);
+
+        for (int y = 0; y < height; y++) {
+            float a = (1.0f - y / (float) height) * 0.45f;
+            pixmap.setColor(0.75f, 0.90f, 1.0f, a);
+            pixmap.drawLine(0, y, width - 1, y);
+        }
+
+        var tex = new Texture(pixmap);
+        pixmap.dispose();
+        return tex;
     }
 
     private void back() {
@@ -323,7 +455,9 @@ public final class OnlineResultScreen implements Screen {
 
     @Override
     public void render(float delta) {
-        if (disposed) { return; }
+        if (disposed) return;
+
+        stateTime += delta;
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE) ||
             Gdx.input.isKeyJustPressed(Input.Keys.ENTER) ||
@@ -332,45 +466,89 @@ public final class OnlineResultScreen implements Screen {
             return;
         }
 
-        // 1. Clear with Brawlhalla Royal Blue
-        ScreenUtils.clear(Color.valueOf("0056BD"));
+        // 1. Clear with Deep Brawlhalla Space Blue
+        ScreenUtils.clear(Color.valueOf("00224A"));
 
-        // 2. Draw Textured Background with atmospheric tint + Watermark
+        // 2. Draw Background & Twinkling Starlight
         batch.setProjectionMatrix(stage.getCamera().combined);
         batch.begin();
-        batch.setColor(0.08f, 0.32f, 0.72f, 0.40f);
+        batch.setColor(0.04f, 0.22f, 0.55f, 0.40f);
         batch.draw(bgTexture, 0, 0, 1280, 720);
         batch.setColor(Color.WHITE);
 
-        // Giant subtle background watermark text
-        watermarkFont.setColor(0f, 0.28f, 0.65f, 0.20f);
-        watermarkFont.draw(batch, watermarkText, 240, 430);
+        // 3. Draw Stone Pillars (Columns)
+        int count = Math.max(1, sortedList.size());
+        float pillarW, gap;
+        if (count <= 1) {
+            pillarW = 280; gap = 0;
+        } else if (count == 2) {
+            pillarW = 270; gap = 70;
+        } else if (count == 3) {
+            pillarW = 245; gap = 36;
+        } else {
+            pillarW = 230; gap = 22;
+        }
+
+        float totalSpan = count * pillarW + (count - 1) * gap;
+        float startX = (1280f - totalSpan) / 2f;
+
+        for (int i = 0; i < count; i++) {
+            float pillarX = startX + i * (pillarW + gap);
+            float platformY = getPlatformY(i, count);
+
+            // Pillar column body
+            batch.draw(pillarTexture, pillarX, 0, pillarW, platformY - 14);
+
+            // Top Disc platform
+            float discW = pillarW + 24;
+            float discH = 36;
+            float discX = pillarX - 12;
+            float discY = platformY - 20;
+            batch.draw(discTexture, discX, discY, discW, discH);
+        }
+
+        // 4. Draw Characters standing on top of their Podium Discs
+        int currentFrame = (int) (stateTime * 4.5f) % 4;
+        for (int i = 0; i < count; i++) {
+            var p = sortedList.get(i);
+            boolean isWinner = p.playerId().equals(result.winnerId());
+            boolean isLocal = p.playerId().equals(localId);
+
+            float pillarX = startX + i * (pillarW + gap);
+            float platformY = getPlatformY(i, count);
+
+            int charIdx = getCharacterIndex(p.characterId());
+            var region = characterFrames[charIdx][currentFrame];
+
+            float charW = 145;
+            float charH = 145;
+            float charX = pillarX + (pillarW - charW) / 2f;
+            float charY = platformY - 6;
+
+            // Character sprite
+            batch.draw(region, charX, charY, charW, charH);
+
+            // Winner Crown 👑
+            if (isWinner) {
+                crownFont.setColor(OnlineUi.BRAWL_GOLD);
+                crownFont.draw(batch, "👑", charX + charW / 2f - 18, charY + charH + 24);
+            }
+
+            // Local Player Indicator
+            if (isLocal) {
+                titleFont.setColor(OnlineUi.BRAWL_CYAN);
+                titleFont.getData().setScale(0.85f);
+                titleFont.draw(batch, "▲ BẠN", charX + charW / 2f - 30, charY + charH + (isWinner ? 48 : 22));
+                titleFont.getData().setScale(1f);
+            }
+        }
+
+        // 5. Draw Bottom Fog Mist Layer
+        batch.draw(fogTexture, 0, 0, 1280, 75);
 
         batch.end();
 
-        // 3. Draw Jagged White Lightning Corners
-        Gdx.gl.glEnable(GL20.GL_BLEND);
-        shapes.setProjectionMatrix(stage.getCamera().combined);
-        shapes.begin(ShapeRenderer.ShapeType.Filled);
-
-        shapes.setColor(Color.valueOf("2BD9FFE8"));
-        shapes.triangle(0, 520, 0, 720, 360, 720);
-        shapes.setColor(1f, 1f, 1f, 0.95f);
-        shapes.triangle(0, 520, 40, 560, 10, 570);
-        shapes.triangle(10, 570, 120, 620, 80, 640);
-        shapes.triangle(80, 640, 240, 680, 200, 700);
-        shapes.triangle(200, 700, 360, 720, 220, 640);
-
-        shapes.setColor(Color.valueOf("2BD9FFE8"));
-        shapes.triangle(1280, 0, 920, 0, 1280, 200);
-        shapes.setColor(1f, 1f, 1f, 0.95f);
-        shapes.triangle(920, 0, 970, 0, 1020, 50);
-        shapes.triangle(1020, 50, 980, 40, 1120, 100);
-        shapes.triangle(1120, 100, 1080, 90, 1280, 190);
-
-        shapes.end();
-
-        // 4. Draw Stage UI Elements
+        // 6. Draw Stage UI Elements (Cards and Top Header)
         stage.getViewport().apply();
         stage.act(delta);
         stage.draw();
@@ -387,7 +565,7 @@ public final class OnlineResultScreen implements Screen {
 
     @Override
     public void dispose() {
-        if (disposed) { return; }
+        if (disposed) return;
         disposed = true;
         if (Gdx.input.getInputProcessor() == stage) {
             Gdx.input.setInputProcessor(null);
@@ -395,7 +573,8 @@ public final class OnlineResultScreen implements Screen {
         stage.dispose();
         batch.dispose();
         shapes.dispose();
-        watermarkFont.dispose();
+        titleFont.dispose();
+        crownFont.dispose();
         ui.close();
         textures.forEach(Texture::dispose);
     }

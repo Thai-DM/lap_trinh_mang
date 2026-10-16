@@ -1,0 +1,20 @@
+﻿{
+    "date":  "2026-10-16T07:47:11.3507961+07:00",
+    "status":  "PASS",
+    "label":  "final-integration",
+    "heapMiB":  128,
+    "suites":  [
+                   "com.smashprofs.server.game.StockGameplayTest",
+                   "com.smashprofs.server.game.ItemGameplayTest",
+                   "com.smashprofs.server.game.physics.WallMovementTest",
+                   "com.smashprofs.server.network.TcpSnapshotBackpressureTest",
+                   "com.smashprofs.server.network.HeartbeatManagerTest",
+                   "com.smashprofs.server.cluster.ControlPlaneTest",
+                   "com.smashprofs.server.game.GameplayTcpIntegrationTest",
+                   "com.smashprofs.tests.network.GameplayClientModelTest",
+                   "com.smashprofs.tests.network.WireGameSnapshotTest",
+                   "com.smashprofs.tests.network.NetworkClientProtocolV1Test",
+                   "com.smashprofs.tests.network.LobbyClientTcpIntegrationTest",
+                   "com.smashprofs.tests.network.ClusterLobbyIntegrationTest"
+               ]
+}

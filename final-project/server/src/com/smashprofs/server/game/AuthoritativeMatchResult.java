@@ -11,8 +11,12 @@ public record AuthoritativeMatchResult(
         long finishedAtTick,
         PlayerId winnerId,
         FinishReason finishReason,
-        List<ParticipantResult> participants
+        List<ParticipantResult> participants,
+        com.smashprofs.common.model.GameplaySnapshot gameplay
 ) {
+    public AuthoritativeMatchResult(String matchId,String roomId,long finishedAtTick,PlayerId winnerId,FinishReason finishReason,List<ParticipantResult> participants) {
+        this(matchId,roomId,finishedAtTick,winnerId,finishReason,participants,null);
+    }
     public AuthoritativeMatchResult { participants = List.copyOf(participants); }
 
     /** Null winner là hòa, không giữ một flag outcome thứ hai có thể mâu thuẫn. */

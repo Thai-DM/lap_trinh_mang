@@ -126,7 +126,8 @@ public final class InputQueue {
         INVALID_INPUT,
         UNKNOWN_PLAYER,
         QUEUE_FULL,
-        MATCH_FINISHED // MatchRuntime reject lifecycle; queue không tự đánh giá kết quả trận.
+        MATCH_FINISHED, // MatchRuntime reject lifecycle; queue không tự đánh giá kết quả trận.
+        PLAYER_INACTIVE
     }
 
     private static final class PlayerBuffer {

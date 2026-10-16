@@ -26,6 +26,13 @@ public class HeartbeatManagerTest {
     }
     private void seconds(long seconds) { clock.addAndGet(TimeUnit.SECONDS.toNanos(seconds)); manager.runMaintenance(); }
     private String ping(ClientSession session) { return session.heartbeat.outstanding; }
+    @Test public void rttUsesThePingWriteClockAndRejectsDuplicateOrForeignAcknowledgements() {
+        var session=session(true);assertNull(session.getRttMillis());seconds(5);
+        var delivery=channels.get(0).deliveries.get(0);clock.addAndGet(200_000_000L);delivery.onSending().run();
+        clock.addAndGet(28_000_000L);String id=ping(session);assertTrue(manager.acknowledge(session,id));assertEquals(28,session.getRttMillis(),.00001);
+        clock.addAndGet(50_000_000L);assertFalse(manager.acknowledge(session,id));assertEquals(28,session.getRttMillis(),.00001);
+        session.close();assertNull(session.getRttMillis());
+    }
     @Test public void stalledWriteIsClosedBeforeHeartbeatActivationWithoutAffectingOtherSessions() {
         var stalled = session(false); var healthy = session(true);
         channels.get(0).writeStarted = System.nanoTime() - TimeUnit.SECONDS.toNanos(6);

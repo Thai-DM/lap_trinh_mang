@@ -75,7 +75,7 @@ public class Game extends com.badlogic.gdx.Game {
 			new Thread(previous::stop, "Game-MockServerClose").start();
 		}
 		mockMode = false; lobbyClient = joined; networkClient = joined.getNetworkClient();
-		setScreen(new CharacterSelectScreen(this));
+        setScreen(joined.supportsGameplay()?new com.smashprofs.game.Screens.HostLobbySettingsScreen(this):new CharacterSelectScreen(this));
 	}
 
 	public void leaveOnlineLobby() {

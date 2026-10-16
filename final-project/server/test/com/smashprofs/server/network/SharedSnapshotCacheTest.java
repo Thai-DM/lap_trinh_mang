@@ -2,6 +2,7 @@ package com.smashprofs.server.network;
 
 import com.smashprofs.common.model.PlayerId;
 import com.smashprofs.common.protocol.JsonFrameCodec;
+import com.smashprofs.common.protocol.ProtocolV1;
 import com.smashprofs.server.game.AuthoritativeGameSnapshot;
 import com.smashprofs.server.metrics.PerformanceMetrics;
 import org.junit.Test;
@@ -40,5 +41,24 @@ public class SharedSnapshotCacheTest {
         var cache=new SharedSnapshotCache(); for(int i=0;i<1100;i++) { cache.frame(delivery("r"+i,3)); }
         assertEquals(1024,cache.size()); cache.retainRooms(Set.of("r0")); assertEquals(1,cache.size());
         cache.clear(); cache.frame(delivery("after-close",3)); assertEquals(0,cache.size());
+    }
+    @Test public void boundedGameplayPayloadKeepsSharedEncodingAndImmutableStats() throws Exception {
+        var sample=delivery("r",3);var players=List.of(
+                new com.smashprofs.common.model.GameplaySnapshot.Player("a",3,"ACTIVE",0,0,0,"SHOTGUN",true,12,2,1,0,0,"NONE"),
+                new com.smashprofs.common.model.GameplaySnapshot.Player("b",3,"ACTIVE",0,0,0,"NONE",false,0,0,0,0,0,"NONE"));
+        var items=new ArrayList<com.smashprofs.common.model.GameplaySnapshot.Item>();var shots=new ArrayList<com.smashprofs.common.model.GameplaySnapshot.Shot>();
+        for(int i=1;i<=16;i++) { items.add(new com.smashprofs.common.model.GameplaySnapshot.Item(i,"HEALTH",4,2)); }
+        for(int i=1;i<=64;i++) { shots.add(new com.smashprofs.common.model.GameplaySnapshot.Shot(i,"GRENADE","a",4,2,1,1)); }
+        var extension=new com.smashprofs.common.model.GameplaySnapshot(com.smashprofs.common.model.MatchRules.DEFAULT,3,players,items,shots);
+        var state=sample.snapshot();var delivery=new GameStateDelivery(new AuthoritativeGameSnapshot("match","r",3,state.players(),state.projectiles(),extension),"PLAYING",120000,()->true);
+        var cache=new SharedSnapshotCache();var metrics=new PerformanceMetrics();byte[] first=null;
+        for(int recipient=0;recipient<4;recipient++) {
+            var frame=cache.frame(delivery).encode(new JsonTcpMessageCodec(),metrics);var output=new ByteArrayOutputStream();frame.writeTo(output);
+            if(first==null) { first=output.toByteArray(); }else { assertArrayEquals(first,output.toByteArray()); }
+        }
+        assertEquals(1,metrics.snapshotEncodes.sum());assertEquals(3,metrics.snapshotCacheHits.sum());
+        assertTrue(first.length<ProtocolV1.MAX_FRAME_BYTES);
+        var decoded=new JsonFrameCodec().readNext(new ByteArrayInputStream(first));assertEquals(extension,com.smashprofs.common.protocol.GameplayProtocol.snapshot(decoded.payload().get("gameplay")));
+        System.out.println("Bounded gameplay fixture bytes="+first.length+"; items=16; weaponProjectiles=64; encodeCount=1; recipients=4");
     }
 }

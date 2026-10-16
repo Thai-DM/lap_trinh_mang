@@ -27,7 +27,7 @@ final class SharedSnapshotCache {
     void retainRooms(Set<String> active) { latest.keySet().removeIf(id -> !active.contains(id)); }
     void clear() { synchronized(latest) { closed=true; latest.clear(); } }
     int size() { return latest.size(); }
-    static final class Frame {
+    static final class Frame implements SharedFrame {
         private final GameStateDelivery delivery;
         private byte[] bytes;
         Frame(GameStateDelivery source) {
@@ -46,8 +46,8 @@ final class SharedSnapshotCache {
             bytes=encoded; metrics.snapshotEncodes.increment();
             metrics.record(PerformanceMetrics.Stage.JSON_SERIALIZATION,System.nanoTime()-started); return this;
         }
-        synchronized int size() { if(bytes==null) { throw new IllegalStateException("Not encoded"); } return bytes.length; }
-        void writeTo(OutputStream output) throws IOException {
+        public synchronized int size() { if(bytes==null) { throw new IllegalStateException("Not encoded"); } return bytes.length; }
+        public void writeTo(OutputStream output) throws IOException {
             byte[] owned;
             synchronized(this) { if(bytes==null) { throw new IllegalStateException("Not encoded"); } owned=bytes; }
             output.write(owned); // Socket output stream is not given ownership of the immutable frame.

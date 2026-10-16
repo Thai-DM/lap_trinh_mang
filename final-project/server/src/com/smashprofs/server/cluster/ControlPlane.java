@@ -49,7 +49,11 @@ public final class ControlPlane {
         if (path.equals("/metrics")) { return metrics(); }
         Session session = session(credential);
         return switch (path) {
-            case "/rooms/create" -> assignment(session, create(List.of(session), region(body)));
+            case "/rooms/create" -> {
+                if(body.has("gameplay") && !body.path("gameplay").isBoolean()) { throw new Failure(400,"INVALID_GAMEPLAY_CAPABILITY"); }
+                var room=create(List.of(session),region(body));room.gameplay=body.path("gameplay").asBoolean(false);room.hostPlayer=session.player;
+                yield assignment(session,room);
+            }
             case "/rooms/join" -> join(session, text(body, "roomId"));
             case "/matchmake" -> matchmake(session, body);
             case "/matchmake/cancel" -> { queue.remove(session.id); yield Map.of("cancelled", true); }
@@ -79,6 +83,7 @@ public final class ControlPlane {
             JsonNode phase = states.get(room.id);
             if (phase != null && Set.of("WAITING", "READY", "COUNTDOWN", "PLAYING", "FINISHED").contains(phase.asText())) {
                 room.seen = true; room.state = phase.asText();
+                int limit=body.path("roomLimits").path(room.id).asInt(4);if(limit>=2 && limit<=4) { room.maxPlayers=limit; }
             } else if (room.seen) { finish(room, "CLEANUP"); }
         }
         return Map.of("leaseMillis", LEASE_MILLIS, "draining", worker.draining);
@@ -95,7 +100,7 @@ public final class ControlPlane {
         }
         session.claimed = true;
         return Map.of("playerId", session.player, "sessionId", session.id, "roomId", room.id, "expiresAt", session.expiry,
-                "minimumPlayers", room.minimumPlayers);
+                "minimumPlayers", room.minimumPlayers,"gameplay",room.gameplay,"hostPlayer",room.hostPlayer);
     }
     private Room create(List<Session> members, String region) {
         if (rooms.size() >= 10_000) { throw new Failure(503, "ROOM_CAPACITY"); }
@@ -112,6 +117,7 @@ public final class ControlPlane {
         Room room = new Room("r_" + UUID.randomUUID().toString().replace("-", ""), owner, clock.getAsLong());
         room.minimumPlayers = Math.max(2, members.size());
         room.matchmade = members.size() > 1;
+        room.hostPlayer=members.get(0).player;
         rooms.put(room.id, room);
         for (Session session : members) { bind(session, room); }
         return room;
@@ -123,7 +129,7 @@ public final class ControlPlane {
         if (room.matchmade) { throw new Failure(403, "MATCHMADE_ROOM_PRIVATE"); }
         requireIdle(session);
         if (!Set.of("WAITING", "READY").contains(room.state)) { throw new Failure(409, "ROOM_STARTED"); }
-        if (room.members.size() >= 4) { throw new Failure(409, "ROOM_FULL"); }
+        if (room.members.size() >= room.maxPlayers) { throw new Failure(409, "ROOM_FULL"); }
         if (worker(room.worker).dead) { throw new Failure(503, "WORKER_LOST"); }
         bind(session, room); return assignment(session, room);
     }
@@ -152,7 +158,7 @@ public final class ControlPlane {
         Worker worker = worker(room.worker);
         return Map.of("status", "ASSIGNED", "workerId", worker.id, "host", worker.host, "port", worker.port,
                 "roomId", room.id, "ticket", session.ticket, "ticketExpiresAt", session.ticketExpiry,
-                "capability", "cluster-v1");
+                "capability", "cluster-v1","gameplay",room.gameplay);
     }
     private RoomAllocator.Capacity capacity(Worker worker) {
         JsonNode r = worker.report;
@@ -241,7 +247,9 @@ public final class ControlPlane {
     private static final class Room {
         final String id, worker; final long created; final Set<String> members = new HashSet<>();
         String state = "WAITING"; boolean seen; long finished;
-        int minimumPlayers = 2;
+        int minimumPlayers = 2,maxPlayers=4;
+        boolean gameplay;
+        String hostPlayer="";
         boolean matchmade;
         Room(String id, String worker, long created) { this.id=id; this.worker=worker; this.created=created; }
         boolean terminal() { return Set.of("CLEANUP", "ABORTED", "EXPIRED").contains(state); }

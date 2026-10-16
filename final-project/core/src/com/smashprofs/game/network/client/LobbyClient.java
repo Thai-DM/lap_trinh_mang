@@ -39,6 +39,18 @@ public final class LobbyClient implements ConnectionListener, AutoCloseable {
     private GameStartRoster match;
     private volatile ClientMatchSession matchSession;
     private Pending pending;
+    private boolean gameplay;
+    public record Settings(String hostId,com.smashprofs.common.model.MatchRules rules,int playerCount,long version,long rulesVersion) { }
+    private long confirmedReadyRulesVersion=-1;
+    private volatile Settings settings;
+    public synchronized void enableGameplay() { if(phase!=Phase.IDLE) { throw new IllegalStateException("Negotiate before start"); }gameplay=true;networkClient.enableGameplay(); }
+    public boolean supportsGameplay() { return gameplay; }
+    public Settings getSettings() { return settings; }
+    public synchronized boolean updateSettings(com.smashprofs.common.model.MatchRules rules) {
+        if(!gameplay || phase!=Phase.JOINED || pending!=null || settings==null || !settings.hostId().equals(localId.value())) { return false; }
+        var payload=ProtocolV1.object().put("roomId",configuration.roomId());payload.set("rules",GameplayProtocol.rules(rules));
+        return request(MessageType.ROOM_SETTINGS_UPDATE,payload,null);
+    }
 
     public LobbyClient(LobbyConfiguration configuration) { this(configuration, s -> { }); }
     /** State observers may run on connector/network/caller threads; UI should poll getSnapshot instead. */
@@ -89,7 +101,8 @@ public final class LobbyClient implements ConnectionListener, AutoCloseable {
         localId = networkClient.getPlayerId();
         if (localId == null) { fail("INVALID_SESSION", "Missing server-issued player identity", false); return; }
         if (configuration.mode() == LobbyConfiguration.Mode.CREATE) {
-            request(MessageType.CREATE_ROOM, ProtocolV1.object().put("roomId", configuration.roomId()), null);
+            var payload=ProtocolV1.object().put("roomId",configuration.roomId());if(gameplay) { payload.put("gameplay",true); }
+            request(MessageType.CREATE_ROOM, payload, null);
         } else { join(); }
     }
 
@@ -115,12 +128,14 @@ public final class LobbyClient implements ConnectionListener, AutoCloseable {
             case CREATE_ROOM -> Phase.CREATING;
             case JOIN_ROOM -> Phase.JOINING;
             case PLAYER_READY -> Phase.READY_PENDING;
+            case ROOM_SETTINGS_UPDATE -> Phase.READY_PENDING;
             default -> throw new IllegalArgumentException("Not a lobby request");
         };
         errorCode = null;
         publish(switch (type) {
             case CREATE_ROOM -> "Creating room " + configuration.roomId();
             case JOIN_ROOM -> "Joining room " + configuration.roomId();
+            case ROOM_SETTINGS_UPDATE -> "Updating room rules";
             default -> "Sending ready: " + characterId;
         });
         if (closed) { return false; }
@@ -147,6 +162,9 @@ public final class LobbyClient implements ConnectionListener, AutoCloseable {
                     join(); // Creating a room does not imply membership.
                 }
                 case ROOM_STATE -> acceptRoomState(message);
+                case ROOM_SETTINGS_STATE -> acceptSettings(message);
+                case MATCH_EVENT -> { if(matchSession!=null) { matchSession.acceptEvent(message); } }
+                case RTT_STATE -> { if(matchSession!=null) { matchSession.acceptRtt(message); } }
                 case GAME_START -> acceptStart(message);
                 case GAME_STATE -> {
                     if (phase == Phase.STARTED && matchSession != null) { matchSession.acceptState(message); }
@@ -174,7 +192,7 @@ public final class LobbyClient implements ConnectionListener, AutoCloseable {
     private void acceptRoomState(ProtocolMessage message) {
         if (!correlates(message, MessageType.JOIN_ROOM) && !correlates(message, MessageType.PLAYER_READY)) { return; }
         var payload = message.payload();
-        require(payload.size() == 3 && configuration.roomId().equals(text(payload, "roomId")), "ROOM_STATE room mismatch");
+        require(payload.size() == (payload.has("settings")?4:3) && configuration.roomId().equals(text(payload, "roomId")), "ROOM_STATE room mismatch");
         String roomPhase = text(payload, "phase");
         require(ROOM_PHASES.contains(roomPhase), "Invalid room phase");
         var array = payload.get("players");
@@ -198,17 +216,42 @@ public final class LobbyClient implements ConnectionListener, AutoCloseable {
         var local = roster.stream().filter(p -> p.playerId().equals(localId)).findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Local player missing from ROOM_STATE"));
         boolean readyResponse = pending.type() == MessageType.PLAYER_READY;
+        Settings acknowledgedRules=payload.has("settings")?readSettings(payload.get("settings")):null;
+        if(acknowledgedRules!=null) {
+            if(settings==null || acknowledgedRules.version()>=settings.version()) { settings=acknowledgedRules; }
+            if(readyResponse) { confirmedReadyRulesVersion=acknowledgedRules.rulesVersion(); }
+        }
         if (readyResponse) {
-            require(local.ready() && pending.characterId().equals(local.characterId()), "READY confirmation mismatch");
+            require((local.ready() || acknowledgedRules!=null) && pending.characterId().equals(local.characterId()), "READY confirmation mismatch");
         }
         members = roster.stream().sorted(Comparator.comparingInt(Member::slotIndex)).toList();
         serverPhase = roomPhase;
         selectedCharacter = local.characterId();
         pending = null;
         errorCode = null;
-        phase = readyResponse ? Phase.WAITING_FOR_START : Phase.JOINED;
+        phase = readyResponse && local.ready() ? Phase.WAITING_FOR_START : Phase.JOINED;
+        if(readyResponse && settings!=null && confirmedReadyRulesVersion<settings.rulesVersion()) { phase=Phase.JOINED; }
         publish(readyResponse ? "Ready. Waiting for server to start the match"
                 : "Joined " + configuration.roomId() + ". Choose your character, then press Ready");
+    }
+    private void acceptSettings(ProtocolMessage message) {
+        var incoming=readSettings(message.payload());boolean response=correlates(message,MessageType.ROOM_SETTINGS_UPDATE);
+        if(settings!=null && incoming.version()<settings.version()) {
+            if(response) { pending=null;phase=Phase.JOINED;publish("Room rules updated. Ready again."); }return;
+        }
+        settings=incoming;
+        if(response || (phase==Phase.WAITING_FOR_START && incoming.rulesVersion()>confirmedReadyRulesVersion)) {
+            pending=null;phase=Phase.JOINED;publish("Room rules updated. Ready again.");
+        } else { publish(statusText); }
+    }
+    private Settings readSettings(com.fasterxml.jackson.databind.JsonNode p) {
+        require(gameplay && configuration.roomId().equals(text(p,"roomId")),"Unnegotiated settings/room mismatch");
+        var rules=GameplayProtocol.rules(p.get("rules"));
+        require(p.path("version").isIntegralNumber() && p.path("rulesVersion").isIntegralNumber()
+                && p.path("version").asLong()>=1 && p.path("rulesVersion").asLong()>=1
+                && p.path("rulesVersion").asLong()<=p.path("version").asLong() && p.path("playerCount").isIntegralNumber()
+                && p.path("playerCount").asInt()>=1 && p.path("playerCount").asInt()<=rules.maxPlayers(),"Invalid settings revision/count");
+        return new Settings(text(p,"hostId"),rules,p.path("playerCount").asInt(),p.path("version").asLong(),p.path("rulesVersion").asLong());
     }
 
     private void acceptStart(ProtocolMessage message) {
@@ -241,7 +284,7 @@ public final class LobbyClient implements ConnectionListener, AutoCloseable {
         require(payload.size() == 2, "Invalid ERROR fields");
         String code = text(payload, "code"), description = text(payload, "message");
         if (pending != null && pending.requestId().equals(message.requestId())) {
-            boolean readyRejected = pending.type() == MessageType.PLAYER_READY;
+            boolean readyRejected = pending.type() == MessageType.PLAYER_READY || pending.type()==MessageType.ROOM_SETTINGS_UPDATE;
             pending = null;
             fail(code, description, readyRejected);
         } else if (phase == Phase.CONNECTING) {

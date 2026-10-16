@@ -56,6 +56,10 @@ public class NetworkClient {
     private volatile PlayerId playerId;
     private String connectRequestId;
     private com.fasterxml.jackson.databind.node.ObjectNode connectPayload = ProtocolV1.object();
+    public synchronized void enableGameplay() {
+        if(connected.get() || mockProtocol) { throw new IllegalStateException("Negotiate before connecting"); }
+        connectPayload.put("gameplay",com.smashprofs.common.protocol.GameplayProtocol.CAPABILITY);
+    }
 
     /** Explicit cluster-v1 capability on a separate secured listener; normal constructors send {}. */
     public static NetworkClient forCluster(String host, int port, String ticket, ConnectionListener listener) {

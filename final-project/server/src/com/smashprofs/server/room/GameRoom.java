@@ -38,6 +38,25 @@ public final class GameRoom {
     private final Set<PlayerId> readyPlayers = new HashSet<>();
     private RoomPhase phase = RoomPhase.WAITING;
     private int minimumPlayers = 2;
+    private com.smashprofs.common.model.MatchRules rules = com.smashprofs.common.model.MatchRules.LEGACY;
+    private PlayerId host;
+    private long settingsVersion;
+    private long rulesVersion;
+    public synchronized long getRulesVersion() { return rulesVersion; }
+    public synchronized PlayerId getHost() { return host; }
+    public synchronized long getSettingsVersion() { return settingsVersion; }
+    public synchronized com.smashprofs.common.model.MatchRules getRules() { return rules; }
+    public synchronized void configureGameplay(PlayerId creator) {
+        if(closed || getPlayerCount()!=0 || phase!=RoomPhase.WAITING) { throw new IllegalStateException("Configure before joining"); }
+        host=Objects.requireNonNull(creator); rules=com.smashprofs.common.model.MatchRules.DEFAULT; settingsVersion++;rulesVersion++;
+    }
+    public synchronized void updateSettings(PlayerId actor,com.smashprofs.common.model.MatchRules next) {
+        if(!rules.gameplay() || !Objects.equals(host,actor) || getPlayerSlot(actor)==null) { throw new SecurityException("Only room host may update settings"); }
+        if(closed || phase==RoomPhase.COUNTDOWN || isMatchLocked()) { throw new IllegalStateException("Rules locked"); }
+        if(!next.gameplay() || next.maxPlayers()<getPlayerCount() || next.maxPlayers()<minimumPlayers) { throw new IllegalArgumentException("Capacity below current roster"); }
+        if(next.equals(rules)) { return; }
+        rules=next; readyPlayers.clear(); cancelCountdown(); updateLobbyPhase(); settingsVersion++;rulesVersion++;
+    }
 
     /** Cluster matchmaking can reserve an exact group before any client joins. Legacy minimum stays 2. */
     public synchronized void setMinimumPlayers(int count) {
@@ -118,9 +137,12 @@ public final class GameRoom {
         if (phase == RoomPhase.COUNTDOWN) {
             return JoinResult.COUNTDOWN_IN_PROGRESS;
         }
-        for (int index = 0; index < playerSlots.length; index++) {
+        if(getPlayerCount()>=rules.maxPlayers()) { return JoinResult.ROOM_FULL; }
+        for (int index = 0; index < rules.maxPlayers(); index++) {
             if (playerSlots[index] == null) {
                 playerSlots[index] = new PlayerSlot(index, playerId);
+                settingsVersion++;
+                if(host==null) { host=playerId; settingsVersion++; }
                 readyPlayers.remove(playerId);
                 updateLobbyPhase();
                 return JoinResult.JOINED;
@@ -140,6 +162,8 @@ public final class GameRoom {
             return false;
         }
         playerSlots[slot.slotIndex()] = null;
+        settingsVersion++;
+        if(playerId.equals(host)) { host=getPlayerSlots().stream().map(PlayerSlot::playerId).findFirst().orElse(null); settingsVersion++; }
         selectedCharacters.remove(playerId);
         readyPlayers.remove(playerId);
         cancelCountdown();
@@ -423,6 +447,7 @@ public final class GameRoom {
             }
             preparedMatch = Objects.requireNonNull(setupFactory.apply(List.copyOf(participants)),
                     "setupFactory không được trả null");
+            if(rules.gameplay()) { preparedMatch=new MatchSetup(preparedMatch.matchId(),preparedMatch.roomId(),preparedMatch.participants(),rules); }
         }
         return preparedMatch;
     }

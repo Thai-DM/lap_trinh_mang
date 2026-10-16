@@ -36,6 +36,8 @@ def main():
     p.add_argument("--repeats", type=int, default=2)
     p.add_argument("--heap-mb", type=int, default=128)
     p.add_argument("--jfr", action="store_true")
+    p.add_argument("--gameplay",action="store_true")
+    p.add_argument("--items",choices=("NONE","LOW","MEDIUM","HIGH"),default="HIGH")
     p.add_argument("--runtime", type=Path, default=PROJECT / "build/cluster")
     p.add_argument("--output", type=Path)
     args = p.parse_args()
@@ -136,6 +138,7 @@ def main():
                         admin_urls = [f"http://127.0.0.1:{w['report']['adminPort']}" for w in ready["workers"]] if is_cluster else [base_url]
                         result_file = evidence / "load.json"
                         generator_args = [java, "-Xms32m", f"-Xmx{args.heap_mb}m", f"-Dsmashprofs.load.profile={profile}",
+                                          f"-Dsmashprofs.load.gameplay={str(args.gameplay).lower()}",f"-Dsmashprofs.load.items={args.items}",
                                           f"-Dsmashprofs.load.warmupSeconds={args.warmup}",
                                           "-Dsmashprofs.load.metricsEndpoints=" + ",".join(admin_urls),
                                           "-cp", str(runtime / "*"), MAIN, "load", endpoint, str(count), str(args.seconds), str(result_file)]
@@ -172,7 +175,8 @@ def main():
                                    "snapshotEncodes": sum(r["performance"]["snapshotEncodes"] for r in reports),
                                    "snapshotCacheHits": sum(r["performance"]["snapshotCacheHits"] for r in reports),
                                    "peakRssBytes": max((s["rssBytes"] or 0 for s in samples), default=0)}
-                        summary["performanceSlo"] = "PASS" if correctness and data.get("completedBeforeMeasurement", 0) == 0 and all(
+                        summary["activeMatchThroughoutWindow"] = data.get("gameEnds",0)==0 and data.get("completedBeforeMeasurement",0)==0
+                        summary["performanceSlo"] = "PASS" if correctness and summary["activeMatchThroughoutWindow"] and all(
                             r["performance"]["stages"]["WORKER_CYCLE"]["p99Ms"] < 16.666667 and 59 <= r["cycleHz"] <= 61 for r in reports) else "FAIL"
                         summary["sloScope"] = "Processing p99 and cycle frequency only; review schedulingLag and per-room metrics separately"
                         summary["deadlineSlo"] = "PASS" if correctness and all(

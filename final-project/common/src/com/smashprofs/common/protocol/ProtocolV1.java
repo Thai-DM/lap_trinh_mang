@@ -15,9 +15,10 @@ public final class ProtocolV1 {
     public static final Set<MessageType> MVP_TYPES = Set.of(MessageType.CONNECT, MessageType.CONNECT_ACK,
             MessageType.CREATE_ROOM, MessageType.ROOM_CREATED, MessageType.JOIN_ROOM, MessageType.ROOM_STATE,
             MessageType.LEAVE_ROOM, MessageType.PLAYER_READY, MessageType.GAME_START, MessageType.PLAYER_INPUT,
-            MessageType.GAME_STATE, MessageType.GAME_END, MessageType.ERROR, MessageType.PING, MessageType.PONG);
+            MessageType.GAME_STATE, MessageType.GAME_END, MessageType.ERROR, MessageType.PING, MessageType.PONG,
+            MessageType.ROOM_SETTINGS_UPDATE, MessageType.ROOM_SETTINGS_STATE, MessageType.MATCH_EVENT,MessageType.RTT_STATE);
     public static final Set<MessageType> CORRELATED_REQUESTS = Set.of(MessageType.CONNECT, MessageType.CREATE_ROOM,
-            MessageType.JOIN_ROOM, MessageType.LEAVE_ROOM, MessageType.PLAYER_READY, MessageType.PING);
+            MessageType.JOIN_ROOM, MessageType.LEAVE_ROOM, MessageType.PLAYER_READY, MessageType.PING, MessageType.ROOM_SETTINGS_UPDATE);
     private ProtocolV1() { }
 
     public static ObjectNode object() { return JsonNodeFactory.instance.objectNode(); }

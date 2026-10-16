@@ -18,6 +18,7 @@ public final class OnlineLobbyFormModel implements AutoCloseable {
             catch (NumberFormatException invalid) { throw new IllegalArgumentException("Port must be a number from 1 to 65535."); }
             var configuration = new LobbyConfiguration(address, number, room, mode);
             pending = new LobbyClient(configuration);
+            pending.enableGameplay();
             error = false;
             pending.startAsync();
             return true;

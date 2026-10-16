@@ -23,7 +23,7 @@ final class OnlineResultScreen implements Screen {
         table.background(new TextureRegionDrawable(assets.texture("winscreen/winbg.png")));
         table.add(new Image(assets.texture("winscreen/pokal.png"))).size(75, 90).padBottom(12); table.row();
         var winner = result.winner();
-        String title = result.isDraw() ? "DRAW" : "WINNER: " + winner.characterId() + " | slot " + winner.slotIndex()
+        String title = result.isDraw() ? "DRAW" : (result.gameplay()==null?"WINNER: ":"CHAMPION: ") + winner.characterId() + " | slot " + winner.slotIndex()
                 + (winner.playerId().equals(localId) ? " | YOU" : "");
         var heading = new Label(title, style); heading.setColor(Color.CYAN);
         table.add(heading).padBottom(10); table.row();
@@ -34,14 +34,29 @@ final class OnlineResultScreen implements Screen {
                     + " | " + p.playerId().substring(0, Math.min(8, p.playerId().length()));
             table.add(new Label(text, style)).padBottom(8); table.row();
         }
+        if(result.gameplay()!=null) {
+            var stats=result.gameplay();
+            table.add(new Label("Duration: "+String.format(java.util.Locale.ROOT,"%.1fs",stats.durationTicks()/60f),style));table.row();
+            for(var p:stats.players()) {
+                table.add(new Label(shortId(p.playerId())+" | Damage "+String.format(java.util.Locale.ROOT,"%.1f",p.damageDealt())+" | Items "+p.itemsCollected()+" (weapons "+p.weaponsCollected()+") | K.O. "+p.kills()+" | Deaths "+p.deaths()+" | Lives "+p.lives(),style)).padBottom(4);table.row();
+            }
+            for(String award:new String[]{"DAMAGE","WEAPONS","KO"}) {
+                var leaders=stats.leaders(award);String names=leaders.isEmpty()?"No award":leaders.stream().map(OnlineResultScreen::shortId).collect(java.util.stream.Collectors.joining(", "));
+                table.add(new Label((award.equals("DAMAGE")?"Damage Dealer":award.equals("WEAPONS")?"Weapon Hoarder":"Most K.O.")+": "+names+(leaders.size()>1?" (shared)":""),style)).padBottom(4);table.row();
+            }
+        }
         var buttonStyle = new TextButton.TextButtonStyle(); buttonStyle.font = font; buttonStyle.fontColor = Color.WHITE;
         var exit = new TextButton("Exit (Esc)", buttonStyle);
         exit.addListener(new ChangeListener() {
             @Override public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) { Gdx.app.exit(); }
         });
-        table.add(exit).padTop(20); stage.addActor(table);
+        table.add(exit).padTop(20);
+        table.setFillParent(false);
+        var scroll=new ScrollPane(table,new ScrollPane.ScrollPaneStyle());
+        var root=new Table();root.setFillParent(true);root.add(scroll).grow();stage.addActor(root);
     }
     @Override public void show() { Gdx.input.setInputProcessor(stage); }
+    private static String shortId(String id) { return id.substring(0,Math.min(8,id.length())); }
     @Override public void render(float delta) {
         if (disposed) { return; }
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) { Gdx.app.exit(); }

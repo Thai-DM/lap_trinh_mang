@@ -25,6 +25,13 @@ public final class PlayerJumpController implements AutoCloseable {
     private final GroundContactListener contacts;
     private final Map<PlayerId, MutableJumpState> states = new HashMap<>();
     private boolean closed;
+    private boolean wallMovement;
+    public void enableWallMovement() { wallMovement=true; }
+    public boolean preserveExternalImpulse(PlayerId id) { var state=requireState(id);return wallMovement && (state.knockbackTicks>0 || state.wallJumpTicks>0); }
+    public void resetAfterRespawn(PlayerId id) { states.put(id,new MutableJumpState());contacts.forget(id); }
+    public String getWallState(PlayerId id) {
+        var state=requireState(id);return state.wallJumpTicks>0?"WALL_JUMPING":state.wallSliding?"WALL_SLIDING":"NONE";
+    }
 
     /** Gắn listener trước khi runtime được publish/start ticking; không thay đổi fixture/filter. */
     public PlayerJumpController(PlayerPhysicsFactory.PlayerPhysicsBodies players) {
@@ -67,6 +74,14 @@ public final class PlayerJumpController implements AutoCloseable {
     /** Chỉ gọi cho edge input mới từ batch drain, không giữ/replay jumpPressed giữa các tick. */
     public boolean jump(PlayerId playerId) {
         MutableJumpState state = requireState(playerId);
+        Body wallBody=players.getBody(playerId);
+        if(!wallBody.isActive()) { return false; }
+        int wall=contacts.wallDirection(playerId);
+        if(wallMovement && wall!=0 && wallBody.getLinearVelocity().y<=0 && !state.wallLatched && state.knockbackTicks==0) {
+            var center=wallBody.getWorldCenter();wallBody.applyLinearImpulse(wall*1.4f-wallBody.getLinearVelocity().x,
+                    JUMP_FORCE-.8f*wallBody.getLinearVelocity().y,center.x,center.y,true);
+            state.wallLatched=true;state.wallJumpTicks=12;state.wallSliding=false;state.grounded=false;state.jumpsUsed=1;state.extraJumpReady=true;return true;
+        }
         if (state.jumpsUsed >= MAX_JUMPS || (!state.grounded && !state.extraJumpReady)) {
             return false;
         }
@@ -86,9 +101,16 @@ public final class PlayerJumpController implements AutoCloseable {
         requireOpen();
         for (PlayerId playerId : states.keySet()) {
             Body body = players.getBody(playerId);
+            if(!body.isActive()) { continue; }
+            var state=states.get(playerId);
+            if(state.knockbackTicks>0) { state.knockbackTicks--; }
+            if(state.wallJumpTicks>0) { state.wallJumpTicks--; }
+            state.wallSliding=wallMovement && contacts.wallDirection(playerId)!=0 && !state.grounded && body.getLinearVelocity().y<0 && state.knockbackTicks==0;
+            if(state.wallSliding && body.getLinearVelocity().y<-.55f) { body.setLinearVelocity(body.getLinearVelocity().x,-.55f); }
             requireUnlocked(body);
             var center = body.getWorldCenter();
             body.applyLinearImpulse(0.0f, states.get(playerId).gravityImpulse, center.x, center.y, true);
+            if(state.wallSliding && body.getLinearVelocity().y<-.55f) { body.setLinearVelocity(body.getLinearVelocity().x,-.55f); }
         }
     }
 
@@ -122,6 +144,7 @@ public final class PlayerJumpController implements AutoCloseable {
         if (!Float.isFinite(impulseX) || !Float.isFinite(impulseY)) {
             throw new IllegalArgumentException("Impulse phải hữu hạn");
         }
+        if(wallMovement && (impulseX!=0 || impulseY>0)) { state.knockbackTicks=12;state.wallSliding=false; }
         Body body = players.getBody(playerId);
         requireUnlocked(body);
         var center = body.getWorldCenter();
@@ -138,6 +161,7 @@ public final class PlayerJumpController implements AutoCloseable {
         requireOpen();
         for (var entry : states.entrySet()) {
             MutableJumpState state = entry.getValue();
+            if(contacts.wallDirection(entry.getKey())==0) { state.wallLatched=false;state.wallSliding=false; }
             // Contact cũ còn touching trong tick cất cánh không được reset jumps khi player đang đi lên.
             boolean grounded = contacts.hasGroundContact(entry.getKey())
                     && players.getBody(entry.getKey()).getLinearVelocity().y <= RESTING_VELOCITY_TOLERANCE;
@@ -189,6 +213,8 @@ public final class PlayerJumpController implements AutoCloseable {
         private int jumpsUsed;
         private boolean extraJumpReady;
         private float gravityImpulse = GRAVITY_IMPULSE;
+        private boolean wallSliding,wallLatched;
+        private int wallJumpTicks,knockbackTicks;
     }
 
     public record JumpState(boolean grounded, int jumpsUsed, boolean extraJumpReady) { }

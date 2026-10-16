@@ -75,6 +75,7 @@ public final class PlayerInputHandler {
                     case DUPLICATE_OR_STALE -> RoutingResult.DUPLICATE_OR_STALE;
                     case QUEUE_FULL -> RoutingResult.QUEUE_FULL;
                     case MATCH_FINISHED -> RoutingResult.ROOM_NOT_PLAYING;
+                    case PLAYER_INACTIVE -> RoutingResult.PLAYER_INACTIVE;
                 };
             }
         }
@@ -91,6 +92,7 @@ public final class PlayerInputHandler {
         PLAYER_NOT_IN_MATCH,
         INVALID_INPUT,
         DUPLICATE_OR_STALE,
-        QUEUE_FULL
+        QUEUE_FULL,
+        PLAYER_INACTIVE
     }
 }

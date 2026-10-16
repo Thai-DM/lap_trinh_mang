@@ -12,6 +12,12 @@ final class StandaloneMetrics {
         var roomTicks=new LinkedHashMap<String,Object>();
         for(var room:server.getRoomManager().getRooms()) { var runtime=room.getMatchRuntime(); if(runtime!=null) { roomTicks.put(room.getRoomId(),runtime.tickMetrics()); } }
         result.put("roomTicks",roomTicks);
+        int items=0,weapons=0,abilities=0;
+        for(var room:server.getRoomManager().getRooms()) {
+            var runtime=room.getMatchRuntime();var state=runtime==null?null:runtime.getLatestSnapshot();
+            if(state!=null) { abilities+=state.projectiles().size();if(state.gameplay()!=null) { items+=state.gameplay().items().size();weapons+=state.gameplay().shots().size(); } }
+        }
+        result.put("gameplayItems",items);result.put("weaponProjectiles",weapons);result.put("abilityProjectiles",abilities);
         var c = server.getConnectionManager(); var sessions = c.getSessions(); var rooms = server.getRoomManager().getRooms();
         var heap = ManagementFactory.getMemoryMXBean().getHeapMemoryUsage();
         var os = (com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();

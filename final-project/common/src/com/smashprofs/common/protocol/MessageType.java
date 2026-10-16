@@ -18,5 +18,9 @@ public enum MessageType {
     ROOM_CREATED,
     ROOM_STATE,
     LEAVE_ROOM,
-    GAME_START
+    GAME_START,
+    ROOM_SETTINGS_UPDATE,
+    ROOM_SETTINGS_STATE,
+    MATCH_EVENT,
+    RTT_STATE
 }

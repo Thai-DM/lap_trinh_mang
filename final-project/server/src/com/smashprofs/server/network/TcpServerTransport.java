@@ -57,6 +57,9 @@ public final class TcpServerTransport implements AutoCloseable {
                 var room = lobbyRooms.getRoom(session.getRoomId());
                 if (room != null && room.leavePlayer(session.getPlayerId())) { session.leaveRoom(); }
             }
+            var room=session.getRoomId()==null?null:lobbyRooms.getRoom(session.getRoomId());
+            if(room!=null && room.getRules().gameplay() && room.getPhase()==com.smashprofs.server.room.RoomPhase.FINISHED
+                    && connections.getSessions().stream().noneMatch(s->s.isOpen() && room.getRoomId().equals(s.getRoomId()))) { lobbyRooms.removeRoom(room.getRoomId()); }
         }
         onClosed.accept(session);
     }

@@ -29,6 +29,7 @@ public final class GameStateMessageMapper {
                     .put("spawnTick", p.spawnTick()).put("x", p.x()).put("y", p.y())
                     .put("velocityX", p.velocityX()).put("velocityY", p.velocityY());
         }
+        if(snapshot.gameplay()!=null) { payload.set("gameplay",com.smashprofs.common.protocol.GameplayProtocol.snapshot(snapshot.gameplay())); }
         return new ProtocolMessage(MessageType.GAME_STATE, null, payload);
     }
 }

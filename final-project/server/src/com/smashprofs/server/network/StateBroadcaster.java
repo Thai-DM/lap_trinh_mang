@@ -21,6 +21,8 @@ public final class StateBroadcaster implements AutoCloseable {
     private volatile int interval;
     public void setSnapshotsPerSecond(int rate) { validateRate(rate); interval = MatchRuntime.TICKS_PER_SECOND / rate; }
     private final Map<String, Cursor> cursors = new HashMap<>();
+    private record SentSettings(String room,long version) { }
+    private final Map<ClientSession,SentSettings> settingsSent=new HashMap<>();
     private final AtomicBoolean closed = new AtomicBoolean();
     private final boolean indexedRecipients=Boolean.parseBoolean(System.getProperty("smashprofs.performance.indexedRecipients","true"));
     public StateBroadcaster(RoomManager rooms, ConnectionManager connections) {
@@ -43,6 +45,18 @@ public final class StateBroadcaster implements AutoCloseable {
         var active = new HashSet<String>();
         var index=indexedRecipients && rooms.getRoomCount()>=4?new RecipientIndex():null;
         for (GameRoom room : rooms.getRooms()) {
+            if(room.getRules().gameplay()) {
+                var members=recipients(index,room.getRoomId());
+                var stamp=new SentSettings(room.getRoomId(),room.getSettingsVersion());
+                ReliableDelivery.Message settings=null;
+                for(var session:members) {
+                    if(!session.supportsGameplay() || !session.isOpen() || !room.getRoomId().equals(session.getRoomId()) || stamp.equals(settingsSent.get(session))) { continue; }
+                    if(settings==null) { settings=new ReliableDelivery.Message(ProtocolV1Dispatcher.settingsState(room,null)); }
+                    if(session.offerReliable(new ReliableDelivery(settings,()->!closed.get() && !room.isClosed() && rooms.getRoom(room.getRoomId())==room
+                            && session.isOpen() && room.getRoomId().equals(session.getRoomId())))) { settingsSent.put(session,stamp); }
+                    else { session.close(); }
+                }
+            }
             MatchRuntime runtime = room.getMatchRuntime();
             if (runtime == null || runtime.isClosed() || room.isClosed()) { continue; }
             active.add(runtime.getRoomId());
@@ -83,6 +97,40 @@ public final class StateBroadcaster implements AutoCloseable {
                 }
                 cursor.startPublished = true;
             }
+            if(runtime.getMatchSetup().rules().gameplay()) {
+                var recipients=recipients(index,room.getRoomId());
+                long now=System.nanoTime();
+                if(now-cursor.nextRttAt>=0) {
+                    cursor.nextRttAt=now+1_000_000_000L;
+                    var payload=com.smashprofs.common.protocol.ProtocolV1.object().put("matchId",runtime.getMatchId()).put("roomId",room.getRoomId());
+                    var pings=payload.putArray("players");
+                    for(var participant:runtime.getParticipants()) {
+                        var connection=recipients.stream().filter(s->s.isOpen() && participant.playerId().equals(s.getPlayerId()) && room.getRoomId().equals(s.getRoomId())).findFirst().orElse(null);
+                        var ping=pings.addObject().put("playerId",participant.playerId().value()).put("connected",connection!=null);
+                        var value=connection==null?null:connection.getRttMillis();if(value==null) { ping.putNull("rttMs"); }else { ping.put("rttMs",value); }
+                    }
+                    var rttFrame=new ReliableDelivery.Message(new com.smashprofs.common.protocol.ProtocolMessage(com.smashprofs.common.protocol.MessageType.RTT_STATE,null,payload));
+                    for(var session:recipients) { if(session.supportsGameplay() && session.isOpen() && room.getRoomId().equals(session.getRoomId())) {
+                        if(!session.offerReliable(new ReliableDelivery(rttFrame,()->!closed.get() && !runtime.isClosed() && session.isOpen() && room.getRoomId().equals(session.getRoomId())))) { session.close(); }
+                    } }
+                }
+                for(var participant:runtime.getParticipants()) {
+                    if(recipients.stream().noneMatch(s->s.isOpen() && participant.playerId().equals(s.getPlayerId()) && room.getRoomId().equals(s.getRoomId()))) { runtime.requestDisconnect(participant.playerId()); }
+                }
+                for(var event:runtime.getEventsAfter(cursor.lastEventSequence)) {
+                    var payload=com.smashprofs.common.protocol.ProtocolV1.object().put("matchId",runtime.getMatchId()).put("roomId",room.getRoomId())
+                            .put("sequence",event.sequence()).put("serverTick",event.tick()).put("type",event.type()).put("weapon",event.weapon()).put("cause",event.cause());
+                    if(event.killer()==null) { payload.putNull("killer"); }else { payload.put("killer",event.killer()); }
+                    if(event.victim()==null) { payload.putNull("victim"); }else { payload.put("victim",event.victim()); }
+                    var frame=new ReliableDelivery.Message(new com.smashprofs.common.protocol.ProtocolMessage(com.smashprofs.common.protocol.MessageType.MATCH_EVENT,null,payload));
+                    for(var session:recipients) {
+                        if(session.supportsGameplay() && session.isOpen() && snapshot.roomId().equals(session.getRoomId()) && snapshot.players().stream().anyMatch(p->p.playerId().equals(session.getPlayerId()))) {
+                            if(!session.offerReliable(new ReliableDelivery(frame,()->!closed.get() && !runtime.isClosed() && session.isOpen() && snapshot.roomId().equals(session.getRoomId())))) { session.close(); }
+                        }
+                    }
+                    cursor.lastEventSequence=event.sequence();
+                }
+            }
             if (cursor.terminal || snapshot.serverTick() <= cursor.lastTick
                     || (!terminal && snapshot.serverTick() % interval != 0)) { continue; }
             for (ClientSession session : recipients(index,room.getRoomId())) {
@@ -110,8 +158,13 @@ public final class StateBroadcaster implements AutoCloseable {
                 } finally { connections.performance.record(com.smashprofs.server.metrics.PerformanceMetrics.Stage.SNAPSHOT_ENQUEUE,System.nanoTime()-enqueueStarted); }
             }
             cursor.lastTick = snapshot.serverTick(); cursor.terminal = terminal;
+            if(terminal && runtime.getMatchSetup().rules().gameplay()
+                    && recipients(index,room.getRoomId()).stream().noneMatch(s->s.isOpen() && room.getRoomId().equals(s.getRoomId()))) {
+                rooms.removeRoom(room.getRoomId());active.remove(room.getRoomId());
+            }
         }
         cursors.entrySet().removeIf(entry -> !active.contains(entry.getKey()));
+        settingsSent.keySet().removeIf(session->!session.isOpen() || connections.get(session.getSessionId())!=session);
         connections.snapshotFrames.retainRooms(active);
         // Xóa snapshot chờ nếu room/runtime đã đóng; không cắt ngang frame đang ghi.
         for (ClientSession session : connections.getSessions()) { session.discardInvalidGameState(); }
@@ -119,7 +172,7 @@ public final class StateBroadcaster implements AutoCloseable {
     @Override public void close() {
         closed.set(true);
         connections.snapshotFrames.clear();
-        synchronized (this) { cursors.clear(); }
+        synchronized (this) { cursors.clear();settingsSent.clear(); }
         for (ClientSession session : connections.getSessions()) { session.discardInvalidGameState(); }
     }
     private static final class Cursor {
@@ -127,6 +180,8 @@ public final class StateBroadcaster implements AutoCloseable {
         long lastTick;
         boolean terminal;
         boolean startPublished;
+        long lastEventSequence;
+        long nextRttAt=System.nanoTime();
         // Cursor gắn đúng runtime; terminal gate ngăn enqueue lặp cho từng session trong lifecycle này.
         final java.util.Set<ClientSession> endRecipients = new HashSet<>();
         Cursor(MatchRuntime runtime) { this.runtime = runtime; }

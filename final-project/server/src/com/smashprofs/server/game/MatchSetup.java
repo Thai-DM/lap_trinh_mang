@@ -8,12 +8,16 @@ import java.util.Objects;
 import java.util.Set;
 
 /** Dữ liệu khởi tạo bất biến của một trận, chưa chứa gameplay state. */
-public record MatchSetup(String matchId, String roomId, List<Participant> participants) {
+public record MatchSetup(String matchId, String roomId, List<Participant> participants, com.smashprofs.common.model.MatchRules rules) {
+    public MatchSetup(String matchId,String roomId,List<Participant> participants) {
+        this(matchId,roomId,participants,com.smashprofs.common.model.MatchRules.LEGACY);
+    }
     public MatchSetup {
+        Objects.requireNonNull(rules,"rules");
         requireNonBlank(matchId, "matchId");
         requireNonBlank(roomId, "roomId");
         participants = List.copyOf(participants);
-        if (participants.size() < 2 || participants.size() > 4) {
+        if (participants.size() < 2 || participants.size() > rules.maxPlayers()) {
             throw new IllegalArgumentException("Trận cần từ 2 đến 4 participant");
         }
         Set<PlayerId> playerIds = new HashSet<>();

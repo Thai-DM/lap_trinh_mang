@@ -29,6 +29,9 @@ final class OnlinePlayScreen implements Screen {
     private final OnlineHud hud;
     private boolean disposed;
     private float animationTime;
+    private final com.badlogic.gdx.graphics.glutils.ShapeRenderer shapes=new com.badlogic.gdx.graphics.glutils.ShapeRenderer();
+    private boolean ultimateWasReady=true;
+    private final com.badlogic.gdx.audio.Sound readySound=Gdx.audio.newSound(Gdx.files.internal("sounds/minecraft_click.mp3"));
 
     OnlinePlayScreen(Game game, ClientMatchSession session) {
         this.game = game; this.session = session;
@@ -65,15 +68,41 @@ final class OnlinePlayScreen implements Screen {
         animationTime += Math.min(Math.max(delta, 0), 0.1f); // purely visual; not server/client input ticks
         ScreenUtils.clear(Color.BLACK);
         updateCamera(); viewport.apply(); camera.update(); tiles.setView(camera); tiles.render();
+        var authoritative=presentation.getFrame()==null?null:presentation.getFrame().authoritative();
+        var gameplay=authoritative==null?null:authoritative.gameplay();
+        if(gameplay!=null) {
+            var local=gameplay.player(session.getLocalPlayerId().value());boolean ready=local.status().equals("ACTIVE") && local.ultimateTicks()==0;
+            if(ready && !ultimateWasReady && Game.soundEffects) { readySound.play(.4f); }
+            ultimateWasReady=ready;
+            shapes.setProjectionMatrix(camera.combined);shapes.begin(com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType.Filled);
+            for(var item:gameplay.items()) { shapes.setColor(item.type().equals("HEALTH")?Color.GREEN:item.type().equals("SHIELD")?Color.CYAN:Color.GOLD);shapes.rect(item.x()-.06f,item.y()-.06f,.12f,.12f); }
+            for(var shot:gameplay.shots()) {
+                shapes.setColor(shot.type().equals("LASER")?Color.GREEN:shot.type().equals("GRENADE")?Color.ORANGE:Color.SCARLET);
+                if(shot.type().equals("EXPLOSION")) { shapes.circle(shot.x(),shot.y(),.85f,32); }
+                else if(shot.type().equals("LASER")) { shapes.rectLine(shot.x()-shot.vx()/60,shot.y()-shot.vy()/60,shot.x(),shot.y(),.015f); }
+                else { shapes.circle(shot.x(),shot.y(),.035f,10); }
+            }
+            shapes.end();
+        }
         batch.setProjectionMatrix(camera.combined); batch.begin();
         for (var view : presentation.getPlayers()) {
             var p = view.state(); var sprite = players.get(p.playerId());
             sprite.setRegion(assets.frame(p, animationTime)); sprite.setFlip(p.facingRight(), false);
             sprite.setColor(p.dead() ? new Color(0.5f, 0.5f, 0.5f, 0.4f) : p.blocking() ? Color.CYAN : Color.WHITE);
+            sprite.setRotation(0);
+            if(gameplay!=null) {
+                var progress=gameplay.player(p.playerId());
+                if(progress.status().equals("ACTIVE")) {
+                    if(progress.invulnerableTicks()>0) { sprite.setColor(1,1,.5f,((int)(animationTime*12)%2==0)?.35f:1); }
+                    if(progress.wallState().equals("WALL_SLIDING")) { sprite.setRotation(p.facingRight()?15:-15);sprite.setColor(Color.CYAN); }
+                    if(progress.wallState().equals("WALL_JUMPING")) { sprite.setColor(Color.YELLOW); }
+                }
+            }
             sprite.setPosition(p.x() - sprite.getWidth() / 2, p.y() - sprite.getHeight() / 4); sprite.draw(batch);
             identityFont.setColor(view.local() ? Color.CYAN : Color.WHITE);
             identityFont.draw(batch, view.local() ? "YOU" : "Slot " + p.slotIndex(), p.x() - 0.125f, p.y() + 0.32f);
         }
+        if(gameplay!=null) { identityFont.setColor(Color.GOLD);for(var item:gameplay.items()) { identityFont.draw(batch,item.type(),item.x()-.15f,item.y()+.12f); } }
         projectiles.keySet().retainAll(presentation.getProjectiles().keySet());
         for (var p : presentation.getProjectiles().values()) {
             var sprite = projectiles.computeIfAbsent(p.projectileId(), id -> assets.projectile(p.projectileType()));
@@ -88,13 +117,15 @@ final class OnlinePlayScreen implements Screen {
         boolean connected = game.getNetworkClient().isConnected() && lobby.phase() != LobbyClient.Phase.ERROR;
         String status = !connected ? lobby.statusText() : lobby.errorCode() != null ? lobby.statusText()
                 : String.format(Locale.ROOT, "Connected | %.1f snapshots/s | skipped broadcasts: %d", session.getMetrics().getSnapshotFrequencyHz(), session.getMetrics().getDroppedSnapshots());
-        hud.update(presentation.getFrame(), status, connected); hud.draw(delta);
+        hud.update(presentation.getFrame(), status, connected,session); hud.draw(delta);
     }
     private void updateCamera() {
         var values = presentation.getPlayers(); if (values.isEmpty()) { return; }
         float minX = Float.POSITIVE_INFINITY, maxX = Float.NEGATIVE_INFINITY;
         float minY = Float.POSITIVE_INFINITY, maxY = Float.NEGATIVE_INFINITY;
+        boolean hasActive=values.stream().anyMatch(p->!p.state().dead());
         for (var p : values) {
+            if(session.isSpectating() && hasActive && p.state().dead()) { continue; }
             minX = Math.min(minX, p.state().x()); maxX = Math.max(maxX, p.state().x());
             minY = Math.min(minY, p.state().y()); maxY = Math.max(maxY, p.state().y());
         }
@@ -111,7 +142,7 @@ final class OnlinePlayScreen implements Screen {
     @Override public void dispose() {
         if (disposed) { return; } disposed = true;
         presentation.close(); players.clear(); projectiles.clear();
-        hud.close(); tiles.dispose(); map.dispose(); assets.close(); identityFont.dispose(); batch.dispose();
+        hud.close(); tiles.dispose(); map.dispose(); assets.close(); identityFont.dispose();shapes.dispose();readySound.dispose(); batch.dispose();
         // LobbyClient/Game own the session, listener and TCP connection; this screen never closes them.
     }
 }

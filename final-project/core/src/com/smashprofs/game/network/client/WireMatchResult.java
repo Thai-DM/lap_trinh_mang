@@ -6,7 +6,10 @@ import static com.smashprofs.game.network.client.GameStartRoster.*;
 
 /** Immutable GAME_END v1. A null winner is authoritative draw, never inferred from local HP. */
 public record WireMatchResult(String matchId, String roomId, long finishedAtTick, String winnerId,
-                              String finishReason, List<Participant> participants) {
+                              String finishReason, List<Participant> participants,com.smashprofs.common.model.GameplaySnapshot gameplay) {
+    public WireMatchResult(String matchId,String roomId,long finishedAtTick,String winnerId,String finishReason,List<Participant> participants) {
+        this(matchId,roomId,finishedAtTick,winnerId,finishReason,participants,null);
+    }
     public record Participant(String playerId, int slotIndex, String characterId, float finalHp, boolean eliminated) { }
     private static final Set<String> REASONS = Set.of("LAST_PLAYER_STANDING", "ALL_PLAYERS_ELIMINATED", "TIME_LIMIT");
     public WireMatchResult {
@@ -23,6 +26,7 @@ public record WireMatchResult(String matchId, String roomId, long finishedAtTick
         }
         require(winnerId == null || ids.contains(winnerId), "Winner missing from result roster");
         participants = participants.stream().sorted(Comparator.comparingInt(Participant::slotIndex)).toList();
+        if(gameplay!=null) { require(gameplay.players().size()==participants.size(),"Result stats roster");for(var p:participants) { require(p.eliminated()==(gameplay.player(p.playerId()).lives()==0),"Result lives mismatch"); } }
     }
     public boolean isDraw() { return winnerId == null; }
     public Participant winner() {
@@ -38,7 +42,7 @@ public record WireMatchResult(String matchId, String roomId, long finishedAtTick
         }
     }
     public static WireMatchResult parse(ObjectNode payload) {
-        require(payload.size() == 6, "Invalid GAME_END fields");
+        require(payload.size() == (payload.has("gameplay")?7:6), "Invalid GAME_END fields");
         var tick = payload.get("finishedAtTick");
         require(tick != null && tick.isIntegralNumber() && tick.canConvertToLong() && tick.longValue() >= 0, "Invalid finishedAtTick");
         var winner = payload.get("winnerId");
@@ -53,6 +57,7 @@ public record WireMatchResult(String matchId, String roomId, long finishedAtTick
             participants.add(new Participant(text(p, "playerId"), slot(p), text(p, "characterId"), hp.floatValue(), eliminated.booleanValue()));
         }
         return new WireMatchResult(text(payload, "matchId"), text(payload, "roomId"), tick.longValue(),
-                winner.isNull() ? null : winner.textValue(), text(payload, "finishReason"), participants);
+                winner.isNull() ? null : winner.textValue(), text(payload, "finishReason"), participants,
+                payload.has("gameplay")?com.smashprofs.common.protocol.GameplayProtocol.snapshot(payload.get("gameplay")):null);
     }
 }

@@ -37,6 +37,24 @@ public class TcpSnapshotBackpressureTest {
         assertTrue(pair.observed.started.await(5, TimeUnit.SECONDS));
         assertFalse("Native write phải còn bị block khi peer chưa đọc", pair.observed.completed.await(100, TimeUnit.MILLISECONDS));
     }
+    @Test(timeout=20000) public void reliableEventsSurviveSnapshotCoalescingAndPrecedeTerminalPair() throws Exception {
+        var pair=pair();blockWriter(pair);
+        var frame=new ReliableDelivery.Message(new ProtocolMessage(MessageType.MATCH_EVENT,null,ProtocolV1.object().put("sequence",1)));
+        assertTrue(pair.connection.offerReliable(new ReliableDelivery(frame,()->true)));
+        for(int tick=6;tick<=99;tick+=3) { pair.connection.offerGameState(delivery(tick,false)); }
+        assertTrue(pair.connection.offerGameEnd(end(102)));
+        assertEquals(MessageType.GAME_STATE,codec.readNext(pair.client.getInputStream()).type());
+        var event=codec.readNext(pair.client.getInputStream());assertEquals(MessageType.MATCH_EVENT,event.type());assertEquals(1,event.payload().path("sequence").asInt());
+        assertEquals(102,codec.readNext(pair.client.getInputStream()).payload().path("serverTick").asLong());
+        assertEquals(MessageType.GAME_END,codec.readNext(pair.client.getInputStream()).type());
+    }
+    @Test(timeout=20000) public void reliableOverflowClosesOnlyTheSlowConnectionInsteadOfDroppingEvents() throws Exception {
+        var slow=pair();var fast=pair();blockWriter(slow);
+        var frame=new ReliableDelivery.Message(new ProtocolMessage(MessageType.MATCH_EVENT,null,ProtocolV1.object().put("sequence",1)));
+        for(int i=0;i<128;i++) { assertTrue(slow.connection.offerReliable(new ReliableDelivery(frame,()->true))); }
+        assertFalse(slow.connection.offerReliable(new ReliableDelivery(frame,()->true)));assertFalse(slow.connection.isOpen());assertTrue(fast.connection.isOpen());
+        fast.connection.offerGameState(delivery(3,false));assertEquals(MessageType.GAME_STATE,codec.readNext(fast.client.getInputStream()).type());
+    }
     @Test(timeout=20000) public void slowClientCannotCreateUnboundedQueue() throws Exception {
         var pair = pair(); blockWriter(pair);
         for (int tick = 6; tick <= 6000; tick += 3) {

@@ -32,6 +32,7 @@ public final class LoadGenerator {
     }
     private static Map<String,Object> runMatch(String endpoint,int clients,int seconds,LoadWorkload.Profile profile) throws Exception {
         boolean cluster = endpoint.startsWith("http");
+        boolean gameplay=Boolean.getBoolean("smashprofs.load.gameplay");
         var bots = new ArrayList<Bot>(); var failures = new ArrayList<String>();
         var readers = new ThreadPoolExecutor(0,clients,30,TimeUnit.SECONDS,new SynchronousQueue<>(),r -> {
             var t = new Thread(r, "load-reader"); t.setDaemon(true); return t;
@@ -52,16 +53,24 @@ public final class LoadGenerator {
                             var auth = HttpJson.call(endpoint, "/auth/guest", Map.of(), null);
                             String token = auth.path("token").asText();
                             assignment = HttpJson.call(endpoint, slot == 0 ? "/rooms/create" : "/rooms/join",
-                                    slot == 0 ? Map.of("region", "local") : Map.of("roomId", room), token);
+                                    slot == 0 ? Map.of("region", "local","gameplay",gameplay) : Map.of("roomId", room), token);
                             room = assignment.path("roomId").asText(); host = assignment.path("host").asText(); port = assignment.path("port").asInt();
                             workerIds.add(assignment.path("workerId").asText());
                         } else { URI uri = URI.create(endpoint); host = uri.getHost(); port = uri.getPort(); workerIds.add("standalone"); }
                         bot = new Bot(host, port,profile,base+slot); bot.room=room; bots.add(bot);
                         var connect = ProtocolV1.object();
                         if (cluster) { connect.put("capability", "cluster-v1").put("assignment", assignment.path("ticket").asText()); }
+                        if(gameplay) { connect.put("gameplay",GameplayProtocol.CAPABILITY); }
                         var ack = bot.request(MessageType.CONNECT, connect); bot.player = new PlayerId(ack.payload().path("playerId").asText());
-                        if (!cluster && slot == 0) { bot.request(MessageType.CREATE_ROOM, ProtocolV1.object().put("roomId", room)); }
+                        if (!cluster && slot == 0) {
+                            var create=ProtocolV1.object().put("roomId",room);if(gameplay) { create.put("gameplay",true); }
+                            bot.request(MessageType.CREATE_ROOM, create);
+                        }
                         bot.request(MessageType.JOIN_ROOM, ProtocolV1.object().put("roomId", room));
+                        if(gameplay && slot==0) {
+                            var rules=new MatchRules(4,120,5,MatchRules.DropRate.valueOf(System.getProperty("smashprofs.load.items","HIGH")),true);
+                            var settings=ProtocolV1.object().put("roomId",room);settings.set("rules",GameplayProtocol.rules(rules));bot.request(MessageType.ROOM_SETTINGS_UPDATE,settings);
+                        }
                         roster.add(bot);
                     } catch (Exception failure) {
                         failures.add(failure.getClass().getSimpleName() + ": " + failure.getMessage());
@@ -117,6 +126,7 @@ public final class LoadGenerator {
             result.put("inputsSent", bots.stream().mapToLong(b -> b.inputs.sum()).sum());
             result.put("startMetrics", startMetrics); result.put("endMetrics", endMetrics);
             result.put("profile",profile.name()); result.put("gameplayWarmupSeconds",gameplayWarmup);
+            result.put("gameplay",gameplay);result.put("items",gameplay?System.getProperty("smashprofs.load.items","HIGH"):"LEGACY");
             result.put("completedBeforeMeasurement",completedBeforeMeasurement);
             result.put("startupWorkerMetrics",startupMetrics); result.put("measurementWorkerMetrics",measuredMetrics);
             result.put("expectedSlowDisconnects",bots.stream().mapToLong(b -> b.slowDisconnects.sum()).sum());
@@ -155,6 +165,7 @@ public final class LoadGenerator {
         final com.smashprofs.server.metrics.PerformanceMetrics.Histogram interArrival=new com.smashprofs.server.metrics.PerformanceMetrics.Histogram(50_000_000);
         volatile String room; String match; Set<String> roster=Set.of(); long lastTick=-1,lastStateAt; JsonNode finalState;
         volatile PlayerId player; long sequence; int requests;
+        volatile boolean inputAllowed=true;
         Bot(String host, int port,LoadWorkload.Profile profile,int index) throws IOException {
             this.profile=profile;this.index=index;slow=profile==LoadWorkload.Profile.SLOW_CLIENT&&index%4==0;
             try { if(slow) { socket.setReceiveBufferSize(1024); } socket.connect(new InetSocketAddress(host, port), 3000); socket.setSoTimeout(20_000); socket.setTcpNoDelay(true); }
@@ -185,7 +196,7 @@ public final class LoadGenerator {
                     roster=Set.copyOf(ids); started.set(true); everStarted.set(true);
                 }
                 case GAME_STATE -> {
-                    if (!message.payload().path("players").isArray() || !message.payload().path("serverTick").isIntegralNumber()) { throw new IOException("Invalid snapshot"); }
+                    if (!message.payload().path("players").isArray() || !message.payload().path("serverTick").isIntegralNumber()) { throw invalid("Invalid snapshot"); }
                     var p=message.payload(); long tick=p.path("serverTick").asLong();
                     if(!everStarted.get() || !room.equals(p.path("roomId").asText()) || !match.equals(p.path("matchId").asText()) || tick<=lastTick) { throw invalid("Snapshot ownership/sequence"); }
                     var ids=new HashSet<String>(); for(var player:p.path("players")) {
@@ -195,6 +206,11 @@ public final class LoadGenerator {
                         }
                     }
                     if(!ids.equals(roster)) { throw invalid("Snapshot roster changed"); } lastTick=tick;
+                    if(p.has("gameplay")) {
+                        var progress=GameplayProtocol.snapshot(p.get("gameplay"));
+                        if(progress.players().size()!=roster.size() || progress.players().stream().anyMatch(v->!roster.contains(v.playerId()))) { throw invalid("Gameplay roster changed"); }
+                        inputAllowed=progress.player(player.value()).status().equals("ACTIVE");
+                    }
                     long now=System.nanoTime(); if(lastStateAt!=0) { interArrival.record(now-lastStateAt); } lastStateAt=now;
                     snapshots.increment();
                     if (message.payload().path("phase").asText().equals("FINISHED")) { started.set(false); finalState=p; }
@@ -214,7 +230,7 @@ public final class LoadGenerator {
                                 || Double.compare(participant.path("finalHp").asDouble(),finalPlayer.path("hp").asDouble())!=0
                                 || participant.path("slotIndex").asInt(-1)!=finalPlayer.path("slotIndex").asInt(-2)
                                 || !participant.path("characterId").asText().equals(finalPlayer.path("characterId").asText())
-                                || participant.path("eliminated").asBoolean()!=finalPlayer.path("dead").asBoolean()) { throw invalid("Result differs from final state"); }
+                                || participant.path("eliminated").asBoolean()!=(finalState.has("gameplay")?GameplayProtocol.snapshot(finalState.get("gameplay")).player(id).lives()==0:finalPlayer.path("dead").asBoolean())) { throw invalid("Result differs from final state"); }
                     }
                     ends.increment(); started.set(false);
                 }
@@ -233,7 +249,7 @@ public final class LoadGenerator {
         }
         void disconnected() { if(!closed.get() && ends.sum()==0) { if(slow) { slowDisconnects.increment(); } else { disconnects.increment(); } started.set(false); } }
         void input() {
-            if (!started.get() || closed.get()) { return; }
+            if (!started.get() || !inputAllowed || closed.get()) { return; }
             try {
                 // Stationary valid input keeps benchmark rooms alive and comparable across runs.
                 var payload = ProtocolV1.inputPayload(LoadWorkload.input(profile,player,sequence++,index));

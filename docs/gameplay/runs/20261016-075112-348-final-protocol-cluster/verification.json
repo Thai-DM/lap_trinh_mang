@@ -1,0 +1,13 @@
+﻿{
+    "date":  "2026-10-16T07:51:36.8340748+07:00",
+    "status":  "PASS",
+    "label":  "final-protocol-cluster",
+    "heapMiB":  128,
+    "suites":  [
+                   "com.smashprofs.server.game.StockGameplayTest",
+                   "com.smashprofs.server.room.HostRulesTest",
+                   "com.smashprofs.server.network.TcpSnapshotBackpressureTest",
+                   "com.smashprofs.server.game.GameplayTcpIntegrationTest",
+                   "com.smashprofs.tests.network.GameplayClusterIntegrationTest"
+               ]
+}

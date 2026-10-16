@@ -131,6 +131,15 @@ public final class PlayerPhysicsFactory {
         public int getPlayerCount() {
             return getPlayerIds().size();
         }
+        /** Simulation-only lifecycle operations, never exposed by networking. */
+        public void setParticipating(PlayerId id,boolean active) {
+            synchronized(physics) { requireUnlocked(physics.getWorld());getBody(id).setActive(active); }
+        }
+        public void respawn(PlayerId id,float x,float y) {
+            synchronized(physics) {
+                requireUnlocked(physics.getWorld());var body=getBody(id);body.setTransform(x,y,0);body.setLinearVelocity(0,0);body.setAngularVelocity(0);body.setActive(true);
+            }
+        }
 
         /** Chỉ simulation owner đọc tâm Body; trả giá trị bất biến, không lộ Body/Vector2 mutable. */
         public PhysicsPosition getPosition(PlayerId playerId) {

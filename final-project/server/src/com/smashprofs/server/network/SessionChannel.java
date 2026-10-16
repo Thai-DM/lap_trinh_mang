@@ -4,6 +4,7 @@ package com.smashprofs.server.network;
  * Kênh giao tiếp đầu ra tối thiểu từ server tới một client.
  */
 public interface SessionChannel {
+    default boolean offerReliable(ReliableDelivery delivery) { return false; }
     default int outboundQueueDepth() { return 0; }
     default long writeStartedNanos() { return 0; }
     default long lastSendNanos() { return 0; }

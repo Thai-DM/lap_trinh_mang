@@ -24,9 +24,12 @@ public final class HeartbeatManager implements AutoCloseable {
     static final class State {
         boolean active;
         long lastValidNanos, pingStartedNanos, sequence;
+        long writeStartedNanos;
+        boolean pingWritten;
+        volatile long rttNanos=-1;
         final String nonce = UUID.randomUUID().toString();
         String outstanding;
-        void clear() { active = false; outstanding = null; }
+        void clear() { active = false; outstanding = null;rttNanos=-1;pingWritten=false; }
     }
     public HeartbeatManager(ConnectionManager connections, HeartbeatConfiguration configuration,
                             LongSupplier clock, ScheduledExecutorService executor) {
@@ -55,6 +58,7 @@ public final class HeartbeatManager implements AutoCloseable {
             if (!valid(session) || !state.active || requestId == null || !requestId.equals(state.outstanding)) { return false; }
             long now = clock.getAsLong();
             if (now - state.pingStartedNanos >= configuration.timeoutNanos()) { return false; }
+            if(state.pingWritten) { state.rttNanos=Math.max(0,now-state.writeStartedNanos); }
             state.lastValidNanos = now; state.outstanding = null; return true;
         }
     }
@@ -94,9 +98,10 @@ public final class HeartbeatManager implements AutoCloseable {
                 else {
                     String id = state.nonce + "-" + state.sequence++;
                     state.outstanding = id; state.pingStartedNanos = now;
+                    state.pingWritten=false;
                     delivery = new HeartbeatDelivery(new ProtocolMessage(MessageType.PING, id, ProtocolV1.object()), () -> {
                         synchronized (session) { return valid(session) && id.equals(session.heartbeat.outstanding); }
-                    });
+                    },()-> { synchronized(session) { if(valid(session) && id.equals(session.heartbeat.outstanding)) { session.heartbeat.writeStartedNanos=clock.getAsLong();session.heartbeat.pingWritten=true; } } });
                 }
             }
         }

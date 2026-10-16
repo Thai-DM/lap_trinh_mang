@@ -9,6 +9,11 @@ import java.util.function.Consumer;
  * Lưu metadata của một client session phía server.
  */
 public final class ClientSession {
+    private volatile boolean gameplay;
+    public boolean supportsGameplay() { return gameplay; }
+    public Double getRttMillis() { long nanos=heartbeat.rttNanos;return !isOpen() || nanos<0?null:nanos/1e6; }
+    void enableGameplay() { gameplay=true; }
+    public boolean offerReliable(ReliableDelivery delivery) { return isOpen() && channel.offerReliable(delivery); }
     private final TokenBucket inputRate=new TokenBucket(Integer.getInteger("smashprofs.network.inputsPerSecond",240),480);
     private final TokenBucket controlRate=new TokenBucket(Integer.getInteger("smashprofs.network.controlsPerSecond",128),256);
     private final TokenBucket createRate=new TokenBucket(Integer.getInteger("smashprofs.network.createsPerSecond",8),16);

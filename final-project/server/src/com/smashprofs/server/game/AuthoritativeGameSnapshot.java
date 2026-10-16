@@ -15,8 +15,12 @@ public record AuthoritativeGameSnapshot(
         String roomId,
         long serverTick,
         List<PlayerSnapshot> players,
-        List<ServerProjectile.View> projectiles
+        List<ServerProjectile.View> projectiles,
+        com.smashprofs.common.model.GameplaySnapshot gameplay
 ) {
+    public AuthoritativeGameSnapshot(String matchId,String roomId,long serverTick,List<PlayerSnapshot> players,List<ServerProjectile.View> projectiles) {
+        this(matchId,roomId,serverTick,players,projectiles,null);
+    }
     public AuthoritativeGameSnapshot {
         players = List.copyOf(players);
         projectiles = List.copyOf(projectiles);

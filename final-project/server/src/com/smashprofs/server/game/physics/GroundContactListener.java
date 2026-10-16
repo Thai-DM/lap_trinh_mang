@@ -21,11 +21,13 @@ public final class GroundContactListener implements ContactListener, AutoCloseab
     private static final float MIN_SUPPORT_NORMAL_Y = 0.5f;
     private final PlayerPhysicsFactory.PlayerPhysicsBodies players;
     private final Map<PlayerId, Set<GroundContact>> supports = new HashMap<>();
+    private final Map<PlayerId,Map<GroundContact,Integer>> walls=new HashMap<>();
 
     public GroundContactListener(PlayerPhysicsFactory.PlayerPhysicsBodies players) {
         this.players = Objects.requireNonNull(players, "players không được null");
         for (PlayerId playerId : players.getPlayerIds()) {
             supports.put(playerId, new HashSet<>());
+            walls.put(playerId,new HashMap<>());
         }
     }
 
@@ -49,6 +51,8 @@ public final class GroundContactListener implements ContactListener, AutoCloseab
         Set<GroundContact> contacts = supports.get(playerId);
         return contacts != null && !contacts.isEmpty();
     }
+    public int wallDirection(PlayerId id) { var values=walls.get(id);return values==null || values.isEmpty()?0:values.values().iterator().next(); }
+    public void forget(PlayerId id) { supports.get(id).clear();walls.get(id).clear(); }
 
     int getGroundContactCount(PlayerId playerId) {
         Set<GroundContact> contacts = supports.get(playerId);
@@ -78,6 +82,8 @@ public final class GroundContactListener implements ContactListener, AutoCloseab
             return;
         }
         var manifold = contact.getWorldManifold();
+        float nx=normalSign*manifold.getNormal().x;
+        if(Math.abs(nx)>.7f) { walls.get(playerId).put(new GroundContact(playerFixture,groundFixture),nx>0?1:-1); }
         if (normalSign * manifold.getNormal().y < MIN_SUPPORT_NORMAL_Y) {
             return;
         }
@@ -97,11 +103,13 @@ public final class GroundContactListener implements ContactListener, AutoCloseab
             contacts.remove(forward);
             contacts.remove(reverse);
         }
+        for(var contacts:walls.values()) { contacts.remove(forward);contacts.remove(reverse); }
     }
 
     @Override
     public void close() {
         supports.clear(); // Chỉ bỏ references, an toàn cả sau World.dispose.
+        walls.clear();
     }
 
     private record GroundContact(Fixture playerFixture, Fixture groundFixture) { }

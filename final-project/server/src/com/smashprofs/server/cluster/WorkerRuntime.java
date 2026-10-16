@@ -70,7 +70,7 @@ public final class WorkerRuntime implements AutoCloseable, SessionAdmission {
         if (value < min || value > max) { throw new IllegalArgumentException(name + " out of range"); } return value;
     }
     @Override public PlayerId connect(ClientSession session, ProtocolMessage request) throws ProtocolException {
-        ProtocolV1.fields(request.payload(), request.requestId(), "capability", "assignment");
+        ProtocolV1.fields(request.payload(), request.requestId(), "capability", "assignment", "gameplay");
         if (!request.payload().path("capability").asText().equals("cluster-v1")
                 || !request.payload().path("assignment").isTextual()) { throw denied(request, "CLUSTER_CAPABILITY_REQUIRED"); }
         if (closed.get() || System.nanoTime() >= leaseDeadline) { throw denied(request, "WORKER_FENCED"); }
@@ -88,7 +88,11 @@ public final class WorkerRuntime implements AutoCloseable, SessionAdmission {
                 if (!rooms.containsRoom(room) && rooms.getRoomCount() >= maxRooms) {
                     throw new IOException("Worker room limit");
                 }
-                rooms.getOrCreateRoom(room).setMinimumPlayers(response.path("minimumPlayers").asInt(2));
+                var target=rooms.getOrCreateRoom(room);target.setMinimumPlayers(response.path("minimumPlayers").asInt(2));
+                if(response.path("gameplay").asBoolean(false)) {
+                    if(!session.supportsGameplay()) { throw new IOException("Gameplay capability required"); }
+                    if(!target.getRules().gameplay()) { target.configureGameplay(new PlayerId(text(response,"hostPlayer"))); }
+                }
                 claims.put(session.getSessionId(), new Claim(ticket, text(response, "sessionId"), player, room, response.path("expiresAt").asLong()));
             }
             return new PlayerId(player);
@@ -182,6 +186,7 @@ public final class WorkerRuntime implements AutoCloseable, SessionAdmission {
         result.put("heapRatio", memory.getUsed() / (double) memory.getMax());
         result.put("gcCollectionMillis", ManagementFactory.getGarbageCollectorMXBeans().stream().mapToLong(g -> Math.max(0, g.getCollectionTime())).sum());
         result.put("rooms", states); result.put("draining", draining); result.put("uptimeSeconds", (now - started) / 1e9);
+        var roomLimits=new LinkedHashMap<String,Integer>();for(var room:rooms.getRooms()) { roomLimits.put(room.getRoomId(),room.getRules().maxPlayers()); }result.put("roomLimits",roomLimits);
         var perRoom=new LinkedHashMap<String,Object>();
         for(var room:rooms.getRooms()) { var runtime=room.getMatchRuntime(); if(runtime!=null) { perRoom.put(room.getRoomId(),runtime.tickMetrics()); } }
         result.put("roomTicks",perRoom);

@@ -9,6 +9,13 @@ import java.util.concurrent.atomic.AtomicLong;
 import static org.junit.Assert.*;
 
 public class GameplayClientModelTest {
+    @Test public void ammoIsOptionalForOldSnapshotsAndValidatedWhenPresent() {
+        var encoded=GameplayProtocol.snapshot(state());assertEquals(-1,GameplayProtocol.snapshot(encoded).player("p0").ammo());
+        var player=(com.fasterxml.jackson.databind.node.ObjectNode)encoded.path("players").get(0);player.put("ammo",5);
+        assertEquals(5,GameplayProtocol.snapshot(encoded).player("p0").ammo());
+        player.put("ammo",7);assertThrows(IllegalArgumentException.class,()->GameplayProtocol.snapshot(encoded));
+        player.put("ammo",-1);assertThrows(IllegalArgumentException.class,()->GameplayProtocol.snapshot(encoded));
+    }
     private GameplaySnapshot state() {
         return new GameplaySnapshot(MatchRules.DEFAULT,600,List.of(
                 new GameplaySnapshot.Player("p0",2,"ACTIVE",0,30,120,"SHOTGUN",true,20,3,1,1,1,"WALL_SLIDING"),

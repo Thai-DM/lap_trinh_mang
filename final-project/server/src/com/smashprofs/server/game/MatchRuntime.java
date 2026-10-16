@@ -316,7 +316,7 @@ public final class MatchRuntime implements AutoCloseable {
         if(gameplay==null) {
             for (PlayerId playerId : boundaryController.applyBoundaries()) { matchState.getPlayer(playerId).applyFallPenalty(); }
         } else {
-            for(var id:matchState.getPlayerIds()) { if(playerBodies.getPosition(id).yMeters()<0) { gameplay.fell(id); } }
+            gameplay.applyLavaContacts();
         }
         stompController.cancelDeadOrRecoveredPlayers();
         // Thứ tự slot ổn định, không phụ thuộc thứ tự packet, roster hoặc HashMap.
@@ -384,7 +384,7 @@ public final class MatchRuntime implements AutoCloseable {
         projectileManager.collectHitsAfterStep();
         projectileManager.cleanupDestroyed();
         matchState.advanceTick();
-        if(gameplay!=null) { for(var id:matchState.getPlayerIds()) { if(playerBodies.getPosition(id).yMeters()<0) { gameplay.fell(id); } }gameplay.afterTick(); }
+        if(gameplay!=null) { gameplay.applyLavaContacts();gameplay.afterTick(); }
         metrics.record(com.smashprofs.server.metrics.PerformanceMetrics.Stage.POST_PHYSICS,System.nanoTime()-phaseStarted); phaseStarted=System.nanoTime();
         var completedSnapshot = GameSnapshotBuilder.build(matchState, playerBodies, jumpController, projectileManager);
         if(gameplay!=null) { completedSnapshot=new AuthoritativeGameSnapshot(getMatchId(),getRoomId(),matchState.getServerTick(),completedSnapshot.players(),completedSnapshot.projectiles(),gameplay.snapshot()); }

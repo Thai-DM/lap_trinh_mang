@@ -1,0 +1,19 @@
+﻿{
+    "date":  "2026-10-16T15:52:43.2751737+07:00",
+    "status":  "PASS",
+    "label":  "room-ui-final",
+    "heapMiB":  128,
+    "suites":  [
+                   "com.smashprofs.server.room.HostRulesTest",
+                   "com.smashprofs.server.room.GameRoomLifecycleTest",
+                   "com.smashprofs.server.network.StateBroadcasterTest",
+                   "com.smashprofs.server.network.TcpProtocolV1Test",
+                   "com.smashprofs.tests.network.OnlineRoomFlowTest",
+                   "com.smashprofs.tests.network.OnlineLobbyFormModelTest",
+                   "com.smashprofs.tests.network.LobbyClientTcpIntegrationTest",
+                   "com.smashprofs.server.game.GameplayTcpIntegrationTest",
+                   "com.smashprofs.tests.network.GameplayClusterIntegrationTest",
+                   "com.smashprofs.tests.network.GameplayClientModelTest",
+                   "com.smashprofs.tests.network.WireGameSnapshotTest"
+               ]
+}

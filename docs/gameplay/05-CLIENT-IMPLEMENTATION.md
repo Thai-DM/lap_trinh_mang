@@ -1,5 +1,7 @@
 # 05 — Client và giao diện
 
+**Cập nhật giao diện:** luồng gameplay mới dùng OnlineLobbyScreen → OnlineRoomScreen (luật, roster, chọn nhân vật và Ready cùng một màn hình). Xem [09-UI-REDESIGN.md](09-UI-REDESIGN.md) cho hướng dẫn hiện tại và native GL evidence. Các mô tả HostLobbySettingsScreen/CharacterSelectScreen dưới đây ghi nhận bản trước khi gom sảnh; HostLobbySettingsScreen hiện là entry tương thích trỏ sang sảnh mới.
+
 Online form Create/Join tự bật gameplay-v1. Luồng room mới: OnlineLobbyScreen → HostLobbySettingsScreen → CharacterSelectScreen → PlayScreen online branch → OnlineResultScreen. Host chỉnh draft Max Players/Time/Lives/Drop, Apply gửi request; màn hình luôn phân biệt draft với luật server đang áp dụng. Non-host xem player count/rules nhưng controls disabled. Character select có nút quay về Room rules. Offline/mock flow không tạo GameplayMatch hay dùng các screen/packet bổ sung này.
 
 LobbyClient lưu settings immutable và xử lý correlated response, membership push, rules revision. Revision trong READY ACK ngăn settings đến muộn làm mất trạng thái ready. ClientMatchSession vẫn là một owner cho input buffer/snapshot/result; progress inactive ngừng record/flush input. Spectator vẫn nhận snapshot và reliable event. Server độc lập từ chối điều khiển inactive; input hợp lệ đang trên đường truyền khi chết được bỏ qua để không tạo ERROR storm.

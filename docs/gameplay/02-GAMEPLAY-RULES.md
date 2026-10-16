@@ -1,5 +1,7 @@
 # 02 — Luật gameplay-v1
 
+**Luật dung nham đã được người dùng đổi sau bản đầu:** chạm vùng dung nham trừ10HP và bật lên; chỉ mất một mạng nếu HP về0. Giới hạn trừ HP một lần/60tick, vẫn bật lên trong thời gian bảo vệ hồi sinh. Những mô tả dung nham mất ngay một mạng bên dưới thuộc bản trước; xem [bản sửa hiện tại](10-COMBAT-UX-FIXES.md).
+
 Host là creator của room có cấu hình; nếu host rời lobby, quyền host chuyển cho slot còn lại nhỏ nhất. Chỉ host đang thuộc phòng được update. Max players 2/3/4; time 60/90/120/180/300 giây hoặc 0=INFINITE; lives 1/2/3/5; drop NONE/LOW=1800/MEDIUM=900/HIGH=480 ticks. Mặc định gameplay: 4 player, 120 giây, 3 lives, MEDIUM. Đổi luật hủy ready của mọi player. Luật khóa từ COUNTDOWN; setup giữ bản sao bất biến. Không cho hạ capacity dưới roster/minimum matchmaking hiện có.
 
 ACTIVE → mất HP hoặc rơi xuống y<0 → trừ đúng một stock. Còn stock: RESPAWNING 90 tick, body ngừng tham gia physics; sau đó spawn ở phần giữa platform rộng đã được TMX/SpawnProvider kiểm tra, phân tách vị trí theo slot, HP=100. Bất tử 120 tick từ tick hồi sinh, hết đúng tại `respawnTick+120`. Hồi sinh không reset F cooldown. Mạng cuối: ELIMINATED, không nhận input gameplay, không gây damage mới, vẫn nhận state/events/result. Disconnect là forfeit toàn bộ stock còn lại, được xử lý ở simulation owner.

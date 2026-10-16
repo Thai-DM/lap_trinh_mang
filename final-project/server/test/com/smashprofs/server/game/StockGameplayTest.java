@@ -69,7 +69,7 @@ public class StockGameplayTest {
     @Test public void everyConfiguredStockCountLoadsAndSingleStockEliminationEndsMatch() {
         for(int lives:new int[]{1,2,3,5}) {
             var r=runtime(2,lives,0);r.tick();assertEquals(lives,r.getLatestSnapshot().gameplay().player("p0").lives());
-            r.gameplay().bodies.respawn(id(0),4.5f,-.1f);r.tick();assertEquals(lives-1,r.getLatestSnapshot().gameplay().player("p0").lives());
+            r.getMatchState().getPlayer(id(0)).applyDamage(100);r.tick();assertEquals(lives-1,r.getLatestSnapshot().gameplay().player("p0").lives());
             assertEquals(lives==1,r.isFinished());
             if(lives==1) { assertTrue(r.isPhysicsDisposed());assertNotNull(r.getLatestSnapshot());assertNotNull(r.getMatchResult()); }
         }

@@ -1,5 +1,7 @@
 # 04 — Protocol compatibility
 
+UI update sau bản đầu: ROOM_SETTINGS_STATE có optional `players` (schema member như ROOM_STATE) để đồng bộ roster/nhân vật/Ready. `version` tăng thêm khi chọn nhân vật và đổi Ready; `rulesVersion` vẫn chỉ thay khi luật đổi. Xem [09](09-UI-REDESIGN.md); legacy room không nhận extension.
+
 Giữ envelope version=1, 4-byte big-endian length prefix và frame budget hiện có. Capability opt-in:
 
 ```json

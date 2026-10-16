@@ -4,6 +4,7 @@ $server=@(
     'com.smashprofs.server.room.GameRoomLifecycleTest',
     'com.smashprofs.server.room.GameRoomMatchSetupTest',
     'com.smashprofs.server.game.StockGameplayTest',
+    'com.smashprofs.server.game.LavaReboundTest',
     'com.smashprofs.server.game.ItemGameplayTest',
     'com.smashprofs.server.game.physics.WallMovementTest',
     'com.smashprofs.server.game.InputQueueTest',
@@ -38,5 +39,6 @@ $client=@(
     'com.smashprofs.tests.network.LobbyClientTcpIntegrationTest',
     'com.smashprofs.tests.network.ClusterLobbyIntegrationTest',
     'com.smashprofs.tests.network.OnlineLobbyFormModelTest'
+    'com.smashprofs.tests.network.OnlineRoomFlowTest'
 )
 & "$PSScriptRoot\Verify.ps1" -JavaHome $JavaHome -Suites $server -ClientSuites $client -Label final-gameplay-regression

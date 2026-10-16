@@ -16,12 +16,18 @@ public record GameplaySnapshot(MatchRules rules, long durationTicks, List<Player
     public Player player(String id) { return players.stream().filter(p->p.playerId().equals(id)).findFirst().orElseThrow(); }
     public record Player(String playerId,int lives,String status,long respawnTicks,long invulnerableTicks,
                          long ultimateTicks,String weapon,boolean shield,double damageDealt,
-                         int itemsCollected,int weaponsCollected,int kills,int deaths,String wallState) {
+                         int itemsCollected,int weaponsCollected,int kills,int deaths,String wallState,int ammo) {
+        /** Older snapshots did not publish ammo. -1 means unknown, never an invented count. */
+        public Player(String playerId,int lives,String status,long respawnTicks,long invulnerableTicks,long ultimateTicks,
+                      String weapon,boolean shield,double damageDealt,int itemsCollected,int weaponsCollected,int kills,int deaths,String wallState) {
+            this(playerId,lives,status,respawnTicks,invulnerableTicks,ultimateTicks,weapon,shield,damageDealt,itemsCollected,weaponsCollected,kills,deaths,wallState,-1);
+        }
         public Player {
             if(playerId==null || playerId.isBlank() || lives<0 || lives>5 || !Set.of("ACTIVE","RESPAWNING","ELIMINATED").contains(status)
                     || respawnTicks<0 || respawnTicks>90 || invulnerableTicks<0 || invulnerableTicks>120 || ultimateTicks<0 || ultimateTicks>600
                     || !Double.isFinite(damageDealt) || damageDealt<0 || itemsCollected<0 || weaponsCollected<0 || weaponsCollected>itemsCollected || kills<0 || deaths<0
                     || !Set.of("NONE","SHOTGUN","LASER","BAZOOKA","GRENADE").contains(weapon)
+                    || ammo < -1 || ammo > 6 || weapon.equals("NONE") && ammo>0
                     || !Set.of("NONE","WALL_SLIDING","WALL_JUMPING").contains(wallState)) { throw new IllegalArgumentException("Invalid player progress"); }
             if((lives==0)!=status.equals("ELIMINATED") || status.equals("RESPAWNING")!=(respawnTicks>0)) { throw new IllegalArgumentException("Inconsistent stock lifecycle"); }
         }

@@ -25,7 +25,7 @@ public class DesktopLauncher {
 			if (arg != null && java.util.Arrays.stream(arg).anyMatch(a -> a.startsWith("--control-url="))) {
 				clusterLobby = com.smashprofs.game.network.client.ClusterLobbyConnector.fromArguments(arg);
 				lobby = null;
-			} else { lobby = LobbyConfiguration.fromArguments(arg==null?null:java.util.Arrays.stream(arg).filter(a->!a.equals("--gameplay")).toArray(String[]::new)); }
+			} else { lobby = LobbyConfiguration.fromArguments(arg==null?null:java.util.Arrays.stream(arg).filter(a->!a.equals("--gameplay") && !a.equals("--online")).toArray(String[]::new)); }
 		} catch (IllegalArgumentException | java.io.IOException invalid) {
 			System.err.println("[DesktopLauncher] " + invalid.getMessage());
 			System.err.println("Online: --server-host=127.0.0.1 --server-port=PORT --room=ROOM --create-room|--join-room");
@@ -101,6 +101,7 @@ public class DesktopLauncher {
 			game = new Game();
 		}
 
+		game.startOnlineMenu=arg!=null && java.util.Arrays.asList(arg).contains("--online");
 		new Lwjgl3Application(game, config);
 	}
 }

@@ -1,74 +1,70 @@
 package com.smashprofs.game.Screens;
 
 import com.badlogic.gdx.*;
-import com.badlogic.gdx.graphics.*;
-import com.badlogic.gdx.graphics.g2d.*;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
-import com.badlogic.gdx.scenes.scene2d.utils.*;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
-import com.smashprofs.game.network.client.WireMatchResult;
+import com.smashprofs.game.Game;
+import com.smashprofs.game.network.client.*;
+import com.smashprofs.game.ui.OnlineUi;
+import java.util.*;
 
-/** Presentation of an already validated immutable v1 result; offline WinScreen stays unchanged. */
+/** Readable final standings from the immutable server result, with a path back to online play. */
 final class OnlineResultScreen implements Screen {
-    private final SpriteBatch batch = new SpriteBatch();
-    private final Stage stage = new Stage(new FitViewport(960, 540), batch);
-    private final BitmapFont font = new BitmapFont();
-    private final OnlineSpriteAssets assets = new OnlineSpriteAssets();
+    private final Stage stage=new Stage(new FitViewport(1280,720));
+    private final OnlineUi ui=new OnlineUi();
+    private final Game game;
     private boolean disposed;
-    OnlineResultScreen(WireMatchResult result, String localId) {
-        var style = new Label.LabelStyle(font, Color.WHITE);
-        var table = new Table(); table.setFillParent(true); table.pad(20);
-        table.background(new TextureRegionDrawable(assets.texture("winscreen/winbg.png")));
-        table.add(new Image(assets.texture("winscreen/pokal.png"))).size(75, 90).padBottom(12); table.row();
-        var winner = result.winner();
-        String title = result.isDraw() ? "DRAW" : (result.gameplay()==null?"WINNER: ":"CHAMPION: ") + winner.characterId() + " | slot " + winner.slotIndex()
-                + (winner.playerId().equals(localId) ? " | YOU" : "");
-        var heading = new Label(title, style); heading.setColor(Color.CYAN);
-        table.add(heading).padBottom(10); table.row();
-        table.add(new Label(result.roomId() + " | " + result.finishReason(), style)).padBottom(12); table.row();
-        for (var p : result.participants()) {
-            String text = "Slot " + p.slotIndex() + " | " + p.characterId() + (p.playerId().equals(localId) ? " | YOU" : "")
-                    + " | " + Float.toString(p.finalHp()) + " HP" + (p.eliminated() ? " | ELIMINATED" : "")
-                    + " | " + p.playerId().substring(0, Math.min(8, p.playerId().length()));
-            table.add(new Label(text, style)).padBottom(8); table.row();
+    OnlineResultScreen(Game game,WireMatchResult result,String localId) {
+        this.game=game;var root=new Table();root.pad(24);root.defaults().left();
+        root.add(ui.small("KẾT QUẢ TRẬN ĐẤU  /  PHÒNG "+result.roomId()));root.row();
+        var winner=result.winner();String champion=result.isDraw()?"TRẬN ĐẤU HÒA":(winner.playerId().equals(localId)?"BẠN ĐÃ CHIẾN THẮNG":"P"+(winner.slotIndex()+1)+" · "+winner.characterId()+" CHIẾN THẮNG");
+        var title=ui.heading(champion);title.setColor(OnlineUi.ACCENT);root.add(title).padTop(16);root.row();
+        String reason=switch(result.finishReason()) {
+            case "TIME_LIMIT"->"Hết thời gian · Xét HP cao nhất; bằng HP thì hòa.";
+            case "LAST_PLAYER_STANDING"->"Chỉ còn một người có mạng.";
+            default->"Không còn người chơi có mạng.";
+        };
+        root.add(ui.label(reason)).padTop(8);root.row();
+        var table=ui.panel();table.defaults().pad(12).left();
+        String[] headers={"Người chơi","HP cuối","Mạng","Sát thương","K.O.","Lần chết","Vật phẩm","Vũ khí"};
+        for(String header:headers) { table.add(ui.small(header)); }table.row();
+        for(var p:result.participants()) {
+            var identity=ui.label("P"+(p.slotIndex()+1)+" · "+p.characterId()+(p.playerId().equals(localId)?" · Bạn":""));
+            identity.setColor(p.playerId().equals(localId)?OnlineUi.ACCENT:OnlineUi.TEXT);table.add(identity).minWidth(230);
+            table.add(ui.label(Integer.toString(Math.round(p.finalHp()))));
+            if(result.gameplay()!=null) {
+                var s=result.gameplay().player(p.playerId());
+                for(String value:new String[]{""+s.lives(),String.format(Locale.ROOT,"%.0f",s.damageDealt()),""+s.kills(),""+s.deaths(),""+s.itemsCollected(),""+s.weaponsCollected()}) { table.add(ui.label(value)); }
+            } else { for(int i=0;i<6;i++) { table.add(ui.label("—")); } }
+            table.row();
         }
+        root.add(table).growX().padTop(24);root.row();
         if(result.gameplay()!=null) {
-            var stats=result.gameplay();
-            table.add(new Label("Duration: "+String.format(java.util.Locale.ROOT,"%.1fs",stats.durationTicks()/60f),style));table.row();
-            for(var p:stats.players()) {
-                table.add(new Label(shortId(p.playerId())+" | Damage "+String.format(java.util.Locale.ROOT,"%.1f",p.damageDealt())+" | Items "+p.itemsCollected()+" (weapons "+p.weaponsCollected()+") | K.O. "+p.kills()+" | Deaths "+p.deaths()+" | Lives "+p.lives(),style)).padBottom(4);table.row();
+            var awards=new Table();String[] types={"DAMAGE","WEAPONS","KO"};String[] titles={"VUA SÁT THƯƠNG","THỢ NHẶT VŨ KHÍ","NHIỀU K.O. NHẤT"};
+            for(int i=0;i<types.length;i++) {
+                var ids=result.gameplay().leaders(types[i]);String names=ids.isEmpty()?"Chưa có danh hiệu":ids.stream().map(id->name(result,id)).collect(java.util.stream.Collectors.joining(", "));
+                var card=ui.panel();card.pad(16);card.add(ui.small(titles[i])).left();card.row();var label=ui.wrapped(names+(ids.size()>1?" · Đồng hạng":""));card.add(label).width(330).padTop(10);
+                awards.add(card).width(370).height(96).padRight(10);
             }
-            for(String award:new String[]{"DAMAGE","WEAPONS","KO"}) {
-                var leaders=stats.leaders(award);String names=leaders.isEmpty()?"No award":leaders.stream().map(OnlineResultScreen::shortId).collect(java.util.stream.Collectors.joining(", "));
-                table.add(new Label((award.equals("DAMAGE")?"Damage Dealer":award.equals("WEAPONS")?"Weapon Hoarder":"Most K.O.")+": "+names+(leaders.size()>1?" (shared)":""),style)).padBottom(4);table.row();
-            }
+            root.add(awards).growX().padTop(16);root.row();
+            root.add(ui.small("Thời lượng: "+String.format(Locale.ROOT,"%.1f",result.gameplay().durationTicks()/60f)+" giây · Số liệu do máy chủ ghi nhận.")).padTop(16);root.row();
         }
-        var buttonStyle = new TextButton.TextButtonStyle(); buttonStyle.font = font; buttonStyle.fontColor = Color.WHITE;
-        var exit = new TextButton("Exit (Esc)", buttonStyle);
-        exit.addListener(new ChangeListener() {
-            @Override public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) { Gdx.app.exit(); }
-        });
-        table.add(exit).padTop(20);
-        table.setFillParent(false);
-        var scroll=new ScrollPane(table,new ScrollPane.ScrollPaneStyle());
-        var root=new Table();root.setFillParent(true);root.add(scroll).grow();stage.addActor(root);
+        root.add(ui.primary("Chơi trận khác",this::back)).width(330).height(48).padTop(16);root.row();
+        root.add(ui.small("Trở về màn hình Tạo phòng / Vào phòng.  [Esc]")).padTop(10);
+        var scroll=new ScrollPane(root,new ScrollPane.ScrollPaneStyle());scroll.setScrollingDisabled(true,false);
+        var frame=new Table();frame.setFillParent(true);frame.add(scroll).grow();stage.addActor(frame);
     }
+    private static String name(WireMatchResult result,String id) { return result.participants().stream().filter(p->p.playerId().equals(id)).map(p->"P"+(p.slotIndex()+1)+" · "+p.characterId()).findFirst().orElse("Người chơi"); }
+    private void back() { game.leaveOnlineLobby();game.setScreen(new OnlineLobbyScreen(game)); }
     @Override public void show() { Gdx.input.setInputProcessor(stage); }
-    private static String shortId(String id) { return id.substring(0,Math.min(8,id.length())); }
     @Override public void render(float delta) {
-        if (disposed) { return; }
-        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) { Gdx.app.exit(); }
-        ScreenUtils.clear(Color.BLACK); stage.getViewport().apply(); stage.act(delta); stage.draw();
+        if(disposed) { return; }if(Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) { back();return; }
+        ScreenUtils.clear(OnlineUi.BACKGROUND);stage.getViewport().apply();stage.act(delta);stage.draw();
     }
-    @Override public void resize(int width, int height) { stage.getViewport().update(width, height, true); }
-    @Override public void pause() { }
-    @Override public void resume() { }
+    @Override public void resize(int w,int h) { stage.getViewport().update(w,h,true); }
+    @Override public void pause() { } @Override public void resume() { }
     @Override public void hide() { dispose(); }
-    @Override public void dispose() {
-        if (disposed) { return; } disposed = true;
-        if (Gdx.input.getInputProcessor() == stage) { Gdx.input.setInputProcessor(null); }
-        stage.dispose(); font.dispose(); assets.close(); batch.dispose();
-    }
+    @Override public void dispose() { if(disposed) { return; }disposed=true;if(Gdx.input.getInputProcessor()==stage) { Gdx.input.setInputProcessor(null); }stage.dispose();ui.close(); }
 }

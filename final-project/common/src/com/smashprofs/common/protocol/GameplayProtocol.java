@@ -28,10 +28,11 @@ public final class GameplayProtocol {
         var node=ProtocolV1.object().put("durationTicks",state.durationTicks());node.set("rules",rules(state.rules()));
         var players=node.putArray("players");
         for(var p:state.players()) {
-            players.addObject().put("playerId",p.playerId()).put("lives",p.lives()).put("status",p.status())
+            var player=players.addObject().put("playerId",p.playerId()).put("lives",p.lives()).put("status",p.status())
                     .put("respawnTicks",p.respawnTicks()).put("invulnerableTicks",p.invulnerableTicks()).put("ultimateTicks",p.ultimateTicks())
                     .put("weapon",p.weapon()).put("shield",p.shield()).put("damageDealt",p.damageDealt()).put("itemsCollected",p.itemsCollected())
                     .put("weaponsCollected",p.weaponsCollected()).put("kills",p.kills()).put("deaths",p.deaths()).put("wallState",p.wallState());
+            if(p.ammo()>=0) { player.put("ammo",p.ammo()); }
         }
         var items=node.putArray("items");for(var p:state.items()) { items.addObject().put("id",p.id()).put("type",p.type()).put("x",p.x()).put("y",p.y()); }
         var shots=node.putArray("shots");for(var p:state.shots()) { shots.addObject().put("id",p.id()).put("type",p.type()).put("owner",p.owner()).put("x",p.x()).put("y",p.y()).put("vx",p.vx()).put("vy",p.vy()); }
@@ -43,7 +44,7 @@ public final class GameplayProtocol {
         var players=new ArrayList<GameplaySnapshot.Player>();
         for(var p:node.path("players")) {
             players.add(new GameplaySnapshot.Player(text(p,"playerId"),(int)integer(p,"lives"),text(p,"status"),integer(p,"respawnTicks"),integer(p,"invulnerableTicks"),integer(p,"ultimateTicks"),
-                    text(p,"weapon"),bool(p,"shield"),number(p,"damageDealt"),(int)integer(p,"itemsCollected"),(int)integer(p,"weaponsCollected"),(int)integer(p,"kills"),(int)integer(p,"deaths"),text(p,"wallState")));
+                    text(p,"weapon"),bool(p,"shield"),number(p,"damageDealt"),(int)integer(p,"itemsCollected"),(int)integer(p,"weaponsCollected"),(int)integer(p,"kills"),(int)integer(p,"deaths"),text(p,"wallState"),p.has("ammo")?(int)integer(p,"ammo"):-1));
         }
         var items=new ArrayList<GameplaySnapshot.Item>();for(var p:node.path("items")) { items.add(new GameplaySnapshot.Item(integer(p,"id"),text(p,"type"),(float)number(p,"x"),(float)number(p,"y"))); }
         var shots=new ArrayList<GameplaySnapshot.Shot>();for(var p:node.path("shots")) { shots.add(new GameplaySnapshot.Shot(integer(p,"id"),text(p,"type"),text(p,"owner"),(float)number(p,"x"),(float)number(p,"y"),(float)number(p,"vx"),(float)number(p,"vy"))); }

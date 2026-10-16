@@ -1,5 +1,7 @@
 # 08 — Trạng thái cuối
 
+Cập nhật tiếp theo: sảnh/HUD/kết quả đã thiết kế lại và kiểm tra native GL; xem [09-UI-REDESIGN.md](09-UI-REDESIGN.md). Bảng bên dưới ghi nhận thời điểm hoàn tất gameplay ban đầu; manual gameplay/audio và performance comparison vẫn chưa hoàn tất.
+
 Đã triển khai 9 tính năng chính thức trong `E:\2026-2\lap-trinh-mang\tinhnang.md` vào server authoritative, Protocol v1 có capability và client online. DONE bên dưới nghĩa là có source server+client và kiểm thử tự động quan trọng; không có nghĩa đã kiểm duyệt GUI hoặc chứng nhận hiệu năng production.
 
 | Tính năng | Trạng thái | Phần đã có và evidence |

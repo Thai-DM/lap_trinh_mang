@@ -17,12 +17,14 @@ final class GameplayMatch implements AutoCloseable {
     private final Set<PlayerId> disconnected=new HashSet<>();
     private final float spawnX,spawnY;
     private final Map<PlayerId,SpawnProvider.SpawnPosition> respawnPositions=new HashMap<>();
+    private final List<MapCollisionDefinition.CollisionRectangle> lavaZones;
     private long tick;
     private GameplaySnapshot frozen;
     private final KnockbackScaling knockback=KnockbackScaling.configured();
     GameplayMatch(MatchSetup setup,MatchState state,PlayerPhysicsFactory.PlayerPhysicsBodies bodies,
                   PlayerJumpController jumps,MapCollisionDefinition geometry) {
         this.setup=setup;this.state=state;this.bodies=bodies;this.jumps=jumps;
+        lavaZones=geometry.lavaZones();
         for(var p:setup.participants()) { progress.put(p.playerId(),new Progress(setup.rules().lives())); }
         var spawns=new SpawnProvider(geometry,0.01f);var left=spawns.getSpawn(2);var right=spawns.getSpawn(3);
         spawnX=(left.xMeters()+right.xMeters())/2;spawnY=Math.max(left.yMeters(),right.yMeters());
@@ -37,7 +39,7 @@ final class GameplayMatch implements AutoCloseable {
             for(var id:disconnected) {
                 var p=progress.get(id); if(p.lives==0) { continue; }
                 if(!state.getPlayer(id).isDead()) { state.getPlayer(id).applyDamage(100); }
-                p.lives=0;p.respawnAt=-1;p.invulnerableUntil=0;p.deaths++;p.weapon="NONE";p.shield=false;
+                p.lives=0;p.respawnAt=-1;p.invulnerableUntil=0;p.deaths++;p.weapon="NONE";p.ammo=0;p.shield=false;
                 bodies.setParticipating(id,false);event("PLAYER_ELIMINATED",null,id,"NONE","DISCONNECT");
             }
             disconnected.clear();
@@ -90,11 +92,27 @@ final class GameplayMatch implements AutoCloseable {
         if(!active(id)) { return; }
         progress.get(id).fell=true;state.getPlayer(id).applyDamage(100);
     }
+    /** Contact with visible lava rebounds the body and charges 10 HP at most once per second. */
+    void applyLavaContacts() {
+        float radius=PlayerPhysicsFactory.PLAYER_RADIUS_METERS;
+        for(var id:progress.keySet()) {
+            if(!active(id)) { continue; }var position=bodies.getPosition(id);boolean touching=position.yMeters()<0;
+            for(var lava:lavaZones) {
+                float left=lava.xPixels()/100,right=(lava.xPixels()+lava.widthPixels())/100,top=(lava.yPixels()+lava.heightPixels())/100;
+                if(position.xMeters()+radius>=left && position.xMeters()-radius<=right && position.yMeters()-radius<=top+.002f) { touching=true;break; }
+            }
+            if(!touching) { continue; }
+            var p=progress.get(id);jumps.bounceFromLava(id);
+            if(tick<p.nextLavaDamage || tick<p.invulnerableUntil) { continue; }
+            p.nextLavaDamage=tick+60;state.getPlayer(id).applyFallPenalty();
+            if(state.getPlayer(id).isDead()) { p.fell=true; }
+        }
+    }
     void afterTick() {
         for(var entry:progress.entrySet()) {
             var id=entry.getKey();var p=entry.getValue();
             if(!state.getPlayer(id).isDead() || p.respawnAt!=0 || p.lives==0) { continue; }
-            p.lives--;p.deaths++;p.weapon="NONE";p.shield=false;p.invulnerableUntil=0;
+            p.lives--;p.deaths++;p.weapon="NONE";p.ammo=0;p.shield=false;p.invulnerableUntil=0;
             var killer=p.lastAttacker!=null && tick-p.lastHitTick<=ATTRIBUTION_TICKS?p.lastAttacker:null;
             if(killer!=null && !killer.equals(id)) { progress.get(killer).kills++; }
             if(p.fell) { event("PLAYER_FELL",killer,id,p.lastWeapon,"LAVA"); }
@@ -118,14 +136,14 @@ final class GameplayMatch implements AutoCloseable {
             var id=entry.getKey();var p=entry.getValue();
             String status=p.lives==0?"ELIMINATED":p.respawnAt>0?"RESPAWNING":"ACTIVE";
             values.add(new GameplaySnapshot.Player(id.value(),p.lives,status,Math.max(0,p.respawnAt-tick),Math.max(0,p.invulnerableUntil-tick),
-                    Math.max(0,p.nextUltimate-tick),p.weapon,p.shield,p.damage,p.pickups,p.weapons,p.kills,p.deaths,jumps.getWallState(id)));
+                    Math.max(0,p.nextUltimate-tick),p.weapon,p.shield,p.damage,p.pickups,p.weapons,p.kills,p.deaths,jumps.getWallState(id),p.ammo));
         }
         return new GameplaySnapshot(setup.rules(),tick,values,items.itemViews(),items.shotViews());
     }
     @Override public void close() { items.close();events.clear();disconnected.clear();progress.clear();respawnPositions.clear();frozen=null; }
     static final class Progress {
         int lives,pickups,weapons,kills,deaths,ammo;
-        long respawnAt,invulnerableUntil,nextUltimate,lastHitTick,nextShot;
+        long respawnAt,invulnerableUntil,nextUltimate,lastHitTick,nextShot,nextLavaDamage;
         double damage;
         boolean shield,fell;
         PlayerId lastAttacker;

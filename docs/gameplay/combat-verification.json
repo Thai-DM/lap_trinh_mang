@@ -1,0 +1,218 @@
+{
+    "date":  "2026-10-16T16:29:38.6571914+07:00",
+    "baseHead":  "2310c2c74ade126ee6c20ee8fc0bfefbd4c9367e",
+    "status":  "PASS",
+    "scope":  "Cumulative UI redesign plus latest lava rebound, compact HUD, weapon art and equipment/ammo fixes",
+    "sourceFiles":  [
+                        {
+                            "path":  "final-project/assets/1/Map1New2Remake.tmx",
+                            "sha256":  "ec0f901976174d4573b9e7d552225185bd6daea25b65cf5ef728a2ec681cab6b"
+                        },
+                        {
+                            "path":  "final-project/assets/ui/online/body.fnt",
+                            "sha256":  "260d5934957180b6105257ab2f74e983a1cc556f29627a0dafdcfd07089df206"
+                        },
+                        {
+                            "path":  "final-project/assets/ui/online/body.png",
+                            "sha256":  "1a83b350280ad9c2a2b18628ea40d40282cd08a2194e44ad9827f60098b12009"
+                        },
+                        {
+                            "path":  "final-project/assets/ui/online/heading.fnt",
+                            "sha256":  "771d5bbdceded62cafd86fedd5c1d36560d6977b1491028d8d8d8bdc172f9709"
+                        },
+                        {
+                            "path":  "final-project/assets/ui/online/heading.png",
+                            "sha256":  "655a3b9c77e53c23253aa23790dcf520ce14cec4575636e5e2582daa99263938"
+                        },
+                        {
+                            "path":  "final-project/assets/ui/online/small.fnt",
+                            "sha256":  "908febc38f5b032719fd6068636e47fb33289fcd62b4ff9b84e527cbb90713d8"
+                        },
+                        {
+                            "path":  "final-project/assets/ui/online/small.png",
+                            "sha256":  "426c40814ac6487ecabf52d1ed7fe5d1de93569f6024c5d32bc314150e79682b"
+                        },
+                        {
+                            "path":  "final-project/common/src/com/smashprofs/common/model/GameplaySnapshot.java",
+                            "sha256":  "dfde56185f9ec1370d6c0a19cf1370de11b46c7bbfd92f032208ce95f38e89ba"
+                        },
+                        {
+                            "path":  "final-project/common/src/com/smashprofs/common/protocol/GameplayProtocol.java",
+                            "sha256":  "0808ab5c31c172052e428bac08e84c6068bddd1abf18be59c0a500182fdbf045"
+                        },
+                        {
+                            "path":  "final-project/core/src/com/smashprofs/game/Game.java",
+                            "sha256":  "80438113102e9db04b7b9e98d61fa583f4d8ed0e5e8faf9f526e2ad3af766b89"
+                        },
+                        {
+                            "path":  "final-project/core/src/com/smashprofs/game/network/client/LobbyClient.java",
+                            "sha256":  "e8ca28e76ab579ce0700b2b25fd51c1652f22adefcab1d1563766c2a0eeea1d6"
+                        },
+                        {
+                            "path":  "final-project/core/src/com/smashprofs/game/network/client/OnlineLobbyFormModel.java",
+                            "sha256":  "d64676e8087583e99eed7f751497c3ea5683382f851616f7f30cfafd0d1d67ed"
+                        },
+                        {
+                            "path":  "final-project/core/src/com/smashprofs/game/network/client/OnlineRoomPresentation.java",
+                            "sha256":  "3a80d0b24b3ffeb5b634519fec1156d0f9beecaa793400710c4e78efd192cf67"
+                        },
+                        {
+                            "path":  "final-project/core/src/com/smashprofs/game/Scenes/OnlineHud.java",
+                            "sha256":  "299d247422c22ae1748cc632288409a961714cc39f3e4091bfd7b6302c9f502f"
+                        },
+                        {
+                            "path":  "final-project/core/src/com/smashprofs/game/Screens/HostLobbySettingsScreen.java",
+                            "sha256":  "dbaa40b725f6a3ac120647134faf3b0ae6dfd5ceb16e520f9d09e2cd8c53d477"
+                        },
+                        {
+                            "path":  "final-project/core/src/com/smashprofs/game/Screens/MainMenuScreen.java",
+                            "sha256":  "025ba48f419a081bb8cca1bd07a59ab964566c4c2c71dcb6ecd2a2f79fc8cb82"
+                        },
+                        {
+                            "path":  "final-project/core/src/com/smashprofs/game/Screens/OnlineLobbyScreen.java",
+                            "sha256":  "c28955971bcad1019f7588e3ee96de615be48c8fd3959cc9d4e1cea80e031ab8"
+                        },
+                        {
+                            "path":  "final-project/core/src/com/smashprofs/game/Screens/OnlinePlayScreen.java",
+                            "sha256":  "430dbf62105bfd9c49031646b76b7923775f56ac0c41ea00c7e78a2ed74425c4"
+                        },
+                        {
+                            "path":  "final-project/core/src/com/smashprofs/game/Screens/OnlineResultScreen.java",
+                            "sha256":  "6b9eda2372f0efbe5e7d82332bc778af8457215d2179724f35b4a876427adba9"
+                        },
+                        {
+                            "path":  "final-project/core/src/com/smashprofs/game/Screens/OnlineRoomScreen.java",
+                            "sha256":  "8c57bbbf026da4774769232af2b67a5610b0bb5acc95012e710551dd0fda55b3"
+                        },
+                        {
+                            "path":  "final-project/core/src/com/smashprofs/game/ui/CombatIcons.java",
+                            "sha256":  "72a9eef59c1964a34fd5138cd0494abf601c968e876f780ec8d2cdc5f76574c5"
+                        },
+                        {
+                            "path":  "final-project/core/src/com/smashprofs/game/ui/OnlineUi.java",
+                            "sha256":  "9e0240d9acadbd0cdb064068f6c181e1e6c805c87aaaa17d2dc5136d9bbef84c"
+                        },
+                        {
+                            "path":  "final-project/desktop/src/com/smashprofs/game/DesktopLauncher.java",
+                            "sha256":  "121b439ca46fcd6fa9fe7d61591c0004e8a50545c27f894670f28407c7c7ca63"
+                        },
+                        {
+                            "path":  "final-project/server/src/com/smashprofs/server/game/GameplayMatch.java",
+                            "sha256":  "130728ab753f9f15d73e4a0e725b9b0647024fb0c91a7d601240743110159f8d"
+                        },
+                        {
+                            "path":  "final-project/server/src/com/smashprofs/server/game/MatchRuntime.java",
+                            "sha256":  "d43b0f59364bfb7402d86973fe2a646756ed07013cfeb5d2f9d518eb9eceb75a"
+                        },
+                        {
+                            "path":  "final-project/server/src/com/smashprofs/server/game/physics/MapCollisionDefinition.java",
+                            "sha256":  "b288735c4c3850829efb507b35471beffafa5cb6352889c4b7a00bacd82af5c8"
+                        },
+                        {
+                            "path":  "final-project/server/src/com/smashprofs/server/game/physics/PlayerJumpController.java",
+                            "sha256":  "6b02671ec59981b4fecde8e052a2ed99b8ed7d13ecc59f8c903ddc061e66c05e"
+                        },
+                        {
+                            "path":  "final-project/server/src/com/smashprofs/server/game/physics/TmxCollisionLoader.java",
+                            "sha256":  "bb6ff348c378cf2de2bc0cb726623538cb679fc4cb0ce883f9a6e2c5e69fbd19"
+                        },
+                        {
+                            "path":  "final-project/server/src/com/smashprofs/server/network/ProtocolV1Dispatcher.java",
+                            "sha256":  "75fdb3aa9c72a9b5470d1c5f2a80c496e58cff492b9c8ad6170890493257e3ff"
+                        },
+                        {
+                            "path":  "final-project/server/src/com/smashprofs/server/room/GameRoom.java",
+                            "sha256":  "a030995af50bd8ac0e2e9acb6e2278ccdd2bc32f668c9811f58c87d98c0e17b9"
+                        },
+                        {
+                            "path":  "final-project/server/test/com/smashprofs/server/game/ItemGameplayTest.java",
+                            "sha256":  "ebff730e13f3651de98285e929cbfb2edcc4e99b24a9a92a8684290fc4473fd2"
+                        },
+                        {
+                            "path":  "final-project/server/test/com/smashprofs/server/game/LavaReboundTest.java",
+                            "sha256":  "1bb0d978b27fae1d592db8ff213e50c5e9888710f17f325d9a6bcf6de62430e7"
+                        },
+                        {
+                            "path":  "final-project/server/test/com/smashprofs/server/game/StockGameplayTest.java",
+                            "sha256":  "0a15ce41aa4caca27e0879bdaf623acc637015003846ab5473c2b3609d4f4fae"
+                        },
+                        {
+                            "path":  "final-project/tests/src/com/smashprofs/server/game/GameplayTcpIntegrationTest.java",
+                            "sha256":  "476d4603d9018439b1b6081522a735754567ccdc3a23e3dd4816890d091ab305"
+                        },
+                        {
+                            "path":  "final-project/tests/src/com/smashprofs/tests/network/GameplayClientModelTest.java",
+                            "sha256":  "8e22d04caeaea9085aa9ae0d264b9a465e5003b56c8d8856ded0ffce9b0ed470"
+                        },
+                        {
+                            "path":  "final-project/tests/src/com/smashprofs/tests/network/OnlineLobbyFormModelTest.java",
+                            "sha256":  "7de7b0b41a3f4e50c03e205ffad48e54e67f4f6761456723218b9df5ff302063"
+                        },
+                        {
+                            "path":  "final-project/tests/src/com/smashprofs/tests/network/OnlineRoomFlowTest.java",
+                            "sha256":  "7e4dac4342de2cead70508ba727bc80c65f89984fb98fe50dd13090b20e59926"
+                        },
+                        {
+                            "path":  "scripts/gameplay/GameplayVisualPreview.java",
+                            "sha256":  "eb3070943bf0c5ec71624010aac672c7740593f48c607fc9a8a39b6cd9997345"
+                        },
+                        {
+                            "path":  "scripts/gameplay/GenerateUiFont.java",
+                            "sha256":  "f9991616802e096bf8d5ec009eea27687a68801300561a8515aeef860f96d141"
+                        },
+                        {
+                            "path":  "scripts/gameplay/Run-Client.ps1",
+                            "sha256":  "b1bf93581938c559bba8b8bbc5b7201b366bbde36caccb22b7754a11203cea66"
+                        },
+                        {
+                            "path":  "scripts/gameplay/Run-Server.ps1",
+                            "sha256":  "335d877af7ec0127b622ec469e38c1764c84534509eb8fbeca5a91a8fba684a9"
+                        },
+                        {
+                            "path":  "scripts/gameplay/UiPreview.java",
+                            "sha256":  "58cad31f21e701c50807c9cca5358ee836838cb3d12c1eee1aba9d2fedaa5467"
+                        },
+                        {
+                            "path":  "scripts/gameplay/Verify-Gameplay.ps1",
+                            "sha256":  "0c8bcdba11ddb3c6db040cfad8e573077f9811560aa2889c4fa17e1994f56563"
+                        }
+                    ],
+    "userChosenLavaRule":  "Rebound and lose10HP; stock loss only at zero HP",
+    "automatedTests":  {
+                           "status":  "PASS",
+                           "tests":  198,
+                           "suites":  15,
+                           "heapMiB":  128,
+                           "evidence":  "docs/gameplay/runs/20261016-162338-432-combat-visual-final"
+                       },
+    "nativeGraphics":  {
+                           "status":  "PASS",
+                           "packagedClient":  true,
+                           "clients":  [
+                                           2,
+                                           4
+                                       ],
+                           "resolutions":  [
+                                               "1280x720",
+                                               "960x540"
+                                           ],
+                           "simulationOwner":  "Manual tick scheduler on GL thread, real TCP",
+                           "observedAmmoAfterShot":  5,
+                           "observedHpAfterLava":  90,
+                           "observedLivesAfterLava":  3,
+                           "screenshots":  "docs/gameplay/combat-previews",
+                           "audioEnabled":  false,
+                           "manualPlaySessionCompleted":  false
+                       },
+    "clientDistribution":  {
+                               "status":  "BUILD_SUCCESSFUL",
+                               "task":  ":desktop:dist --offline --no-daemon",
+                               "buildSeconds":  20,
+                               "log":  "docs/gameplay/runs/20261016-162338-432-combat-visual-final/client-build.log",
+                               "archiveSha256":  "bf0321f97a059074aa17d0f2098d6528437132b36858ee15a6e29a090f386b9d"
+                           },
+    "performanceComparison":  "Not rerun after prior memory stop",
+    "committedOrPushedAtVerification":  false,
+    "subsequentPushAuthorizedByUser":  true,
+    "publicationBranch":  "integration/member2-check"
+}

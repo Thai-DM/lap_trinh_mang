@@ -1,5 +1,7 @@
 # 06 — Kiểm thử gameplay
 
+Báo cáo dưới đây thuộc bản gameplay ban đầu. Sau cập nhật UI có thêm96targetedPASS và native GL smoke/ảnh giao diện2/4người tại [09](09-UI-REDESIGN.md); chưa thay bằng tuyên bố đã chơi tay/kiểm tra âm thanh đầy đủ.
+
 Lượt cuối: **PASS 638 tests / 36 suites**, Java 17, một JVM JUnit `-Xmx128m`, thời gian JUnit 41,073 s. Đây là các suite liên quan gameplay/runtime/network/client/cluster, không phải toàn bộ suite của mọi module. Common, server, toàn bộ core và desktop source được compile bằng javac `--release 17`; chỉ các suite chỉ định được chạy.
 
 - [JUnit output cuối](runs/20261016-080639-267-final-gameplay-regression/tests.log)

@@ -156,6 +156,16 @@ public final class PlayerJumpController implements AutoCloseable {
         requireState(playerId).gravityImpulse = GRAVITY_IMPULSE * 0.3f;
     }
 
+    /** Simulation-owner lava rebound. Set a stable upward speed even after a fast stomp. */
+    public void bounceFromLava(PlayerId playerId) {
+        var state=requireState(playerId);var body=players.getBody(playerId);requireUnlocked(body);
+        if(!body.isActive() || body.getLinearVelocity().y>0) { return; }
+        float x=body.getPosition().x;
+        float vx=x<3?1:x>8.5f?-1:body.getLinearVelocity().x*.1f;
+        body.setLinearVelocity(vx,2.6f);state.gravityImpulse=GRAVITY_IMPULSE*.3f;
+        state.grounded=false;state.wallSliding=false;state.knockbackTicks=12;state.jumpsUsed=1;state.extraJumpReady=true;
+    }
+
     /** Đồng bộ sau step thành công, chỉ landing từ phía dưới mới reset quyền jump. */
     public void synchronizeAfterStep() {
         requireOpen();

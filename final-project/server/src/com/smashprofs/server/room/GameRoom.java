@@ -191,6 +191,7 @@ public final class GameRoom {
         }
         String previousCharacter = selectedCharacters.put(playerId, characterId);
         if (!characterId.equals(previousCharacter)) {
+            settingsVersion++;
             readyPlayers.remove(playerId);
             cancelCountdown();
         }
@@ -220,9 +221,9 @@ public final class GameRoom {
             if (!selectedCharacters.containsKey(playerId)) {
                 return false;
             }
-            readyPlayers.add(playerId);
+            if(readyPlayers.add(playerId)) { settingsVersion++; }
         } else {
-            readyPlayers.remove(playerId);
+            if(readyPlayers.remove(playerId)) { settingsVersion++; }
             cancelCountdown();
         }
         updateLobbyPhase();

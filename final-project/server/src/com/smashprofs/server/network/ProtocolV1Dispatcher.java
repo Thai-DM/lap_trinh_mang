@@ -193,6 +193,13 @@ final class ProtocolV1Dispatcher {
                     .put("rulesVersion",room.getRulesVersion())
                     .put("hostId",room.getHost()==null?"":room.getHost().value()).put("playerCount",room.getPlayerCount());
             payload.set("rules",GameplayProtocol.rules(room.getRules()));
+            var players=payload.putArray("players");
+            for(var slot:room.getPlayerSlots()) {
+                var member=players.addObject().put("playerId",slot.playerId().value()).put("slotIndex",slot.slotIndex())
+                        .put("ready",room.isPlayerReady(slot.playerId()));
+                var character=room.getSelectedCharacter(slot.playerId());
+                if(character==null) { member.putNull("characterId"); } else { member.put("characterId",character); }
+            }
             return new ProtocolMessage(MessageType.ROOM_SETTINGS_STATE,requestId,payload);
         }
     }

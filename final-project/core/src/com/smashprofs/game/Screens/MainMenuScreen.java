@@ -46,7 +46,7 @@ public class MainMenuScreen implements Screen {
     private Image playButton, exitButton;
     private final VfxManager postProcessingManager;
     private SoundManager sound;
-    private final BitmapFont onlineFont = new BitmapFont();
+    private final com.smashprofs.game.ui.OnlineUi onlineUi = new com.smashprofs.game.ui.OnlineUi();
     private final Texture menuBackground = new Texture("mainmenu/bgmenu.png");
     private boolean disposed;
 
@@ -147,13 +147,8 @@ public class MainMenuScreen implements Screen {
 
 
 
-        onlineFont.getData().setScale(2.5f);
-        var onlineStyle = new TextButton.TextButtonStyle();
-        onlineStyle.font = onlineFont; onlineStyle.fontColor = Color.CYAN; onlineStyle.overFontColor = Color.WHITE;
-        var online = new TextButton("Online Multiplayer (O)", onlineStyle);
-        online.addListener(new ClickListener() {
-            @Override public void clicked(InputEvent event, float x, float y) { openOnline(); }
-        });
+        onlineUi.skin.getFont("body").getData().setScale(2f);
+        var online = onlineUi.primary("Chơi online  [O]", this::openOnline);
         mainTable.add(playButton).padBottom(30).maxSize(300, 100).padTop(500);
         mainTable.row();
         mainTable.add(online).width(550).height(80).padBottom(30);
@@ -260,7 +255,7 @@ public class MainMenuScreen implements Screen {
         if (Gdx.input.getInputProcessor() == stage) { Gdx.input.setInputProcessor(null); }
         this.stage.dispose();
         this.spriteBatch.dispose();
-        postProcessingManager.dispose(); onlineFont.dispose(); menuBackground.dispose();
+        postProcessingManager.dispose(); onlineUi.close(); menuBackground.dispose();
         playButtonInactive.dispose(); playButtonActive.dispose(); exitButtonInactive.dispose(); exitButtonActive.dispose(); logo.dispose();
         gametime.getStyle().font.dispose(); timesplayed.getStyle().font.dispose(); gamedevs.getStyle().font.dispose();
     }

@@ -6,6 +6,13 @@ import java.util.*;
 import static org.junit.Assert.*;
 
 public class ItemGameplayTest {
+    @Test public void equippedAmmoIsAuthoritativeAndClearedWhenTheLastRoundIsUsed() {
+        var game=runtime.gameplay();var position=game.bodies.getPosition(id(0));
+        game.items.drop("SHOTGUN",position.xMeters(),position.yMeters(),0);runtime.tick();
+        assertEquals(6,game.snapshot().player("p0").ammo());
+        for(int i=0;i<6;i++) { assertTrue(game.items.attack(id(0),2+i*24));assertEquals(5-i,game.snapshot().player("p0").ammo()); }
+        assertEquals("NONE",game.snapshot().player("p0").weapon());
+    }
     private MatchRuntime runtime;
     private static PlayerId id(int i) { return new PlayerId("p"+i); }
     @Before public void start() {

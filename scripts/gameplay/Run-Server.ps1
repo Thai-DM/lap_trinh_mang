@@ -11,6 +11,6 @@ if(-not $env:SMASHPROFS_CLUSTER_SECRET) {
 }
 Push-Location $project
 try {
-    & "$JavaHome\bin\java.exe" -Xms32m -Xmx128m -cp "$classes;$project\build\cluster\*" com.smashprofs.server.cluster.ClusterMain standalone "$root\config\gameplay\local.properties"
+    & "$JavaHome\bin\java.exe" -Xms32m -Xmx128m -cp "$classes;$project\assets;$project\build\cluster\*" com.smashprofs.server.cluster.ClusterMain standalone "$root\config\gameplay\local.properties"
     if($LASTEXITCODE -ne 0) { throw 'Server exited with failure.' }
 } finally { Pop-Location }

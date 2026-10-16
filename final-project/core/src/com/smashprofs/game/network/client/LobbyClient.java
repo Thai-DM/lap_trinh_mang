@@ -40,7 +40,12 @@ public final class LobbyClient implements ConnectionListener, AutoCloseable {
     private volatile ClientMatchSession matchSession;
     private Pending pending;
     private boolean gameplay;
-    public record Settings(String hostId,com.smashprofs.common.model.MatchRules rules,int playerCount,long version,long rulesVersion) { }
+    public record Settings(String hostId,com.smashprofs.common.model.MatchRules rules,int playerCount,long version,long rulesVersion,List<Member> members) {
+        public Settings { members=List.copyOf(members); }
+        public Settings(String hostId,com.smashprofs.common.model.MatchRules rules,int playerCount,long version,long rulesVersion) {
+            this(hostId,rules,playerCount,version,rulesVersion,List.of());
+        }
+    }
     private long confirmedReadyRulesVersion=-1;
     private volatile Settings settings;
     public synchronized void enableGameplay() { if(phase!=Phase.IDLE) { throw new IllegalStateException("Negotiate before start"); }gameplay=true;networkClient.enableGameplay(); }
@@ -119,6 +124,13 @@ public final class LobbyClient implements ConnectionListener, AutoCloseable {
         }
         return request(MessageType.PLAYER_READY, ProtocolV1.object().put("roomId", configuration.roomId())
                 .put("characterId", characterId).put("ready", true), characterId);
+    }
+
+    /** Gameplay lobby can cancel readiness before the server starts the match. */
+    public synchronized boolean unready() {
+        if(!gameplay || closed || phase!=Phase.WAITING_FOR_START || pending!=null || selectedCharacter==null) { return false; }
+        return request(MessageType.PLAYER_READY,ProtocolV1.object().put("roomId",configuration.roomId())
+                .put("characterId",selectedCharacter).put("ready",false),selectedCharacter);
     }
 
     private boolean request(MessageType type, ObjectNode payload, String characterId) {
@@ -231,7 +243,7 @@ public final class LobbyClient implements ConnectionListener, AutoCloseable {
         errorCode = null;
         phase = readyResponse && local.ready() ? Phase.WAITING_FOR_START : Phase.JOINED;
         if(readyResponse && settings!=null && confirmedReadyRulesVersion<settings.rulesVersion()) { phase=Phase.JOINED; }
-        publish(readyResponse ? "Ready. Waiting for server to start the match"
+        publish(readyResponse ? (local.ready()?"Ready. Waiting for server to start the match":"Not ready. You can change character or room rules.")
                 : "Joined " + configuration.roomId() + ". Choose your character, then press Ready");
     }
     private void acceptSettings(ProtocolMessage message) {
@@ -240,6 +252,7 @@ public final class LobbyClient implements ConnectionListener, AutoCloseable {
             if(response) { pending=null;phase=Phase.JOINED;publish("Room rules updated. Ready again."); }return;
         }
         settings=incoming;
+        if(!incoming.members().isEmpty()) { members=incoming.members(); }
         if(response || (phase==Phase.WAITING_FOR_START && incoming.rulesVersion()>confirmedReadyRulesVersion)) {
             pending=null;phase=Phase.JOINED;publish("Room rules updated. Ready again.");
         } else { publish(statusText); }
@@ -251,7 +264,23 @@ public final class LobbyClient implements ConnectionListener, AutoCloseable {
                 && p.path("version").asLong()>=1 && p.path("rulesVersion").asLong()>=1
                 && p.path("rulesVersion").asLong()<=p.path("version").asLong() && p.path("playerCount").isIntegralNumber()
                 && p.path("playerCount").asInt()>=1 && p.path("playerCount").asInt()<=rules.maxPlayers(),"Invalid settings revision/count");
-        return new Settings(text(p,"hostId"),rules,p.path("playerCount").asInt(),p.path("version").asLong(),p.path("rulesVersion").asLong());
+        var roster=new ArrayList<Member>();
+        if(p.has("players")) {
+            var array=p.get("players");require(array.isArray() && array.size()==p.path("playerCount").asInt(),"Invalid settings roster");
+            var ids=new HashSet<PlayerId>();var slots=new HashSet<Integer>();
+            for(var member:array) {
+                require(member.isObject() && member.size()==4,"Invalid settings member");
+                var id=new PlayerId(text(member,"playerId"));int index=slot(member);
+                require(index<rules.maxPlayers() && ids.add(id) && slots.add(index),"Duplicate/out-of-capacity settings member");
+                var character=member.get("characterId");var ready=member.get("ready");
+                require(character!=null && (character.isNull() || character.isTextual() && CHARACTERS.contains(character.textValue())),"Invalid settings character");
+                require(ready!=null && ready.isBoolean() && (!ready.booleanValue() || character.isTextual()),"Invalid settings ready");
+                roster.add(new Member(id,index,character.isNull()?null:character.textValue(),ready.booleanValue()));
+            }
+            require(localId==null || ids.contains(localId),"Local player missing from settings");
+            roster.sort(Comparator.comparingInt(Member::slotIndex));
+        }
+        return new Settings(text(p,"hostId"),rules,p.path("playerCount").asInt(),p.path("version").asLong(),p.path("rulesVersion").asLong(),roster);
     }
 
     private void acceptStart(ProtocolMessage message) {

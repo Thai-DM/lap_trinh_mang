@@ -42,7 +42,7 @@ public class GameplayTcpIntegrationTest {
             executor.runCycle();clock.addAndGet(3_000_000_000L);executor.runCycle();executor.runCycle();executor.runCycle();
             until(()->all.stream().allMatch(c->c.getMatchSession()!=null && c.getMatchSession().getSnapshotBuffer().getLatestSnapshot()!=null));
             assertEquals(baseline+2,HeadlessPhysicsWorld.liveWorldCount());var ar=server.getRoomManager().getRoom("room_a").getMatchRuntime();
-            ar.gameplay().bodies.respawn(a.getSnapshot().localPlayerId(),4.5f,-.1f);for(int i=0;i<3;i++) { executor.runCycle(); }
+            ar.getMatchState().getPlayer(a.getSnapshot().localPlayerId()).applyDamage(100);for(int i=0;i<3;i++) { executor.runCycle(); }
             until(()->a.getMatchSession().getResult()!=null && ap.getMatchSession().getResult()!=null);
             assertEquals(0,b.getMatchSession().getKillFeed().sequence());assertNull(b.getMatchSession().getResult());
             assertEquals(5,b.getMatchSession().getSnapshotBuffer().getLatestSnapshot().gameplay().player(b.getSnapshot().localPlayerId().value()).lives());
@@ -83,8 +83,8 @@ public class GameplayTcpIntegrationTest {
             assertTrue(host.recordFrameInput(0,false,false,false,false,true));until(()->runtime.getPendingInputCount()>0);
             for(int i=0;i<3;i++) { executor.runCycle(); }
             until(()->host.getMatchSession().getSnapshotBuffer().getLatestSnapshot().gameplay().player(owner.value()).ultimateTicks()>0);
-            // Server-only environmental setup, never a client damage/HP message. The JUnit thread is this scheduler's owner.
-            runtime.gameplay().bodies.respawn(owner,4.5f,-.1f);executor.runCycle();
+            // Server-only death fixture, never a client damage/HP message. The JUnit thread is this scheduler's owner.
+            runtime.getMatchState().getPlayer(owner).applyDamage(100);executor.runCycle();
             for(int i=0;i<2;i++) { executor.runCycle(); }
             until(()->host.getMatchSession().getSnapshotBuffer().getLatestSnapshot().gameplay().player(owner.value()).status().equals("RESPAWNING"));
             long received=server.getConnectionManager().receivedMessages.sum();
@@ -95,7 +95,7 @@ public class GameplayTcpIntegrationTest {
             until(()->host.getMatchSession().getSnapshotBuffer().getLatestSnapshot().gameplay().player(owner.value()).status().equals("ACTIVE"));
             assertTrue(host.getMatchSession().getSnapshotBuffer().getLatestSnapshot().gameplay().player(owner.value()).invulnerableTicks()>0);
             for(int stock=0;stock<2;stock++) {
-                runtime.gameplay().bodies.respawn(owner,4.5f,-.1f);executor.runCycle();
+                runtime.getMatchState().getPlayer(owner).applyDamage(100);executor.runCycle();
                 for(int i=0;i<(stock==0?92:2);i++) { executor.runCycle(); }
             }
             until(()->host.getMatchSession().isSpectating());assertFalse(host.recordFrameInput(1,true,false,true,false,true));
@@ -104,7 +104,7 @@ public class GameplayTcpIntegrationTest {
                 for(int i=0;i<6;i++) { executor.runCycle(); }
                 until(()->host.getMatchSession().getSnapshotBuffer().getLatestSnapshot().serverTick()>before);
                 for(int stock=0;stock<3;stock++) {
-                    for(int i=1;i<count-1;i++) { runtime.gameplay().bodies.respawn(clients.get(i).getSnapshot().localPlayerId(),4.5f,-.1f); }
+                    for(int i=1;i<count-1;i++) { runtime.getMatchState().getPlayer(clients.get(i).getSnapshot().localPlayerId()).applyDamage(100); }
                     executor.runCycle();for(int tick=0;tick<(stock<2?92:2);tick++) { executor.runCycle(); }
                 }
             }

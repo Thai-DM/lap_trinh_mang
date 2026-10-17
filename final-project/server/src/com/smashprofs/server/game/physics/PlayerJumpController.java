@@ -27,6 +27,10 @@ public final class PlayerJumpController implements AutoCloseable {
     private boolean closed;
     private boolean wallMovement;
     public void enableWallMovement() { wallMovement=true; }
+    public void setMovementIntent(PlayerId id, float axis) { requireState(id).moveAxis=axis; }
+    public boolean isSupportedBySolid(PlayerId id) { return contacts.hasGroundContact(id); }
+    public int wallDirection(PlayerId id) { return contacts.wallDirection(id); }
+    public void setContactPolicy(java.util.function.Consumer<Contact> policy) { contacts.setContactPolicy(policy); }
     public boolean preserveExternalImpulse(PlayerId id) { var state=requireState(id);return wallMovement && (state.knockbackTicks>0 || state.wallJumpTicks>0); }
     public void resetAfterRespawn(PlayerId id) { states.put(id,new MutableJumpState());contacts.forget(id); }
     public String getWallState(PlayerId id) {
@@ -77,9 +81,10 @@ public final class PlayerJumpController implements AutoCloseable {
         Body wallBody=players.getBody(playerId);
         if(!wallBody.isActive()) { return false; }
         int wall=contacts.wallDirection(playerId);
-        if(wallMovement && wall!=0 && wallBody.getLinearVelocity().y<=0 && !state.wallLatched && state.knockbackTicks==0) {
-            var center=wallBody.getWorldCenter();wallBody.applyLinearImpulse(wall*1.4f-wallBody.getLinearVelocity().x,
-                    JUMP_FORCE-.8f*wallBody.getLinearVelocity().y,center.x,center.y,true);
+        if(wall==0 && state.wallGraceTicks>0) { wall=state.lastWall; }
+        if(wallMovement && wall!=0 && !state.grounded && !state.wallLatched && state.knockbackTicks==0) {
+            var center=wallBody.getWorldCenter();wallBody.applyLinearImpulse(wall*.6f-wallBody.getLinearVelocity().x,
+                    2.4f-wallBody.getLinearVelocity().y,center.x,center.y,true);
             state.wallLatched=true;state.wallJumpTicks=12;state.wallSliding=false;state.grounded=false;state.jumpsUsed=1;state.extraJumpReady=true;return true;
         }
         if (state.jumpsUsed >= MAX_JUMPS || (!state.grounded && !state.extraJumpReady)) {
@@ -105,7 +110,11 @@ public final class PlayerJumpController implements AutoCloseable {
             var state=states.get(playerId);
             if(state.knockbackTicks>0) { state.knockbackTicks--; }
             if(state.wallJumpTicks>0) { state.wallJumpTicks--; }
-            state.wallSliding=wallMovement && contacts.wallDirection(playerId)!=0 && !state.grounded && body.getLinearVelocity().y<0 && state.knockbackTicks==0;
+            int wall=contacts.wallDirection(playerId);
+            state.wallSliding=wallMovement && wall!=0 && !state.grounded && state.knockbackTicks==0 && state.wallJumpTicks==0;
+            // Holding toward a real wall cancels horizontal movement without eating combat impulses
+            // or the upward part of a jump. Fixtures already have zero restitution.
+            if(state.wallSliding && state.moveAxis*wall<0) { body.setLinearVelocity(0,body.getLinearVelocity().y); }
             if(state.wallSliding && body.getLinearVelocity().y<-.55f) { body.setLinearVelocity(body.getLinearVelocity().x,-.55f); }
             requireUnlocked(body);
             var center = body.getWorldCenter();
@@ -162,8 +171,8 @@ public final class PlayerJumpController implements AutoCloseable {
         if(!body.isActive() || body.getLinearVelocity().y>0) { return; }
         float x=body.getPosition().x;
         float vx=x<3?1:x>8.5f?-1:body.getLinearVelocity().x*.1f;
-        body.setLinearVelocity(vx,2.6f);state.gravityImpulse=GRAVITY_IMPULSE*.3f;
-        state.grounded=false;state.wallSliding=false;state.knockbackTicks=12;state.jumpsUsed=1;state.extraJumpReady=true;
+        body.setLinearVelocity(vx,1.4f);state.gravityImpulse=GRAVITY_IMPULSE;
+        state.grounded=false;state.wallSliding=false;state.knockbackTicks=6;state.jumpsUsed=1;state.extraJumpReady=true;
     }
 
     /** Đồng bộ sau step thành công, chỉ landing từ phía dưới mới reset quyền jump. */
@@ -171,7 +180,15 @@ public final class PlayerJumpController implements AutoCloseable {
         requireOpen();
         for (var entry : states.entrySet()) {
             MutableJumpState state = entry.getValue();
-            if(contacts.wallDirection(entry.getKey())==0) { state.wallLatched=false;state.wallSliding=false; }
+            int wall=contacts.wallDirection(entry.getKey());
+            if(wall!=0) {
+                if(state.lastWall!=wall) { state.wallLatched=false; }
+                state.lastWall=wall;state.wallGraceTicks=6;
+            } else {
+                if(state.wallGraceTicks>0) { state.wallGraceTicks--; }
+                if(state.wallGraceTicks==0) { state.wallLatched=false; }
+                state.wallSliding=false;
+            }
             // Contact cũ còn touching trong tick cất cánh không được reset jumps khi player đang đi lên.
             boolean grounded = contacts.hasGroundContact(entry.getKey())
                     && players.getBody(entry.getKey()).getLinearVelocity().y <= RESTING_VELOCITY_TOLERANCE;
@@ -180,6 +197,7 @@ public final class PlayerJumpController implements AutoCloseable {
                 state.extraJumpReady = false;
             }
             if (grounded) {
+                state.wallLatched=false;state.wallGraceTicks=0;
                 state.gravityImpulse = GRAVITY_IMPULSE; // checkGrounded gốc trả gravity về startingGravity.
             }
             state.grounded = grounded;
@@ -225,6 +243,8 @@ public final class PlayerJumpController implements AutoCloseable {
         private float gravityImpulse = GRAVITY_IMPULSE;
         private boolean wallSliding,wallLatched;
         private int wallJumpTicks,knockbackTicks;
+        private int lastWall,wallGraceTicks;
+        private float moveAxis;
     }
 
     public record JumpState(boolean grounded, int jumpsUsed, boolean extraJumpReady) { }

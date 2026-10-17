@@ -51,6 +51,24 @@ public final class LobbyClient implements ConnectionListener, AutoCloseable {
     private volatile Settings settings;
     public synchronized void enableGameplay() { if(phase!=Phase.IDLE) { throw new IllegalStateException("Negotiate before start"); }gameplay=true;networkClient.enableGameplay(); }
     public boolean supportsGameplay() { return gameplay; }
+    private boolean loadedSent,rematchRequested;
+    private String rematchStatus="";
+    private long countdownDeadline;
+    private boolean allLoaded;
+    public synchronized int countdownSeconds() { return !allLoaded?-1:(int)Math.max(0,(countdownDeadline-System.nanoTime()+999_999_999L)/1_000_000_000L); }
+    public synchronized String getRematchStatus() { return rematchStatus; }
+    public synchronized boolean markLoaded() {
+        if(loadedSent || settings==null || !settings.rules().fighter() || closed) { return false; }
+        loadedSent=networkClient.sendMessage(new ProtocolMessage(MessageType.LOAD_READY,null,ProtocolV1.object().put("roomId",configuration.roomId())));
+        return loadedSent;
+    }
+    public synchronized boolean requestRematch() {
+        if(matchSession==null || matchSession.getResult()==null || settings==null || !settings.rules().fighter()) { return false; }
+        rematchRequested=networkClient.sendMessage(new ProtocolMessage(MessageType.REMATCH_REQUEST,UUID.randomUUID().toString(),
+                ProtocolV1.object().put("roomId",configuration.roomId()).put("matchId",matchSession.getRoster().matchId())));
+        if(rematchRequested) { rematchStatus="Đã xin đấu lại · Đang chờ đối thủ"; }return rematchRequested;
+    }
+    public synchronized void enableFighter() { if(phase!=Phase.IDLE) { throw new IllegalStateException("Negotiate before start"); }gameplay=true;networkClient.enableFighter(); }
     public Settings getSettings() { return settings; }
     public synchronized boolean updateSettings(com.smashprofs.common.model.MatchRules rules) {
         if(!gameplay || phase!=Phase.JOINED || pending!=null || settings==null || !settings.hostId().equals(localId.value())) { return false; }
@@ -79,8 +97,17 @@ public final class LobbyClient implements ConnectionListener, AutoCloseable {
     /** Minimal online input boundary; offline/mock PlayScreen never calls this path. */
     public synchronized boolean recordFrameInput(float axis, boolean jump, boolean stomp,
                                                  boolean melee, boolean block, boolean ability) {
+        return recordFrameInput(axis,jump,stomp,melee,block,ability,false,false);
+    }
+    public synchronized boolean recordFrameInput(float axis, boolean jump, boolean stomp,
+                                                 boolean melee, boolean block, boolean ability,
+                                                 boolean interact, boolean drop) {
+        return recordFrameInput(axis,jump,stomp,melee,block,ability,interact,drop,com.smashprofs.common.model.FighterInput.NONE);
+    }
+    public synchronized boolean recordFrameInput(float axis,boolean jump,boolean stomp,boolean melee,boolean block,boolean ability,
+                                                 boolean interact,boolean drop,com.smashprofs.common.model.FighterInput fighter) {
         return !closed && phase == Phase.STARTED && matchSession != null
-                && matchSession.recordFrameInput(axis, jump, stomp, melee, block, ability);
+                && matchSession.recordFrameInput(axis, jump, stomp, melee, block, ability,interact,drop,fighter);
     }
 
     /** One-shot background TCP connect. Repeated UI/callback calls do not restart the flow. */
@@ -191,6 +218,17 @@ public final class LobbyClient implements ConnectionListener, AutoCloseable {
         try {
             require(message.version() == 1, "Invalid envelope version");
             switch (message.type()) {
+                case REMATCH_STATE -> {
+                    var p=message.payload();require(p.size()==5 && configuration.roomId().equals(text(p,"roomId")) && matchSession!=null
+                            && matchSession.getResult()!=null && matchSession.getRoster().matchId().equals(text(p,"matchId"))
+                            && p.path("votes").isIntegralNumber() && p.path("required").isIntegralNumber() && p.path("started").isBoolean()
+                            && p.path("votes").asInt()>0 && p.path("votes").asInt()<=p.path("required").asInt() && p.path("required").asInt()<=4,"Invalid rematch state");
+                    rematchStatus="Đấu lại · "+p.path("votes").asInt()+"/"+p.path("required").asInt()+" đồng ý";
+                    if(p.path("started").asBoolean()) {
+                        clearMatchSession();match=null;pending=null;phase=Phase.WAITING_FOR_START;serverPhase="READY";loadedSent=false;rematchRequested=false;
+                        publish("Đang chuẩn bị trận mới");
+                    }
+                }
                 case ROOM_CREATED -> {
                     if (!correlates(message, MessageType.CREATE_ROOM)) { return; }
                     require(message.payload().size() == 1, "Invalid ROOM_CREATED fields");
@@ -284,6 +322,14 @@ public final class LobbyClient implements ConnectionListener, AutoCloseable {
             if(response) { pending=null;phase=Phase.JOINED;publish("Room rules updated. Ready again."); }return;
         }
         settings=incoming;
+        if(message.payload().has("phase")) {
+            var p=message.payload();serverPhase=text(p,"phase");
+            require(ROOM_PHASES.contains(serverPhase) && p.path("loadedPlayers").isIntegralNumber() && p.path("loadedPlayers").asInt()>=0
+                    && p.path("loadedPlayers").asInt()<=incoming.playerCount() && p.path("countdownMs").isIntegralNumber() && p.path("countdownMs").asLong()>=0 && p.path("countdownMs").asLong()<=3000,"Invalid loading state");
+            allLoaded=serverPhase.equals("COUNTDOWN") && p.path("loadedPlayers").asInt()==incoming.playerCount();
+            if(allLoaded) { countdownDeadline=System.nanoTime()+p.path("countdownMs").asLong()*1_000_000L; }
+            if(!serverPhase.equals("COUNTDOWN") && phase!=Phase.STARTED) { loadedSent=false; }
+        }
         if(!incoming.members().isEmpty()) {
             members=incoming.members();
             if (localId != null) {

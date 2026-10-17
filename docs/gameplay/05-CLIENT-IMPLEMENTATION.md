@@ -1,5 +1,9 @@
 # 05 — Client và giao diện
 
+**Bản hiện tại:** [Platform Fighter](12-PLATFORM-FIGHTER.md), online mặc định damage %, stocks, dodge/dash/recovery, hitbox theo frame, prediction cục bộ và rematch. Nội dung HP/FIX1 bên dưới được giữ làm lịch sử và hướng dẫn chế độ tương thích.
+
+**FIX1:** E nhặt / G thả, gợi ý tên vật phẩm gần nhất, camera nội suy theo delta, hồi sinh có lịch sử nội suy riêng từng người và gửi ngay hướng đang giữ. Luồng `dev` hiện đi qua OnlineLoadingScreen trước PlayScreen; giữ màn versus và cấu hình chỉ số nhân vật. Xem [bản sửa và kiểm chứng](11-FIX1.md).
+
 **Cập nhật giao diện:** luồng gameplay mới dùng OnlineLobbyScreen → OnlineRoomScreen (luật, roster, chọn nhân vật và Ready cùng một màn hình). Xem [09-UI-REDESIGN.md](09-UI-REDESIGN.md) cho hướng dẫn hiện tại và native GL evidence. Các mô tả HostLobbySettingsScreen/CharacterSelectScreen dưới đây ghi nhận bản trước khi gom sảnh; HostLobbySettingsScreen hiện là entry tương thích trỏ sang sảnh mới.
 
 Online form Create/Join tự bật gameplay-v1. Luồng room mới: OnlineLobbyScreen → HostLobbySettingsScreen → CharacterSelectScreen → PlayScreen online branch → OnlineResultScreen. Host chỉnh draft Max Players/Time/Lives/Drop, Apply gửi request; màn hình luôn phân biệt draft với luật server đang áp dụng. Non-host xem player count/rules nhưng controls disabled. Character select có nút quay về Room rules. Offline/mock flow không tạo GameplayMatch hay dùng các screen/packet bổ sung này.

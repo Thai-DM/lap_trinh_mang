@@ -20,6 +20,8 @@ public final class GroundContactListener implements ContactListener, AutoCloseab
     // Ngưỡng phân loại hướng đỡ từ dưới, không phải gravity/jump force hoặc thông số balance.
     private static final float MIN_SUPPORT_NORMAL_Y = 0.5f;
     private final PlayerPhysicsFactory.PlayerPhysicsBodies players;
+    private java.util.function.Consumer<Contact> contactPolicy;
+    void setContactPolicy(java.util.function.Consumer<Contact> policy) { contactPolicy=policy; }
     private final Map<PlayerId, Set<GroundContact>> supports = new HashMap<>();
     private final Map<PlayerId,Map<GroundContact,Integer>> walls=new HashMap<>();
 
@@ -36,6 +38,7 @@ public final class GroundContactListener implements ContactListener, AutoCloseab
 
     @Override
     public void preSolve(Contact contact, Manifold oldManifold) {
+        if(contactPolicy!=null) { contactPolicy.accept(contact); }
         // Một contact có thể chuyển từ mặt trên sang cạnh: không chỉ dựa vào beginContact.
         update(contact);
     }

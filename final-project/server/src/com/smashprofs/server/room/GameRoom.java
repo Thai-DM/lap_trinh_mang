@@ -36,6 +36,37 @@ public final class GameRoom {
     private final PlayerSlot[] playerSlots = new PlayerSlot[4];
     private final Map<PlayerId, String> selectedCharacters = new HashMap<>();
     private final Set<PlayerId> readyPlayers = new HashSet<>();
+    private final Set<PlayerId> loadedPlayers=new HashSet<>(),rematchVotes=new HashSet<>();
+    public synchronized void markLoaded(PlayerId id) {
+        if(!rules.fighter() || !containsPlayer(id) || !readyPlayers.contains(id) || closed) { throw new IllegalStateException("Not a ready fighter"); }
+        boolean added=loadedPlayers.add(id);
+        if(added) { settingsVersion++; }
+        if(added && loadedPlayers.containsAll(readyPlayers) && phase==RoomPhase.COUNTDOWN) { countdownStartedAtNanos=nanoClock.getAsLong(); }
+    }
+    public synchronized int getLoadedPlayerCount() { return loadedPlayers.size(); }
+    public record Rematch(int votes,int required,boolean started) { }
+    public synchronized Rematch requestRematch(PlayerId id,String matchId,Set<PlayerId> connectedPlayers) {
+        refreshMatchCompletion();
+        if(!rules.fighter() || closed || phase!=RoomPhase.FINISHED || !containsPlayer(id) || matchRuntime==null || !matchRuntime.getMatchId().equals(matchId) || getPlayerCount()<2) { throw new IllegalStateException("Rematch requires a finished match and its roster"); }
+        var available=getPlayerSlots().stream().map(PlayerSlot::playerId).filter(connectedPlayers::contains).collect(java.util.stream.Collectors.toSet());
+        if(available.size()<2 || !available.contains(id)) { throw new IllegalStateException("At least two connected players required"); }
+        rematchVotes.retainAll(available);rematchVotes.add(id);int votes=rematchVotes.size(),required=available.size();
+        boolean start=votes==required;
+        if(start) {
+            // Finished gameplay already released its native world. Leave the old runtime readable
+            // until its scheduler registration and pending reliable terminal deliveries retire.
+            matchRuntime=null;preparedMatch=null;countdownComplete=false;countdownRemainingNanos=0;countdownStartedAtNanos=0;
+            for(int i=0;i<playerSlots.length;i++) {
+                if(playerSlots[i]!=null && !available.contains(playerSlots[i].playerId())) {
+                    var departed=playerSlots[i].playerId();playerSlots[i]=null;selectedCharacters.remove(departed);readyPlayers.remove(departed);
+                }
+            }
+            if(!available.contains(host)) { host=getPlayerSlots().get(0).playerId(); }
+            minimumPlayers=Math.min(minimumPlayers,available.size());
+            loadedPlayers.clear();rematchVotes.clear();phase=RoomPhase.WAITING;settingsVersion++;updateLobbyPhase();
+        }
+        return new Rematch(votes,required,start);
+    }
     private RoomPhase phase = RoomPhase.WAITING;
     private int minimumPlayers = 2;
     private com.smashprofs.common.model.MatchRules rules = com.smashprofs.common.model.MatchRules.LEGACY;
@@ -47,13 +78,16 @@ public final class GameRoom {
     public synchronized long getSettingsVersion() { return settingsVersion; }
     public synchronized com.smashprofs.common.model.MatchRules getRules() { return rules; }
     public synchronized void configureGameplay(PlayerId creator) {
+        configureGameplay(creator,false);
+    }
+    public synchronized void configureGameplay(PlayerId creator,boolean fighter) {
         if(closed || getPlayerCount()!=0 || phase!=RoomPhase.WAITING) { throw new IllegalStateException("Configure before joining"); }
-        host=Objects.requireNonNull(creator); rules=com.smashprofs.common.model.MatchRules.DEFAULT; settingsVersion++;rulesVersion++;
+        host=Objects.requireNonNull(creator); rules=fighter?com.smashprofs.common.model.MatchRules.FIGHTER:com.smashprofs.common.model.MatchRules.DEFAULT; settingsVersion++;rulesVersion++;
     }
     public synchronized void updateSettings(PlayerId actor,com.smashprofs.common.model.MatchRules next) {
         if(!rules.gameplay() || !Objects.equals(host,actor) || getPlayerSlot(actor)==null) { throw new SecurityException("Only room host may update settings"); }
         if(closed || phase==RoomPhase.COUNTDOWN || isMatchLocked()) { throw new IllegalStateException("Rules locked"); }
-        if(!next.gameplay() || next.maxPlayers()<getPlayerCount() || next.maxPlayers()<minimumPlayers) { throw new IllegalArgumentException("Capacity below current roster"); }
+        if(!next.gameplay() || next.fighter()!=rules.fighter() || next.maxPlayers()<getPlayerCount() || next.maxPlayers()<minimumPlayers) { throw new IllegalArgumentException("Invalid mode/capacity"); }
         if(next.equals(rules)) { return; }
         rules=next; readyPlayers.clear(); cancelCountdown(); updateLobbyPhase(); settingsVersion++;rulesVersion++;
     }
@@ -389,6 +423,7 @@ public final class GameRoom {
         countdownRemainingNanos = COUNTDOWN_DURATION_NANOS;
         countdownComplete = false;
         phase = RoomPhase.COUNTDOWN;
+        if(rules.fighter()) { settingsVersion++; }
         return true;
     }
 
@@ -402,6 +437,7 @@ public final class GameRoom {
         if (closed || phase != RoomPhase.COUNTDOWN || countdownComplete) {
             return false;
         }
+        if(rules.fighter() && !loadedPlayers.containsAll(readyPlayers)) { countdownStartedAtNanos=nanoClock.getAsLong();countdownRemainingNanos=COUNTDOWN_DURATION_NANOS;return false; }
         long elapsedNanos = Math.max(0L, nanoClock.getAsLong() - countdownStartedAtNanos);
         countdownRemainingNanos = elapsedNanos >= COUNTDOWN_DURATION_NANOS
                 ? 0L : COUNTDOWN_DURATION_NANOS - elapsedNanos;
@@ -517,6 +553,7 @@ public final class GameRoom {
 
     /** Hủy cả countdown đang chạy hoặc đã hoàn tất; tính lại lobby, không tự restart. */
     public synchronized boolean cancelCountdown() {
+        loadedPlayers.clear();
         if (closed || phase != RoomPhase.COUNTDOWN) {
             return false;
         }
@@ -526,6 +563,7 @@ public final class GameRoom {
         // Setup của lượt bị hủy không được dùng cho roster hoặc lượt countdown mới.
         preparedMatch = null;
         phase = canStartMatch() ? RoomPhase.READY : RoomPhase.WAITING;
+        if(rules.fighter()) { settingsVersion++; }
         return true;
     }
 

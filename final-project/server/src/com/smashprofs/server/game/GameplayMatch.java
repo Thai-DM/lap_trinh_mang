@@ -13,10 +13,12 @@ final class GameplayMatch implements AutoCloseable {
     final PlayerJumpController jumps;
     final Map<PlayerId,Progress> progress=new LinkedHashMap<>();
     final ItemSystem items;
+    FighterEngine fighter;
     private final List<MatchEvent> events=new ArrayList<>(128);
     private final Set<PlayerId> disconnected=new HashSet<>();
-    private final float spawnX,spawnY;
-    private final Map<PlayerId,SpawnProvider.SpawnPosition> respawnPositions=new HashMap<>();
+    private final List<SpawnProvider.SpawnPosition> respawnCandidates;
+    private final Map<PlayerId,SpawnProvider.SpawnPosition> lastRespawn=new HashMap<>();
+    private final Random respawnRandom;
     private final List<MapCollisionDefinition.CollisionRectangle> lavaZones;
     private long tick;
     private GameplaySnapshot frozen;
@@ -26,13 +28,13 @@ final class GameplayMatch implements AutoCloseable {
         this.setup=setup;this.state=state;this.bodies=bodies;this.jumps=jumps;
         lavaZones=geometry.lavaZones();
         for(var p:setup.participants()) { progress.put(p.playerId(),new Progress(setup.rules().lives())); }
-        var spawns=new SpawnProvider(geometry,0.01f);var left=spawns.getSpawn(2);var right=spawns.getSpawn(3);
-        spawnX=(left.xMeters()+right.xMeters())/2;spawnY=Math.max(left.yMeters(),right.yMeters());
-        for(var p:setup.participants()) { respawnPositions.put(p.playerId(),safeRespawn(geometry,p.slotIndex())); }
+        respawnCandidates=new SpawnProvider(geometry,0.01f).getRespawnCandidates();
+        respawnRandom=new Random(setup.matchId().hashCode()^0x51AFEEDL);
         items=new ItemSystem(this,geometry,new Random(setup.matchId().hashCode()));
         jumps.enableWallMovement();
     }
     synchronized void disconnect(PlayerId id) { if(progress.containsKey(id)) { disconnected.add(id); } }
+    void enableFighter(com.badlogic.gdx.physics.box2d.World world,MapCollisionDefinition geometry) { fighter=new FighterEngine(this,world,geometry); }
     void beforeTick(long tick) {
         this.tick=tick;
         synchronized(this) {
@@ -48,7 +50,8 @@ final class GameplayMatch implements AutoCloseable {
             var id=entry.getKey();var p=entry.getValue();
             if(p.lives>0 && p.respawnAt>0 && tick>=p.respawnAt) {
                 state.getPlayer(id).respawn();p.respawnAt=0;p.invulnerableUntil=tick+INVULNERABLE_TICKS;p.lastAttacker=null;
-                var position=respawnPositions.get(id);bodies.respawn(id,position.xMeters(),position.yMeters());
+                var position=fighter==null?safeRandomRespawn(id):fighter.respawnPosition(id);lastRespawn.put(id,position);bodies.respawn(id,position.xMeters(),position.yMeters());
+                if(fighter!=null) { fighter.respawn(id,tick); }
                 jumps.resetAfterRespawn(id);event("PLAYER_RESPAWNED",null,id,"NONE","RESPAWN");
             }
             // Attribution expires by simulation time, not client timestamps.
@@ -56,25 +59,28 @@ final class GameplayMatch implements AutoCloseable {
         }
     }
     boolean active(PlayerId id) { var p=progress.get(id);return p!=null && p.lives>0 && p.respawnAt==0 && !state.getPlayer(id).isDead(); }
-    private SpawnProvider.SpawnPosition safeRespawn(MapCollisionDefinition geometry,int slot) {
-        float x=spawnX+(slot-1.5f)*.22f,y=spawnY,radius=PlayerPhysicsFactory.PLAYER_RADIUS_METERS+.02f;
-        for(int pass=0;pass<=geometry.rectangles().size();pass++) {
-            boolean raised=false;
-            for(var block:geometry.rectangles()) {
-                float left=block.xPixels()/100,right=(block.xPixels()+block.widthPixels())/100,bottom=block.yPixels()/100,top=(block.yPixels()+block.heightPixels())/100;
-                float dx=x-Math.max(left,Math.min(x,right)),dy=y-Math.max(bottom,Math.min(y,top));
-                if(dx*dx+dy*dy<radius*radius) { y=top+radius+.01f;raised=true; }
+    private SpawnProvider.SpawnPosition safeRandomRespawn(PlayerId id) {
+        var scores=new double[respawnCandidates.size()];double best=-1;
+        for(int i=0;i<scores.length;i++) {
+            var candidate=respawnCandidates.get(i);double distance=Double.POSITIVE_INFINITY;
+            for(var other:progress.keySet()) {
+                if(other.equals(id) || !active(other)) { continue; }
+                var position=bodies.getPosition(other);double dx=candidate.xMeters()-position.xMeters(),dy=candidate.yMeters()-position.yMeters();
+                distance=Math.min(distance,dx*dx+dy*dy);
             }
-            if(!raised) {
-                if(x-radius<0 || x+radius>geometry.mapWidthPixels()/100 || y-radius<0 || y+radius>geometry.mapHeightPixels()/100) { throw new IllegalArgumentException("No safe central respawn"); }
-                return new SpawnProvider.SpawnPosition(x,y);
-            }
+            if(candidate.equals(lastRespawn.get(id)) && scores.length>1) { distance=-1; }
+            scores[i]=distance;best=Math.max(best,distance);
         }
-        throw new IllegalArgumentException("Blocked central respawn");
+        var choices=new ArrayList<SpawnProvider.SpawnPosition>();
+        // Randomize across the safer half of the arena; never prefer a nearby camper.
+        double threshold=Double.isInfinite(best)?best:best*.5;
+        for(int i=0;i<scores.length;i++) { if(scores[i]>=threshold) { choices.add(respawnCandidates.get(i)); } }
+        return choices.get(respawnRandom.nextInt(choices.size()));
     }
     boolean ultimateReady(PlayerId id) { return active(id) && tick>=progress.get(id).nextUltimate; }
     void ultimateUsed(PlayerId id) { progress.get(id).nextUltimate=tick+ULTIMATE_TICKS; }
     boolean damage(PlayerId attacker,PlayerId target,String weapon,float amount,float x,float y) {
+        if(fighter!=null) { return fighter.projectileHit(attacker,target,weapon,amount,x,y); }
         if(!Float.isFinite(amount) || amount<=0 || !Float.isFinite(x) || !Float.isFinite(y)) { throw new IllegalArgumentException("Invalid hit"); }
         if(!active(target) || (attacker!=null && !active(attacker))) { return false; }
         var p=progress.get(target);var victim=state.getPlayer(target);
@@ -96,9 +102,9 @@ final class GameplayMatch implements AutoCloseable {
     void applyLavaContacts() {
         float radius=PlayerPhysicsFactory.PLAYER_RADIUS_METERS;
         for(var id:progress.keySet()) {
-            if(!active(id)) { continue; }var position=bodies.getPosition(id);boolean touching=position.yMeters()<0;
+            if(!active(id) || jumps.isSupportedBySolid(id)) { continue; }var position=bodies.getPosition(id);boolean touching=position.yMeters()<0;
             for(var lava:lavaZones) {
-                float left=lava.xPixels()/100,right=(lava.xPixels()+lava.widthPixels())/100,top=(lava.yPixels()+lava.heightPixels())/100;
+                float left=lava.xPixels()/100,right=(lava.xPixels()+lava.widthPixels())/100,top=(lava.yPixels()+lava.heightPixels())/100-.08f;
                 if(position.xMeters()+radius>=left && position.xMeters()-radius<=right && position.yMeters()-radius<=top+.002f) { touching=true;break; }
             }
             if(!touching) { continue; }
@@ -116,7 +122,7 @@ final class GameplayMatch implements AutoCloseable {
             var killer=p.lastAttacker!=null && tick-p.lastHitTick<=ATTRIBUTION_TICKS?p.lastAttacker:null;
             if(killer!=null && !killer.equals(id)) { progress.get(killer).kills++; }
             if(p.fell) { event("PLAYER_FELL",killer,id,p.lastWeapon,"LAVA"); }
-            else { event("PLAYER_KILLED",killer,id,p.lastWeapon,"HP_ZERO"); }
+            else { event("PLAYER_KILLED",killer,id,p.lastWeapon,fighter==null?"HP_ZERO":p.koCause); }
             if(killer!=null && Set.of("SHOTGUN","LASER","BAZOOKA","GRENADE").contains(p.lastWeapon)) { event("WEAPON_KILL",killer,id,p.lastWeapon,p.fell?"LAVA":"HP_ZERO"); }
             p.fell=false;p.respawnAt=p.lives>0?tick+RESPAWN_TICKS:-1;
             bodies.setParticipating(id,false);
@@ -138,9 +144,9 @@ final class GameplayMatch implements AutoCloseable {
             values.add(new GameplaySnapshot.Player(id.value(),p.lives,status,Math.max(0,p.respawnAt-tick),Math.max(0,p.invulnerableUntil-tick),
                     Math.max(0,p.nextUltimate-tick),p.weapon,p.shield,p.damage,p.pickups,p.weapons,p.kills,p.deaths,jumps.getWallState(id),p.ammo));
         }
-        return new GameplaySnapshot(setup.rules(),tick,values,items.itemViews(),items.shotViews());
+        return new GameplaySnapshot(setup.rules(),tick,values,items.itemViews(),items.shotViews(),fighter==null?null:fighter.snapshot());
     }
-    @Override public void close() { items.close();events.clear();disconnected.clear();progress.clear();respawnPositions.clear();frozen=null; }
+    @Override public void close() { items.close();if(fighter!=null) { fighter.close(); }events.clear();disconnected.clear();progress.clear();lastRespawn.clear();frozen=null; }
     static final class Progress {
         int lives,pickups,weapons,kills,deaths,ammo;
         long respawnAt,invulnerableUntil,nextUltimate,lastHitTick,nextShot,nextLavaDamage;
@@ -148,6 +154,7 @@ final class GameplayMatch implements AutoCloseable {
         boolean shield,fell;
         PlayerId lastAttacker;
         String weapon="NONE",lastWeapon="NONE";
+        String koCause="BLAST_BOTTOM";
         Progress(int lives) { this.lives=lives; }
     }
 }

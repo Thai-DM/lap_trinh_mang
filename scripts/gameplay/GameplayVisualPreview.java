@@ -56,22 +56,32 @@ public final class GameplayVisualPreview extends Game {
         if(step==0 && host.getSnapshot().canReady()) { openOnlineLobby(host);for(var peer:peers) { peer.startAsync(); }step=1; }
         else if(step==1 && host.getSettings()!=null && host.getSettings().members().size()==count && peers.stream().allMatch(p->p.getSnapshot().canReady())) {
             host.ready("Viktor");for(var peer:peers) { peer.ready("Luca"); }step=2;
-        } else if(step==2 && host.getSnapshot().isMatchStarted() && host.getMatchSession().getSnapshotBuffer().getLatestSnapshot()!=null) {
+        } else if(step==2 && getScreen() instanceof PlayScreen && host.getSnapshot().isMatchStarted() && host.getMatchSession().getSnapshotBuffer().getLatestSnapshot()!=null) {
             runtime=room.getMatchRuntime();var game=runtime.gameplay();var position=game.bodies.getPosition(host.getSnapshot().localPlayerId());long tick=runtime.getMatchState().getServerTick();
             game.items.drop("SHOTGUN",position.xMeters(),position.yMeters(),tick);game.items.drop("SHIELD",position.xMeters(),position.yMeters(),tick);
+            game.items.drop("HEALTH",position.xMeters()+.22f,position.yMeters(),tick);
             String[] items={"SHOTGUN","LASER","BAZOOKA","GRENADE","HEALTH","SHIELD"};for(int i=0;i<items.length;i++) { game.items.drop(items[i],4.8f+i*.36f,.48f,tick); }
             step=3;frames=0;
-        } else if(step==3 && frames>4 && host.getMatchSession().getSnapshotBuffer().getLatestSnapshot().gameplay().player(host.getSnapshot().localPlayerId().value()).ammo()==6) {
-            runtime.gameplay().items.attack(host.getSnapshot().localPlayerId(),runtime.getMatchState().getServerTick());step=4;frames=0;
+        } else if(step==3 && frames>4) {
+            var equipment=host.getMatchSession().getSnapshotBuffer().getLatestSnapshot().gameplay().player(host.getSnapshot().localPlayerId().value());
+            if(equipment.ammo()==6 && equipment.shield()) {
+                runtime.gameplay().items.attack(host.getSnapshot().localPlayerId(),runtime.getMatchState().getServerTick());step=4;
+            } else { host.recordFrameInput(0,false,false,false,false,false,true,false); }
+            frames=0;
         } else if(step==4 && frames>4 && host.getMatchSession().getSnapshotBuffer().getLatestSnapshot().gameplay().player(host.getSnapshot().localPlayerId().value()).ammo()==5) {
             capture("compact-hud");hud().toggleInventory();step=5;frames=0;
         } else if(step==5 && frames>4) { capture("inventory");hud().toggleInventory();
-            runtime.gameplay().bodies.respawn(host.getSnapshot().localPlayerId(),4.9f,.2f);step=6;frames=0;
+            runtime.gameplay().bodies.respawn(host.getSnapshot().localPlayerId(),4.9f,.12f);runtime.gameplay().jumps.resetAfterRespawn(host.getSnapshot().localPlayerId());step=6;frames=0;
         } else if(step==6 && frames>4) {
             float hp=runtime.getMatchState().getPlayer(host.getSnapshot().localPlayerId()).getHp();
             if(hp!=90) { throw new IllegalStateException("Lava rebound expected90HP, got"+hp); }
-            capture("lava-rebound");setScreen(new Gallery());step=7;frames=0;
-        } else if(step==7 && frames>3) { capture("weapon-art");Gdx.app.exit(); }
+            capture("lava-rebound");runtime.getMatchState().getPlayer(host.getSnapshot().localPlayerId()).applyDamage(100);step=7;frames=0;
+        } else if(step==7 && frames>5) {
+            capture("respawning");for(int i=0;i<90;i++) { executor.runCycle(); }step=8;frames=0;
+        } else if(step==8 && frames>4 && host.getMatchSession().getSnapshotBuffer().getLatestSnapshot().gameplay().player(host.getSnapshot().localPlayerId().value()).status().equals("ACTIVE")) {
+            if(host.getMatchSession().getSnapshotBuffer().getLatestSnapshot().gameplay().player(host.getSnapshot().localPlayerId().value()).invulnerableTicks()==0) { throw new IllegalStateException("Missing respawn protection"); }
+            capture("respawn-protection");setScreen(new Gallery());step=9;frames=0;
+        } else if(step==9 && frames>3) { capture("weapon-art");Gdx.app.exit(); }
     }
     private static final class Gallery implements Screen {
         final Stage stage=new Stage(new FitViewport(1280,720));final OnlineUi ui=new OnlineUi();final CombatIcons icons=new CombatIcons();

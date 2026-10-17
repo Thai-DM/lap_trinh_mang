@@ -22,6 +22,12 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 public class InputQueueTest {
+    @Test public void inventoryEdgesSurviveCoalescingAndAreNotReplayedOnNextTick() {
+        assertEquals(ACCEPTED,queue.offer(new PlayerInput(FIRST,1,0,1,false,false,false,false,false,true,false)));
+        assertEquals(ACCEPTED,queue.offer(new PlayerInput(FIRST,2,0,-1,false,false,false,false,false,false,true)));
+        var input=queue.drainForTick().get(0);assertTrue(input.interactPressed());assertTrue(input.dropPressed());assertEquals(-1,input.moveAxis(),0);
+        assertTrue(queue.drainForTick().isEmpty());assertEquals(DUPLICATE_OR_STALE,queue.offer(input));
+    }
     private static final PlayerId FIRST = new PlayerId("player-0");
     private static final PlayerId SECOND = new PlayerId("player-1");
     private final InputQueue queue = new InputQueue(setup(2));

@@ -4,10 +4,13 @@ $server=@(
     'com.smashprofs.server.room.GameRoomLifecycleTest',
     'com.smashprofs.server.room.GameRoomMatchSetupTest',
     'com.smashprofs.server.game.StockGameplayTest',
+    'com.smashprofs.server.game.FighterEngineTest',
     'com.smashprofs.server.game.LavaReboundTest',
     'com.smashprofs.server.game.ItemGameplayTest',
     'com.smashprofs.server.game.physics.WallMovementTest',
     'com.smashprofs.server.game.InputQueueTest',
+    'com.smashprofs.server.game.GameplayInputProtocolTest',
+    'com.smashprofs.server.game.physics.SpawnProviderTest',
     'com.smashprofs.server.game.MatchRuntimeTest',
     'com.smashprofs.server.game.MatchRuntimeMovementTest',
     'com.smashprofs.server.game.MatchRuntimeJumpTest',
@@ -30,6 +33,11 @@ $server=@(
     'com.smashprofs.server.cluster.WorkerMetricsFreshnessTest'
 )
 $client=@(
+    'com.smashprofs.game.network.client.FighterClientTest',
+    'com.smashprofs.server.game.FighterTcpIntegrationTest',
+    'com.smashprofs.game.network.client.OnlineCameraControllerTest',
+    'com.smashprofs.game.network.client.OnlinePresentationTest',
+    'com.smashprofs.tests.network.OutboundInputQueueTest',
     'com.smashprofs.server.game.GameplayTcpIntegrationTest',
     'com.smashprofs.tests.network.GameplayClusterIntegrationTest',
     'com.smashprofs.tests.network.GameplayClientModelTest',

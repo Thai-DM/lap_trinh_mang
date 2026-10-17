@@ -9,6 +9,7 @@ import java.util.Objects;
 public final class SpawnProvider {
     private static final float CLEARANCE_METERS = 1.0f / MapCollisionBuilder.PIXELS_PER_METER;
     private final List<SpawnPosition> positions;
+    private final List<SpawnPosition> respawnCandidates;
 
     public SpawnProvider(MapCollisionDefinition geometry, float polygonSkinMeters) {
         Objects.requireNonNull(geometry, "geometry không được null");
@@ -52,6 +53,7 @@ public final class SpawnProvider {
             }
         }
         positions = List.copyOf(candidates);
+        respawnCandidates = safePlatformCandidates(geometry, polygonSkinMeters);
     }
 
     public SpawnPosition getSpawn(int slotIndex) {
@@ -59,6 +61,34 @@ public final class SpawnProvider {
             throw new IllegalArgumentException("slotIndex phải nằm trong khoảng 0 đến 3");
         }
         return positions.get(slotIndex);
+    }
+
+    /** Precomputed once per match: supported platform tops, clear of every solid and lava. */
+    public List<SpawnPosition> getRespawnCandidates() { return respawnCandidates; }
+    private static List<SpawnPosition> safePlatformCandidates(MapCollisionDefinition geometry,float skin) {
+        var result=new ArrayList<SpawnPosition>();float radius=PlayerPhysicsFactory.PLAYER_RADIUS_METERS+skin;
+        float width=geometry.mapWidthPixels()/100,height=geometry.mapHeightPixels()/100;
+        for(var platform:geometry.rectangles()) {
+            if(platform.widthPixels()<30 || platform.heightPixels()<=0) { continue; }
+            for(float fraction:new float[]{.2f,.5f,.8f}) {
+                float x=(platform.xPixels()+platform.widthPixels()*fraction)/100;
+                float y=(platform.yPixels()+platform.heightPixels())/100+radius+.02f;
+                if(x-radius<.1f || x+radius>width-.1f || y-radius<0 || y+radius>height-.02f) { continue; }
+                boolean safe=true;
+                for(var block:geometry.rectangles()) {
+                    float dx=x-Math.max(block.xPixels()/100,Math.min(x,(block.xPixels()+block.widthPixels())/100));
+                    float dy=y-Math.max(block.yPixels()/100,Math.min(y,(block.yPixels()+block.heightPixels())/100));
+                    if(dx*dx+dy*dy<radius*radius) { safe=false;break; }
+                }
+                for(var lava:geometry.lavaZones()) {
+                    if(x+radius>=lava.xPixels()/100 && x-radius<=(lava.xPixels()+lava.widthPixels())/100
+                            && y-radius<=(lava.yPixels()+lava.heightPixels())/100+.002f) { safe=false;break; }
+                }
+                if(safe) { result.add(new SpawnPosition(x,y)); }
+            }
+        }
+        if(result.isEmpty()) { throw new IllegalArgumentException("No safe respawn platform"); }
+        return List.copyOf(result);
     }
 
     /** Chỉ nâng Y nếu vòng tròn thực sự chồng collider; không di chuyển X hoặc sửa geometry. */

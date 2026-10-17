@@ -52,6 +52,11 @@ public class Game extends com.badlogic.gdx.Game {
 	}
 
 	public LobbyClient getLobbyClient() { return lobbyClient; }
+    private com.smashprofs.game.Screens.OnlineArenaAssets pendingArenaAssets;
+    public void prepareOnlineAssets() { if(pendingArenaAssets==null) { pendingArenaAssets=new com.smashprofs.game.Screens.OnlineArenaAssets(); } }
+    public com.smashprofs.game.Screens.OnlineArenaAssets takeOnlineAssets() {
+        prepareOnlineAssets();var assets=pendingArenaAssets;pendingArenaAssets=null;return assets;
+    }
 
 	public static Game forLobby(LobbyClient lobby) {
 		var game = new Game();
@@ -80,6 +85,7 @@ public class Game extends com.badlogic.gdx.Game {
 	}
 
 	public void leaveOnlineLobby() {
+        if(pendingArenaAssets!=null) { pendingArenaAssets.close();pendingArenaAssets=null; }
 		if (lobbyClient != null) { lobbyClient.close(); lobbyClient = null; networkClient = null; }
 	}
 
@@ -168,6 +174,7 @@ public class Game extends com.badlogic.gdx.Game {
 	
 	@Override
 	public void dispose () {
+        if(pendingArenaAssets!=null) { pendingArenaAssets.close();pendingArenaAssets=null; }
 		if (getScreen() != null) { getScreen().dispose(); }
 		batch.dispose();
 		if (lobbyClient != null) {

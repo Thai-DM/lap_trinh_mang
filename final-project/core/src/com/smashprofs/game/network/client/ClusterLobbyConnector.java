@@ -10,7 +10,7 @@ public final class ClusterLobbyConnector {
     private static final ObjectMapper JSON = new ObjectMapper();
     private ClusterLobbyConnector() { }
     public static LobbyClient fromArguments(String[] arguments) throws IOException {
-        String control = null, room = null, region = "local"; boolean create = false, join = false,gameplay=false;
+        String control = null, room = null, region = "local"; boolean create = false, join = false,gameplay=false,fighter=false;
         Set<String> seen = new HashSet<>();
         for (String argument : arguments) {
             if (!seen.add(argument.split("=", 2)[0])) { throw new IllegalArgumentException("Duplicate cluster option"); }
@@ -20,6 +20,7 @@ public final class ClusterLobbyConnector {
             else if (argument.equals("--create-room")) { create=true; }
             else if (argument.equals("--join-room")) { join=true; }
             else if (argument.equals("--gameplay")) { gameplay=true; }
+            else if (argument.equals("--fighter")) { fighter=true;gameplay=true; }
             else { throw new IllegalArgumentException("Unknown cluster option: " + argument); }
         }
         if (control == null || create == join || (join && room == null)) {
@@ -31,14 +32,15 @@ public final class ClusterLobbyConnector {
         }
         JsonNode auth = call(control, "/auth/guest", Map.of(), null);
         JsonNode assignment = call(control, create ? "/rooms/create" : "/rooms/join",
-                create ? Map.of("region", region,"gameplay",gameplay) : Map.of("roomId", room), auth.path("token").asText());
+                create ? Map.of("region", region,"gameplay",gameplay,"fighter",fighter) : Map.of("roomId", room), auth.path("token").asText());
         String host = assignment.path("host").asText(); int port = assignment.path("port").asInt();
         String assignedRoom = assignment.path("roomId").asText();
         System.out.println("Cluster room: " + assignedRoom + " worker=" + assignment.path("workerId").asText());
         var configuration = new LobbyConfiguration(host, port, assignedRoom, LobbyConfiguration.Mode.JOIN);
         var network = NetworkClient.forCluster(host, port, assignment.path("ticket").asText(), null);
         var lobby=new LobbyClient(configuration, network, s -> { });
-        if(assignment.path("gameplay").asBoolean(false)) { lobby.enableGameplay(); }
+        if(assignment.path("fighter").asBoolean(false)) { lobby.enableFighter(); }
+        else if(assignment.path("gameplay").asBoolean(false)) { lobby.enableGameplay(); }
         return lobby;
     }
     private static JsonNode call(String base, String path, Object body, String token) throws IOException {

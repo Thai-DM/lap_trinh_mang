@@ -36,6 +36,8 @@ public class OnlineLobbyFormModelTest {
             assertNotEquals(joined[0].getNetworkClient().getPlayerId(), joined[1].getNetworkClient().getPlayerId());
             assertEquals("form-room", joined[1].getSnapshot().roomId());
             assertTrue(joined[0].ready("Viktor")); assertTrue(joined[1].ready("Leo"));
+            await(conditions,()->joined[0].getSnapshot().phase()==LobbyClient.Phase.WAITING_FOR_START && joined[1].getSnapshot().phase()==LobbyClient.Phase.WAITING_FOR_START);
+            assertTrue(joined[0].markLoaded());assertTrue(joined[1].markLoaded()); // Native loading screen sends this after its asset handoff.
             await(conditions, () -> joined[0].getSnapshot().isMatchStarted() && joined[1].getSnapshot().isMatchStarted());
         } finally {
             a.close(); b.close();

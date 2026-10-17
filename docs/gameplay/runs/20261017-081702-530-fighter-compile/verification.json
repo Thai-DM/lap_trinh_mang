@@ -1,0 +1,12 @@
+﻿{
+    "date":  "2026-10-17T08:17:16.9329634+07:00",
+    "status":  "PASS",
+    "label":  "fighter-compile",
+    "heapMiB":  128,
+    "suites":  [
+                   "com.smashprofs.server.game.GameplayInputProtocolTest",
+                   "com.smashprofs.server.game.StockGameplayTest",
+                   "com.smashprofs.server.game.ItemGameplayTest",
+                   "com.smashprofs.tests.network.GameplayClientModelTest"
+               ]
+}

@@ -336,7 +336,7 @@ public class OnlineRoomScreen implements Screen {
             TIMES[timeSelect.getSelectedIndex()],
             LIVES[livesSelect.getSelectedIndex()],
             MatchRules.DropRate.values()[dropsSelect.getSelectedIndex()],
-            true
+            true, lobby.getSettings()!=null && lobby.getSettings().rules().fighter()
         );
     }
 
@@ -417,7 +417,8 @@ public class OnlineRoomScreen implements Screen {
     public void render(float delta) {
         if (disposed) { return; }
         var state = lobby.getSnapshot();
-        if ("COUNTDOWN".equals(state.serverPhase()) || state.isMatchStarted()) {
+        if ("COUNTDOWN".equals(state.serverPhase()) || state.isMatchStarted()
+                || lobby.getSettings()!=null && lobby.getSettings().rules().fighter() && state.members().size()>=2 && state.members().stream().allMatch(LobbyClient.Member::ready)) {
             game.setScreen(new OnlineLoadingScreen(game, lobby));
             return;
         }
@@ -584,7 +585,7 @@ public class OnlineRoomScreen implements Screen {
         // Ready Hint & Status Text
         readyHint.setText(
             members.size() < 2 ? "Cần ít nhất 2 người để bắt đầu. Hãy sao chép mã phòng để mời bạn bè!" :
-            waiting ? "Trận đấu sẽ tự động bắt đầu sau 3 giây khi tất cả người chơi sẵn sàng!" :
+            waiting ? "Cả phòng sẵn sàng → nạp đấu trường → đếm ngược 3 giây!" :
             dirty && host ? "Bạn đang chỉnh luật: Hãy bấm Lưu luật phòng trước khi bấm Sẵn sàng." :
             "Mỗi người hãy chọn một nhân vật yêu thích rồi bấm Sẵn sàng."
         );
@@ -594,7 +595,8 @@ public class OnlineRoomScreen implements Screen {
             case READY_PENDING -> "Đang chờ máy chủ xác nhận trạng thái…";
             case WAITING_FOR_START -> "Bạn đã sẵn sàng! Đang đợi những người chơi còn lại…";
             case ERROR, DISCONNECTED -> "Mất kết nối với máy chủ. Bấm Rời phòng để thử lại.";
-            default -> "A/D di chuyển · W nhảy · S dậm · V/Space tấn công · F tuyệt chiêu · Ctrl đỡ đòn";
+            default -> settings!=null && settings.rules().fighter()?"A/D di chuyển · W nhảy · S rơi nhanh · V đánh nhẹ · F đánh mạnh · Shift né · E nhặt · Q ném":
+                    "A/D di chuyển · W nhảy · S dậm · V/Space tấn công · F tuyệt chiêu · Ctrl đỡ đòn";
         };
         statusLabel.setText(message);
         statusLabel.setColor(state.errorCode() != null || state.phase() == LobbyClient.Phase.DISCONNECTED ? OnlineUi.DANGER : Color.valueOf("94B8E6"));

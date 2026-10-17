@@ -38,6 +38,10 @@ public class StateInterpolator {
         private final java.util.function.LongSupplier nanoClock;
         private long observedTick = -1, anchorNanos;
         private double renderTick = -1;
+        private long processedTick=-1;
+        private final Map<String,WireGameSnapshot.Player> seenPlayers=new HashMap<>();
+        private final Map<String,Long> discontinuities=new HashMap<>();
+        private final Map<String,Double> playerCursors=new HashMap<>();
 
         public V1(SnapshotBuffer.V1 buffer) {
             this(buffer, DEFAULT_DELAY_TICKS, DEFAULT_TELEPORT_METERS, System::nanoTime);
@@ -62,6 +66,20 @@ public class StateInterpolator {
             if (observedTick != latest.serverTick()) { observedTick = latest.serverTick(); anchorNanos = now; }
             double desired = observedTick - delayTicks + Math.max(0, now - anchorNanos) / 1_000_000_000.0 * TICK_RATE;
             renderTick = Math.min(latest.serverTick(), Math.max(oldest.serverTick(), Math.max(renderTick, desired)));
+            // Scan all newly retained states: the render thread may miss an entire dead/active
+            // transition between frames. Each player gets its own history barrier, never a global reset.
+            for(var state:retained) {
+                if(state.serverTick()<=processedTick) { continue; }
+                for(var p:state.players()) {
+                    var previous=seenPlayers.put(p.playerId(),p);
+                    if(previous!=null && (previous.dead()!=p.dead()
+                            || distanceSquared(previous.x(),previous.y(),p.x(),p.y())>teleportMeters*teleportMeters)) {
+                        discontinuities.put(p.playerId(),state.serverTick());
+                        playerCursors.put(p.playerId(),(double)state.serverTick());
+                    }
+                }
+                processedTick=state.serverTick();
+            }
             if (latest.phase().equals("FINISHED")) {
                 renderTick = latest.serverTick();
                 return new Frame(latest, renderTick, latest.players(), latest.projectiles());
@@ -75,15 +93,29 @@ public class StateInterpolator {
                     : (float) ((renderTick - from.serverTick()) / (to.serverTick() - from.serverTick()));
             List<WireGameSnapshot.Player> players = new java.util.ArrayList<>();
             for (var current : latest.players()) {
-                var p0 = from.player(current.playerId()); var p1 = to.player(current.playerId());
-                var previous = retained.size() > 1 ? retained.get(retained.size() - 2).player(current.playerId()) : current;
-                boolean newDiscontinuity = previous.dead() != current.dead()
-                        || distanceSquared(previous.x(), previous.y(), current.x(), current.y()) > teleportMeters * teleportMeters;
-                boolean snap = p0.dead() != p1.dead() || p0.dead() != current.dead()
-                        || newDiscontinuity || distanceSquared(p0.x(), p0.y(), p1.x(), p1.y()) > teleportMeters * teleportMeters;
-                var position = newDiscontinuity || p0.dead() != current.dead() ? current : p1;
-                float x = snap ? position.x() : lerp(p0.x(), p1.x(), alpha);
-                float y = snap ? position.y() : lerp(p0.y(), p1.y(), alpha);
+                var playerFrom=from;var playerTo=to;float playerAlpha=alpha;
+                var barrier=discontinuities.get(current.playerId());
+                if(barrier!=null) {
+                    // Start at zero delay on revival, then restore the normal delay over one second.
+                    // The cursor never rewinds or extrapolates, so later snapshots cannot freeze at spawn.
+                    double restoredDelay=Math.min(delayTicks,(latest.serverTick()-barrier)*delayTicks/60.0);
+                    double cursor=Math.min(latest.serverTick(),Math.max(playerCursors.get(current.playerId()),
+                            latest.serverTick()-restoredDelay+Math.max(0,now-anchorNanos)/1_000_000_000.0*TICK_RATE));
+                    cursor=Math.max(oldest.serverTick(),cursor);playerCursors.put(current.playerId(),cursor);
+                    playerFrom=oldest;playerTo=latest;
+                    for(var state:retained) {
+                        if(state.serverTick()<=cursor) { playerFrom=state; }
+                        if(state.serverTick()>=cursor) { playerTo=state;break; }
+                    }
+                    playerAlpha=playerFrom.serverTick()==playerTo.serverTick()?0:
+                            (float)((cursor-playerFrom.serverTick())/(playerTo.serverTick()-playerFrom.serverTick()));
+                }
+                var p0=playerFrom.player(current.playerId());var p1=playerTo.player(current.playerId());
+                boolean snap=p0.dead()!=p1.dead() || p0.dead()!=current.dead()
+                        || distanceSquared(p0.x(),p0.y(),p1.x(),p1.y())>teleportMeters*teleportMeters;
+                var position=p0.dead()!=current.dead()?current:p1;
+                float x=snap?position.x():lerp(p0.x(),p1.x(),playerAlpha);
+                float y=snap?position.y():lerp(p0.y(),p1.y(),playerAlpha);
                 players.add(new WireGameSnapshot.Player(current.playerId(), current.slotIndex(), current.characterId(), x, y,
                         current.velocityX(), current.velocityY(), current.hp(), current.grounded(), current.blocking(), current.dead(), current.facingRight()));
             }

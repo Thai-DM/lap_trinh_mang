@@ -36,6 +36,8 @@ public class OutboundInputQueue {
     private boolean accumulatedMelee = false;
     private boolean accumulatedBlock = false;
     private boolean accumulatedAbility = false;
+    private boolean accumulatedInteract, accumulatedDrop;
+    private com.smashprofs.common.model.FighterInput accumulatedFighter=com.smashprofs.common.model.FighterInput.NONE;
     private boolean hasPendingFrameInput = false;
 
     public OutboundInputQueue(PlayerId playerId) {
@@ -64,6 +66,15 @@ public class OutboundInputQueue {
      */
     public synchronized void recordFrameInput(float moveAxis, boolean jump, boolean stomp,
                                               boolean melee, boolean block, boolean ability) {
+        recordFrameInput(moveAxis, jump, stomp, melee, block, ability, false, false);
+    }
+    public synchronized void recordFrameInput(float moveAxis, boolean jump, boolean stomp,
+                                              boolean melee, boolean block, boolean ability,
+                                              boolean interact, boolean drop) {
+        recordFrameInput(moveAxis,jump,stomp,melee,block,ability,interact,drop,com.smashprofs.common.model.FighterInput.NONE);
+    }
+    public synchronized void recordFrameInput(float moveAxis,boolean jump,boolean stomp,boolean melee,boolean block,boolean ability,
+                                              boolean interact,boolean drop,com.smashprofs.common.model.FighterInput fighter) {
         // Continuous states: take latest value
         this.accumulatedMoveAxis = moveAxis;
         this.accumulatedBlock = block;
@@ -73,6 +84,9 @@ public class OutboundInputQueue {
         this.accumulatedStomp |= stomp;
         this.accumulatedMelee |= melee;
         this.accumulatedAbility |= ability;
+        accumulatedInteract |= interact;
+        accumulatedDrop |= drop;
+        accumulatedFighter=accumulatedFighter.merge(fighter);
 
         this.hasPendingFrameInput = true;
     }
@@ -99,7 +113,7 @@ public class OutboundInputQueue {
                 accumulatedStomp,
                 accumulatedMelee,
                 accumulatedBlock,
-                accumulatedAbility
+                accumulatedAbility, accumulatedInteract, accumulatedDrop, accumulatedFighter
         );
 
         // Reset discrete events for next sampling window
@@ -107,6 +121,8 @@ public class OutboundInputQueue {
         accumulatedStomp = false;
         accumulatedMelee = false;
         accumulatedAbility = false;
+        accumulatedInteract = accumulatedDrop = false;
+        accumulatedFighter=com.smashprofs.common.model.FighterInput.NONE;
         hasPendingFrameInput = false;
 
         // Bounded capacity: drop oldest if saturated to avoid input lag accumulation
@@ -144,10 +160,13 @@ public class OutboundInputQueue {
         PlayerInput attempt = hasPendingFrameInput ? new PlayerInput(playerId, head.sequence(), clientTick,
                 accumulatedMoveAxis, head.jumpPressed() || accumulatedJump,
                 head.stompPressed() || accumulatedStomp, head.meleePressed() || accumulatedMelee,
-                accumulatedBlock, head.abilityPressed() || accumulatedAbility) : head;
+                accumulatedBlock, head.abilityPressed() || accumulatedAbility,
+                head.interactPressed() || accumulatedInteract, head.dropPressed() || accumulatedDrop,head.fighter().merge(accumulatedFighter)) : head;
         if (!enqueue.test(attempt)) { return false; }
         queue.poll();
         accumulatedJump = accumulatedStomp = accumulatedMelee = accumulatedAbility = false;
+        accumulatedFighter=com.smashprofs.common.model.FighterInput.NONE;
+        accumulatedInteract = accumulatedDrop = false;
         hasPendingFrameInput = false;
         return true;
     }
@@ -192,7 +211,9 @@ public class OutboundInputQueue {
         accumulatedStomp = false;
         accumulatedMelee = false;
         accumulatedBlock = false;
+        accumulatedFighter=com.smashprofs.common.model.FighterInput.NONE;
         accumulatedAbility = false;
+        accumulatedInteract = accumulatedDrop = false;
         hasPendingFrameInput = false;
     }
 

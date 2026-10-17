@@ -7,6 +7,24 @@ import java.util.*;
 import static org.junit.Assert.*;
 
 public class StockGameplayTest {
+    @Test public void respawnsUseVariedClearPlatformTopsAvoidCampersAndDoNotRepeatTheLastPoint() {
+        var r=runtime(4,5,0);var g=r.gameplay();
+        var geometry=new com.smashprofs.server.game.physics.TmxCollisionLoader().loadOriginalMap();
+        var candidates=new com.smashprofs.server.game.physics.SpawnProvider(geometry,.01f).getRespawnCandidates();
+        assertTrue(candidates.size()>8);var used=new HashSet<Object>();Object previous=null;
+        for(int round=0;round<4;round++) {
+            long death=1+round*300;g.beforeTick(death);g.state.getPlayer(id(0)).applyDamage(100);g.afterTick();
+            g.beforeTick(death+89);assertEquals("RESPAWNING",g.snapshot().player("p0").status());
+            var camp=candidates.get(0);for(int i=1;i<4;i++) { g.bodies.respawn(id(i),camp.xMeters(),camp.yMeters()); }
+            g.beforeTick(death+90);var position=g.bodies.getPosition(id(0));
+            var chosen=new com.smashprofs.server.game.physics.SpawnProvider.SpawnPosition(position.xMeters(),position.yMeters());
+            assertTrue(candidates.contains(chosen));assertNotEquals(previous,chosen);previous=chosen;used.add(chosen);
+            assertTrue(Math.hypot(position.xMeters()-camp.xMeters(),position.yMeters()-camp.yMeters())>.5);
+            assertEquals(120,g.snapshot().player("p0").invulnerableTicks());
+            assertTrue(r.submitInput(new PlayerInput(id(0),round,0,1,false,false,false,false,false))==InputQueue.OfferResult.ACCEPTED);
+        }
+        assertTrue(used.size()>=3);
+    }
     private final List<MatchRuntime> runtimes=new ArrayList<>();
     private static PlayerId id(int slot) { return new PlayerId("p"+slot); }
     private MatchRuntime runtime(int count,int lives,int seconds) {

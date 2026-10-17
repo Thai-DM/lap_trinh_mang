@@ -16,6 +16,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static org.junit.Assert.*;
 
 public class OutboundInputQueueTest {
+    @Test public void inventoryEdgesSurviveBackpressureThenClearOnlyAfterAcceptedSend() {
+        queue.recordFrameInput(1,false,false,false,false,false,true,false);
+        assertFalse(queue.trySendAccumulatedInput(1,input->false));
+        queue.recordFrameInput(-1,false,false,false,false,false,false,true);
+        assertTrue(queue.trySendAccumulatedInput(2,input->{assertTrue(input.interactPressed());assertTrue(input.dropPressed());assertEquals(-1,input.moveAxis(),0);return true;}));
+        queue.recordFrameInput(0,false,false,false,false,false);
+        assertTrue(queue.trySendAccumulatedInput(3,input->{assertFalse(input.interactPressed());assertFalse(input.dropPressed());return true;}));
+        queue.recordFrameInput(0,false,false,false,false,false,true,true);queue.clear();assertTrue(queue.isEmpty());
+    }
 
     private PlayerId playerId;
     private OutboundInputQueue queue;

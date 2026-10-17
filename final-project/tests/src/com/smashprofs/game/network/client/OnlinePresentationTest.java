@@ -6,7 +6,6 @@ import com.smashprofs.server.game.*;
 import com.smashprofs.server.game.projectile.ServerProjectile;
 import com.smashprofs.server.network.*;
 import org.junit.Test;
-import java.io.File;
 import javax.imageio.ImageIO;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
@@ -54,10 +53,41 @@ public class OnlinePresentationTest {
         void receive(ProtocolMessage message) { assertTrue(session.acceptState(message)); view.update(); }
     }
     private static final class ValueTransport extends NetworkClient {
-        final PlayerId id; int inputs;
+        final PlayerId id; int inputs;ProtocolMessage lastInput;
         ValueTransport(PlayerId id) { super("127.0.0.1", 0, null); this.id = id; }
         @Override public PlayerId getPlayerId() { return id; }
-        @Override public boolean sendMessage(ProtocolMessage message) { inputs++; return true; }
+        @Override public boolean sendMessage(ProtocolMessage message) { inputs++;lastInput=message;return true; }
+    }
+    private static ProtocolMessage lifeState(long tick,float x,boolean dead) {
+        var message=state(2,tick,x,dead?0:100,dead,"PLAYING",List.of());
+        var payload=message.payload();
+        var remote=(com.fasterxml.jackson.databind.node.ObjectNode)payload.path("players").get(1);
+        remote.put("x",8+tick*.01f).put("dead",false).put("hp",100);
+        var rules=com.smashprofs.common.model.MatchRules.DEFAULT;
+        var values=List.of(
+                new com.smashprofs.common.model.GameplaySnapshot.Player("opaque-0",2,dead?"RESPAWNING":"ACTIVE",dead?3:0,dead?0:120,0,"NONE",false,0,0,0,0,1,"NONE",0),
+                new com.smashprofs.common.model.GameplaySnapshot.Player("opaque-1",3,"ACTIVE",0,0,0,"NONE",false,0,0,0,0,0,"NONE",0));
+        payload.set("gameplay",GameplayProtocol.snapshot(new com.smashprofs.common.model.GameplaySnapshot(rules,tick,values,List.of(),List.of())));
+        return new ProtocolMessage(message.type(),null,payload);
+    }
+    @Test public void revivalMovesOnFollowingSnapshotsWithoutReenteringDeadHistoryAndRemoteKeepsItsDelay() {
+        var f=new Fixture(2,0);f.receive(lifeState(3,2,false));
+        assertTrue(f.session.acceptState(lifeState(6,2,true))); // death and revival can both arrive between frames
+        f.receive(lifeState(9,5,false));assertEquals(5,f.view.getPlayers().get(0).state().x(),0);
+        float previous=5;
+        for(int tick=12;tick<=81;tick+=3) {
+            f.receive(lifeState(tick,5+(tick-9)*.02f,false));float shown=f.view.getPlayers().get(0).state().x();
+            assertTrue("No post-revival pause or backwards step at "+tick,shown>previous);previous=shown;
+            assertEquals(8+(tick-6)*.01f,f.view.getPlayers().get(1).state().x(),.00001f);
+        }
+        f.clock.addAndGet(5_000_000_000L);f.view.update();assertEquals(6.44f,f.view.getPlayers().get(0).state().x(),.00001f);
+    }
+    @Test public void firstRevivalSnapshotFlushesHeldMovementButNeverReplaysDeadTimeAttackOrInventoryEdges() throws Exception {
+        var f=new Fixture(2,0);f.receive(lifeState(3,2,false));f.receive(lifeState(6,2,true));
+        int sent=f.network.inputs;assertFalse(f.session.recordFrameInput(1,true,true,true,true,true,true,true));assertEquals(sent,f.network.inputs);
+        f.receive(lifeState(9,5,false));assertEquals(sent+1,f.network.inputs);
+        var input=ProtocolV1.playerInput(f.network.lastInput,f.network.id);assertEquals(1,input.moveAxis(),0);assertTrue(input.blockHeld());
+        assertFalse(input.jumpPressed());assertFalse(input.stompPressed());assertFalse(input.meleePressed());assertFalse(input.abilityPressed());assertFalse(input.interactPressed());assertFalse(input.dropPressed());
     }
 
     @Test public void twoThreeFourPlayersMapLocalByIdentityIncludingNonzeroSlotAndPreserveFloatHP() {
@@ -195,12 +225,13 @@ public class OnlinePresentationTest {
     @Test public void visualCatalogUsesExistingOriginalAnimationAndProjectileAssets() throws Exception {
         for (String character : GameStartRoster.CHARACTERS) {
             var assets = OnlineVisualCatalog.character(character);
-            var stand = ImageIO.read(new File("../assets", assets.stand())); var run = ImageIO.read(new File("../assets", assets.run()));
+            var stand = ImageIO.read(Objects.requireNonNull(getClass().getClassLoader().getResource(assets.stand())));
+            var run = ImageIO.read(Objects.requireNonNull(getClass().getClassLoader().getResource(assets.run())));
             assertTrue(stand.getWidth() >= 400 && stand.getHeight() >= 100);
             assertTrue(run.getWidth() >= 600 && run.getHeight() >= 100);
         }
         for (String type : List.of("IBM", "STAR", "MINE", "ROCKET")) {
-            assertNotNull(ImageIO.read(new File("../assets", OnlineVisualCatalog.projectile(type).path())));
+            assertNotNull(ImageIO.read(Objects.requireNonNull(getClass().getClassLoader().getResource(OnlineVisualCatalog.projectile(type).path()))));
         }
         assertTrue(OnlineVisualCatalog.projectile("ROCKET").orientFromVelocity());
         assertThrows(IllegalArgumentException.class, () -> OnlineVisualCatalog.character("invented"));

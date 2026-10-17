@@ -8,7 +8,8 @@ import static org.junit.Assert.*;
 public class ItemGameplayTest {
     @Test public void equippedAmmoIsAuthoritativeAndClearedWhenTheLastRoundIsUsed() {
         var game=runtime.gameplay();var position=game.bodies.getPosition(id(0));
-        game.items.drop("SHOTGUN",position.xMeters(),position.yMeters(),0);runtime.tick();
+        game.items.drop("SHOTGUN",position.xMeters(),position.yMeters(),0);
+        runtime.submitInput(action(0,true,false));runtime.tick();
         assertEquals(6,game.snapshot().player("p0").ammo());
         for(int i=0;i<6;i++) { assertTrue(game.items.attack(id(0),2+i*24));assertEquals(5-i,game.snapshot().player("p0").ammo()); }
         assertEquals("NONE",game.snapshot().player("p0").weapon());
@@ -23,7 +24,41 @@ public class ItemGameplayTest {
     @After public void stop() { runtime.close(); }
     private GameplayMatch game() { return runtime.gameplay(); }
     private void pickup(String type) {
-        var g=game();var position=g.bodies.getPosition(id(0));assertTrue(g.items.drop(type,position.xMeters(),position.yMeters(),1));g.beforeTick(1);g.items.update(1);
+        var g=game();var position=g.bodies.getPosition(id(0));assertTrue(g.items.drop(type,position.xMeters(),position.yMeters(),1));g.beforeTick(1);g.items.interact(action(0,true,false),1);g.items.update(1);
+    }
+    private PlayerInput action(long sequence,boolean pickup,boolean drop) { return new PlayerInput(id(0),sequence,0,0,false,false,false,false,false,pickup,drop); }
+    @Test public void walkingPastDoesNotCollectAndESelectsOnlyNearestWithin35cm() {
+        var g=game();g.items.drop("SHOTGUN",4.6f,3,0);g.items.drop("LASER",4.8f,3,0);g.items.update(1);
+        assertEquals("NONE",g.snapshot().player("p0").weapon());assertEquals(2,g.items.itemViews().size());
+        runtime.submitInput(action(1,true,false));runtime.tick();assertEquals("SHOTGUN",g.snapshot().player("p0").weapon());assertEquals(1,g.items.itemViews().size());
+        runtime.tick();assertEquals("SHOTGUN",g.snapshot().player("p0").weapon()); // no replay of the E edge
+        g.bodies.respawn(id(0),3.5f,3);g.items.interact(action(2,true,false),2);assertEquals(1,g.items.itemViews().size());
+    }
+    @Test public void dropAndSwapPreserveRemainingAmmoAndNeverDuplicateOnStaleInput() {
+        var g=game();pickup("SHOTGUN");g.items.attack(id(0),1);assertEquals(5,g.snapshot().player("p0").ammo());
+        var input=action(2,true,true);assertEquals(InputQueue.OfferResult.ACCEPTED,runtime.submitInput(input));
+        assertEquals(InputQueue.OfferResult.DUPLICATE_OR_STALE,runtime.submitInput(input));runtime.tick();
+        assertEquals("NONE",g.snapshot().player("p0").weapon());assertEquals(1,g.items.itemViews().size());
+        var gun=g.items.itemViews().get(0);g.bodies.respawn(id(0),gun.x(),gun.y());
+        runtime.submitInput(action(3,true,false));runtime.tick();assertEquals(5,g.snapshot().player("p0").ammo());
+        g.items.drop("LASER",gun.x(),gun.y(),3);g.items.interact(action(4,true,false),3);
+        assertEquals("LASER",g.snapshot().player("p0").weapon());assertEquals(1,g.items.itemViews().size());
+        var old=g.items.itemViews().get(0);g.bodies.respawn(id(0),old.x(),old.y());g.items.interact(action(5,true,false),4);
+        assertEquals("SHOTGUN",g.snapshot().player("p0").weapon());assertEquals(5,g.snapshot().player("p0").ammo());
+    }
+    @Test public void fullWorldRejectsGWithoutLosingGunButAllowsAtomicSwapAndExpiry() {
+        var g=game();pickup("LASER");var pos=g.bodies.getPosition(id(0));
+        g.items.drop("SHOTGUN",pos.xMeters(),pos.yMeters(),1);
+        for(int i=1;i<16;i++) { g.items.drop("SHIELD",3.5f,3.5f,1); }
+        g.items.interact(action(1,false,true),2);assertEquals("LASER",g.snapshot().player("p0").weapon());assertEquals(16,g.items.itemViews().size());
+        g.items.interact(action(2,true,false),2);assertEquals("SHOTGUN",g.snapshot().player("p0").weapon());assertEquals(16,g.items.itemViews().size());
+        g.items.update(1803);assertTrue(g.items.itemViews().isEmpty());
+    }
+    @Test public void inactivePlayersCannotPickUpOrDropAndSlotOrderResolvesContestedLoot() {
+        var g=game();g.bodies.respawn(id(1),4.5f,3);g.items.drop("LASER",4.5f,3,0);
+        runtime.submitInput(new PlayerInput(id(1),1,0,0,false,false,false,false,false,true,false));
+        runtime.submitInput(action(1,true,false));runtime.tick();assertEquals("LASER",g.snapshot().player("p0").weapon());assertEquals("NONE",g.snapshot().player("p1").weapon());
+        g.state.getPlayer(id(0)).applyDamage(100);g.items.interact(action(2,false,true),2);assertTrue(g.items.itemViews().isEmpty());
     }
     @Test public void healthClampsAndShieldAbsorbsExactlyOneValidHitWithoutDamageOrImpulse() {
         var g=game();g.state.getPlayer(id(0)).applyDamage(50);pickup("HEALTH");assertEquals(80,g.state.getPlayer(id(0)).getHp(),0);
@@ -97,10 +132,10 @@ public class ItemGameplayTest {
         var rectangles=new ArrayList<>(original.rectangles());rectangles.add(new com.smashprofs.server.game.physics.MapCollisionDefinition.CollisionRectangle(999,480,250,5,100));
         var geometry=new com.smashprofs.server.game.physics.MapCollisionDefinition("test-wall",1200,400,rectangles);
         try(var weapons=new ItemSystem(g,geometry,new Random(1))) {
-            weapons.drop("SHOTGUN",4.5f,3,1);g.beforeTick(1);weapons.update(1);weapons.attack(id(0),1);
+            weapons.drop("SHOTGUN",4.5f,3,1);g.beforeTick(1);weapons.interact(action(0,true,false),1);weapons.update(1);weapons.attack(id(0),1);
             for(int tick=2;tick<=30;tick++) { g.beforeTick(tick);weapons.update(tick); }
             assertEquals(100,g.state.getPlayer(id(1)).getHp(),0);
-            weapons.drop("LASER",4.5f,3,31);g.beforeTick(31);weapons.update(31);weapons.attack(id(0),31);
+            weapons.drop("LASER",4.5f,3,31);g.beforeTick(31);weapons.interact(action(1,true,false),31);weapons.update(31);weapons.attack(id(0),31);
             for(int tick=32;tick<=34;tick++) { g.beforeTick(tick);weapons.update(tick); }
             assertEquals(76,g.state.getPlayer(id(1)).getHp(),0);
         }

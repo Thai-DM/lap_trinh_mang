@@ -1,0 +1,36 @@
+{
+  "status": "PASS",
+  "tests": 721,
+  "testEvidence": "../20261017-092241-747-final-gameplay-regression/tests.log",
+  "nativeCases": [
+    {
+      "players": 2,
+      "width": 1280,
+      "evidence": "two-players.log"
+    },
+    {
+      "players": 4,
+      "width": 960,
+      "evidence": "four-players-small.log"
+    }
+  ],
+  "fixedCamera": true,
+  "continuousSolidFloor": true,
+  "floorTop": 0.16,
+  "floorBottom": -0.24,
+  "baseRunSpeed": 1.6,
+  "dashSpeed": 2.6,
+  "dodgeSpeed": 2.6,
+  "sha256": {
+    "final-project/common/src/com/smashprofs/common/model/FighterArena.java": "e376eddc484b12abc65447650e950858039eddd56a0d163a3072d84be22dea5c",
+    "final-project/common/src/com/smashprofs/common/model/FighterMovement.java": "5cba815c15a49b72ee3092e0afdf059579e20178bbdde1cc749e8075f296821f",
+    "final-project/server/src/com/smashprofs/server/game/MatchRuntime.java": "6feb8a1a9c6684ec57187047c57b73eca063fa585a63b4ddb0a0804a72a7ab12",
+    "final-project/server/src/com/smashprofs/server/game/physics/MapCollisionDefinition.java": "0d014303fd06bd75a821e26dad917e2716fd0e125c2de1ddc9d7a40b32c30e73",
+    "final-project/server/src/com/smashprofs/server/game/FighterEngine.java": "fd38d71ddc949619c3c062d9e3096fa9c20a6864428ff861f210f3f731437f1b",
+    "final-project/core/src/com/smashprofs/game/network/client/LocalFighterPrediction.java": "5f5f541b34596d7bae65eedafbee3d547fb7471d7e330dd91766726b7bae48d0",
+    "final-project/core/src/com/smashprofs/game/network/client/OnlineCameraController.java": "ab6fbccdfbd2733ded05efbd5ddb6839aff0e279068c9947bd653b4511ff31e8",
+    "final-project/core/src/com/smashprofs/game/Screens/OnlinePlayScreen.java": "06bb83a5ca346347340364c6e4b286c610103f67f47461f74e16609b23613904",
+    "scripts/gameplay/FighterVisualPreview.java": "a32f603f9279b4497e8030519d9e7ab99b709af899bca1e7dd8f7602555b6fb6",
+    "final-project/desktop/build/libs/desktop-1.0.jar": "c2463e76cf25f44270ee98c3eecd3efe6f79eb3e59f3453ab6110d16af4d577d"
+  }
+}

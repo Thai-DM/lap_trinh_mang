@@ -61,8 +61,9 @@ final class ProtocolV1Dispatcher {
         if (message.type() == MessageType.CONNECT) {
             if (admission == null) { ProtocolV1.fields(payload, requestId,"gameplay"); }
             if(payload.has("gameplay")) {
-                if(!GameplayProtocol.CAPABILITY.equals(payload.path("gameplay").asText())) { throw ProtocolV1.invalid(requestId); }
-                session.enableGameplay();
+                if(com.smashprofs.common.protocol.FighterProtocol.CAPABILITY.equals(payload.path("gameplay").asText())) { session.enableFighter(); }
+                else if(GameplayProtocol.CAPABILITY.equals(payload.path("gameplay").asText())) { session.enableGameplay(); }
+                else { throw ProtocolV1.invalid(requestId); }
             }
             // CONNECT lặp giữ nguyên ID; không lấy PlayerId/IP/port từ client.
             if (admission != null) { session.bindPlayer(admission.connect(session, message)); }
@@ -73,6 +74,32 @@ final class ProtocolV1Dispatcher {
         if (session.getPlayerId() == null) { throw error("INVALID_SESSION", requestId); }
         if (admission != null) { admission.authorize(session, message); }
         return switch (message.type()) {
+            case LOAD_READY -> {
+                ProtocolV1.fields(payload,requestId,"roomId");String id=ProtocolV1.roomId(payload,requestId);
+                if(!session.supportsFighter() || !id.equals(session.getRoomId()) || rooms.getRoom(id)==null) { throw error("UNAUTHORIZED_PLAYER",requestId); }
+                try { rooms.getRoom(id).markLoaded(session.getPlayerId()); }catch(IllegalStateException invalid) { throw error("INVALID_ROOM_STATE",requestId); }
+                yield null;
+            }
+            case REMATCH_REQUEST -> {
+                ProtocolV1.fields(payload,requestId,"roomId","matchId");String id=ProtocolV1.roomId(payload,requestId);
+                if(!session.supportsFighter() || !id.equals(session.getRoomId()) || rooms.getRoom(id)==null || !payload.path("matchId").isTextual()) { throw error("UNAUTHORIZED_PLAYER",requestId); }
+                var room=rooms.getRoom(id);var recipients=connections.getSessions();var failed=new java.util.ArrayList<ClientSession>();
+                synchronized(room) {
+                    com.smashprofs.server.room.GameRoom.Rematch vote;
+                    var connected=recipients.stream().filter(peer->peer.isOpen() && peer.supportsFighter() && id.equals(peer.getRoomId()))
+                            .map(ClientSession::getPlayerId).collect(java.util.stream.Collectors.toSet());
+                    try { vote=room.requestRematch(session.getPlayerId(),payload.path("matchId").asText(),connected); }
+                    catch(IllegalStateException invalid) { throw error("INVALID_ROOM_STATE",requestId); }
+                    var state=new ReliableDelivery.Message(new ProtocolMessage(MessageType.REMATCH_STATE,null,ProtocolV1.object().put("roomId",id).put("matchId",payload.path("matchId").asText())
+                            .put("votes",vote.votes()).put("required",vote.required()).put("started",vote.started())));
+                    for(var peer:recipients) {
+                        if(peer.supportsFighter() && id.equals(peer.getRoomId())
+                                && !peer.offerReliable(new ReliableDelivery(state,()->peer.isOpen() && id.equals(peer.getRoomId())))) { failed.add(peer); }
+                    }
+                }
+                for(var peer:failed) { peer.close(); }
+                yield null;
+            }
             case CREATE_ROOM -> {
                 ProtocolV1.fields(payload, requestId, "roomId", "gameplay");
                 String roomId = ProtocolV1.roomId(payload, requestId);
@@ -81,7 +108,7 @@ final class ProtocolV1Dispatcher {
                 final GameRoom created;
                 try { created = rooms.createRoom(roomId); }
                 catch (IllegalArgumentException duplicate) { throw error("INVALID_ROOM_STATE", requestId); }
-                if(enhanced) { created.configureGameplay(session.getPlayerId()); }
+                if(enhanced) { created.configureGameplay(session.getPlayerId(),session.supportsFighter()); }
                 // Chỉ create: không sửa session binding, không join/ready/start; send nằm ngoài khóa routing.
                 yield new ProtocolMessage(MessageType.ROOM_CREATED, requestId,
                         ProtocolV1.object().put("roomId", created.getRoomId()));
@@ -91,6 +118,7 @@ final class ProtocolV1Dispatcher {
                 String roomId = ProtocolV1.roomId(payload, requestId);
                 var target=rooms.getRoom(roomId);
                 if(target!=null && target.getRules().gameplay() && !session.supportsGameplay()) { throw error("GAMEPLAY_CAPABILITY_REQUIRED",requestId); }
+                if(target!=null && target.getRules().fighter() && !session.supportsFighter()) { throw error("FIGHTER_CAPABILITY_REQUIRED",requestId); }
                 var result = joins.handle(session, roomId);
                 if (!result.isSuccess()) {
                     throw error(switch (result.status()) {
@@ -138,7 +166,19 @@ final class ProtocolV1Dispatcher {
                 yield roomState(session.getRoomId(), requestId);
             }
             case PLAYER_INPUT -> {
-                var result = inputs.handle(session, ProtocolV1.playerInput(message, session.getPlayerId()));
+                if(payload.has("matchId") && !session.supportsFighter()) { throw ProtocolV1.invalid(requestId); }
+                if(payload.has("fighter") && !session.supportsFighter()) { throw ProtocolV1.invalid(requestId); }
+                if (!session.supportsGameplay() && (payload.has("interactPressed") || payload.has("dropPressed"))) {
+                    throw ProtocolV1.invalid(requestId);
+                }
+                var input=ProtocolV1.playerInput(message,session.getPlayerId());
+                var room=session.getRoomId()==null?null:rooms.getRoom(session.getRoomId());
+                if(room!=null && room.getRules().fighter()) {
+                    if(!payload.has("matchId")) { throw ProtocolV1.invalid(requestId); }
+                    var runtime=room.getMatchRuntime();
+                    if(runtime==null || runtime.isFinished() || !runtime.getMatchId().equals(payload.path("matchId").asText())) { yield null; }
+                }
+                var result = inputs.handle(session,input);
                 // Valid in-flight input can arrive before a client has received its death/respawn snapshot.
                 // Its session/identity/room are still validated; discard it without a per-frame ERROR storm.
                 if(result==PlayerInputHandler.RoutingResult.PLAYER_INACTIVE) { yield null; }
@@ -193,6 +233,7 @@ final class ProtocolV1Dispatcher {
                     .put("rulesVersion",room.getRulesVersion())
                     .put("hostId",room.getHost()==null?"":room.getHost().value()).put("playerCount",room.getPlayerCount());
             payload.set("rules",GameplayProtocol.rules(room.getRules()));
+            if(room.getRules().fighter()) { payload.put("phase",room.getPhase().name()).put("loadedPlayers",room.getLoadedPlayerCount()).put("countdownMs",room.getCountdownRemainingMillis()); }
             var players=payload.putArray("players");
             for(var slot:room.getPlayerSlots()) {
                 var member=players.addObject().put("playerId",slot.playerId().value()).put("slotIndex",slot.slotIndex())

@@ -1,6 +1,12 @@
-# Gameplay multiplayer — 9 tính năng chính thức
+# Super Smash Profs — Platform Fighter
 
-**Bản sửa mới nhất:** [dung nham bật lên, HUD gọn và vũ khí/túi đồ](10-COMBAT-UX-FIXES.md). Dung nham hiện trừ10HP và bật lên theo lựa chọn mới của người dùng; không mất ngay một mạng. Bản này có198targetedtestsPASS và native graphics smoke với2/4người.
+**Bản mới nhất:** [Platform Fighter giai đoạn 2](12-PLATFORM-FIGHTER.md). Giao diện online mặc định dùng **0% sát thương tích lũy + stocks + K.O theo biên**; có light/heavy theo frame, dodge/dash/recovery, sàn phụ xuyên được và đấu lại trên cùng kết nối. Luật lava -10 HP/bật lên của FIX1 thuộc chế độ HP được giữ để tương thích. **713 kiểm thử hồi quy PASS**.
+
+Kiểm chứng mới: [JUnit](runs/20261017-085338-383-final-gameplay-regression/tests.log) · [30 kiểm tra cuối](runs/20261017-085538-830-fighter-final-lifecycle/tests.log) · [Build JAR](runs/20261017-fighter-build/build-packaged-final.log) · [HUD/bệ hồi sinh ở 960×540](runs/20261017-fighter-native/final-small-screen/respawn-platform.png) · [Podium](runs/20261017-fighter-native/final-two-players/result.png) · [Rematch 4 người](runs/20261017-fighter-native/final-four-players/rematch.png).
+
+**Lịch sử FIX1:** [6 lỗi gameplay ở chế độ HP](11-FIX1.md). Camera mượt khi nhảy cao; bám tường; E nhặt / G thả, giữ nguyên đạn; bậc đá không nhận nhầm dung nham; bật dung nham nhẹ hơn; hồi sinh ngẫu nhiên. Bản đó có 686 tests PASS, gồm TCP với 2/3/4 người.
+
+Kiểm chứng FIX1: [JUnit](runs/20261017-075241-496-final-gameplay-regression/tests.log) · [Build JAR](runs/20261017-fix1-build/build.log) · [HUD 4 người ở 960×540](runs/20261017-fix1-native/small-screen/compact-hud.png) · [Túi đồ](runs/20261017-fix1-native/two-players/inventory.png) · [Hồi sinh trên bệ cao](runs/20261017-fix1-native/four-players/respawn-protection.png).
 
 Source server/client đã triển khai; bản gameplay ban đầu có **638 tests PASS**. Bản cập nhật [giao diện tiếng Việt](09-UI-REDESIGN.md) có **96 targeted tests PASS**, đã chạy native GL smoke với 2/4 người và xem ảnh màn hình. Âm thanh và chơi tay đầy đủ chưa kiểm chứng; so sánh hiệu năng vẫn bị chặn do RAM.
 

@@ -12,10 +12,10 @@ import com.smashprofs.game.Helper.PlayerTypes;
 public class Viktor extends Player {
 
     // Character Stats (Chỉ số nhân vật: thang điểm 1 - 8)
-    public static final int STAT_ATTACK    = 8; // Sát thương
-    public static final int STAT_DEFENSE   = 7; // Phòng thủ / Giáp
-    public static final int STAT_SPEED     = 3; // Tốc độ di chuyển
-    public static final int STAT_DEXTERITY = 4; // Khéo léo / Hồi chiêu
+    public static final int STAT_ATTACK    = com.smashprofs.common.model.FighterStats.forCharacter("Viktor").attack(); // Sát thương
+    public static final int STAT_DEFENSE   = com.smashprofs.common.model.FighterStats.forCharacter("Viktor").defense(); // Phòng thủ / Giáp
+    public static final int STAT_SPEED     = com.smashprofs.common.model.FighterStats.forCharacter("Viktor").speed(); // Tốc độ di chuyển
+    public static final int STAT_DEXTERITY = com.smashprofs.common.model.FighterStats.forCharacter("Viktor").dexterity(); // Khéo léo / Hồi chiêu
     /**
      * Viktor's default constructor. Creates Viktor at the set spawnpoint.
      * @param world

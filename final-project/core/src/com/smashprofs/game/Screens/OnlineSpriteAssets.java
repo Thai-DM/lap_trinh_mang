@@ -10,7 +10,14 @@ final class OnlineSpriteAssets implements AutoCloseable {
     private record Animations(Animation<TextureRegion> stand, Animation<TextureRegion> run, Animation<TextureRegion> air) { }
     private final Map<String, Texture> textures = new LinkedHashMap<>();
     private final Map<String, Animations> animations = new HashMap<>();
+    private final Map<String,TextureRegion[]> punches=new HashMap<>();
     Texture texture(String path) { return textures.computeIfAbsent(path, Texture::new); }
+    void preload() {
+        for(String name:GameStartRoster.CHARACTERS) {
+            animations(name);String folder=name.equals("Maurice")?"Momo":name,file=name.equals("Maurice")?"momo":name.toLowerCase(java.util.Locale.ROOT);
+            texture("Sprites/"+folder+"/"+file+"_punch.png");
+        }
+    }
     private Animations animations(String character) {
         return animations.computeIfAbsent(character, id -> {
             var assets = OnlineVisualCatalog.character(id);
@@ -29,6 +36,16 @@ final class OnlineSpriteAssets implements AutoCloseable {
     TextureRegion frame(WireGameSnapshot.Player player, float time) {
         var a = animations(player.characterId());
         return (!player.grounded() ? a.air() : Math.abs(player.velocityX()) > 0.001f ? a.run() : a.stand()).getKeyFrame(time, true);
+    }
+    TextureRegion frame(WireGameSnapshot.Player player,float time,com.smashprofs.common.model.FighterSnapshot.Player fighter) {
+        if(fighter!=null && (fighter.action().equals("ATTACK") || fighter.action().equals("CHARGE"))) {
+            var frames=punches.computeIfAbsent(player.characterId(),name->{
+                String folder=name.equals("Maurice")?"Momo":name,file=name.equals("Maurice")?"momo":name.toLowerCase(java.util.Locale.ROOT);
+                return TextureRegion.split(texture("Sprites/"+folder+"/"+file+"_punch.png"),100,100)[0];
+            });
+            return frames[Math.min(frames.length-1,fighter.attackFrame()/3)];
+        }
+        return frame(player,time);
     }
     Sprite projectile(String type) {
         var asset = OnlineVisualCatalog.projectile(type);

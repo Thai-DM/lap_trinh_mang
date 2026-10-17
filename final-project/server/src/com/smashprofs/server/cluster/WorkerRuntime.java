@@ -91,7 +91,8 @@ public final class WorkerRuntime implements AutoCloseable, SessionAdmission {
                 var target=rooms.getOrCreateRoom(room);target.setMinimumPlayers(response.path("minimumPlayers").asInt(2));
                 if(response.path("gameplay").asBoolean(false)) {
                     if(!session.supportsGameplay()) { throw new IOException("Gameplay capability required"); }
-                    if(!target.getRules().gameplay()) { target.configureGameplay(new PlayerId(text(response,"hostPlayer"))); }
+                    if(response.path("fighter").asBoolean(false) && !session.supportsFighter()) { throw new IOException("Fighter capability required"); }
+                    if(!target.getRules().gameplay()) { target.configureGameplay(new PlayerId(text(response,"hostPlayer")),response.path("fighter").asBoolean(false)); }
                 }
                 claims.put(session.getSessionId(), new Claim(ticket, text(response, "sessionId"), player, room, response.path("expiresAt").asLong()));
             }

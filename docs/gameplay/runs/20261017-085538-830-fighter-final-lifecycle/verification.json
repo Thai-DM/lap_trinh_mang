@@ -1,0 +1,13 @@
+﻿{
+    "date":  "2026-10-17T08:55:58.7449800+07:00",
+    "status":  "PASS",
+    "label":  "fighter-final-lifecycle",
+    "heapMiB":  128,
+    "suites":  [
+                   "com.smashprofs.server.game.GameplayInputProtocolTest",
+                   "com.smashprofs.game.network.client.FighterClientTest",
+                   "com.smashprofs.game.network.client.OnlinePresentationTest",
+                   "com.smashprofs.tests.network.NetworkClientProtocolV1Test",
+                   "com.smashprofs.server.game.FighterTcpIntegrationTest"
+               ]
+}

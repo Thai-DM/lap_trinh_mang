@@ -79,6 +79,25 @@ public class GameplayTcpIntegrationTest {
                 if(System.nanoTime()>rttDeadline) { fail("Real heartbeat RTT was not published"); }executor.runCycle();Thread.sleep(10);
             }
             assertTrue(host.getMatchSession().getPings().get(owner.value()).milliseconds()>=0);
+            // Exercise E/G through the real client queues, codec, dispatcher and authoritative tick.
+            var itemPosition=runtime.gameplay().bodies.getPosition(owner);
+            runtime.gameplay().items.drop("SHOTGUN",itemPosition.xMeters(),itemPosition.yMeters(),runtime.getMatchState().getServerTick());
+            for(int i=0;i<3;i++) { executor.runCycle(); }
+            assertEquals("NONE",runtime.gameplay().snapshot().player(owner.value()).weapon());
+            assertTrue(host.recordFrameInput(0,false,false,false,false,false,true,false));until(()->runtime.getPendingInputCount()>0);
+            for(int i=0;i<3;i++) { executor.runCycle(); }
+            until(()->host.getMatchSession().getSnapshotBuffer().getLatestSnapshot().gameplay().player(owner.value()).ammo()==6);
+            assertTrue(host.recordFrameInput(0,false,false,true,false,false));until(()->runtime.getPendingInputCount()>0);
+            for(int i=0;i<3;i++) { executor.runCycle(); }
+            until(()->host.getMatchSession().getSnapshotBuffer().getLatestSnapshot().gameplay().player(owner.value()).ammo()==5);
+            assertTrue(host.recordFrameInput(0,false,false,false,false,false,false,true));until(()->runtime.getPendingInputCount()>0);
+            for(int i=0;i<3;i++) { executor.runCycle(); }
+            until(()->host.getMatchSession().getSnapshotBuffer().getLatestSnapshot().gameplay().player(owner.value()).weapon().equals("NONE"));
+            var dropped=runtime.gameplay().items.itemViews().stream().filter(item->item.type().equals("SHOTGUN")).findFirst().orElseThrow();
+            runtime.gameplay().bodies.respawn(owner,dropped.x(),dropped.y());
+            assertTrue(host.recordFrameInput(0,false,false,false,false,false,true,false));until(()->runtime.getPendingInputCount()>0);
+            for(int i=0;i<3;i++) { executor.runCycle(); }
+            until(()->clients.stream().allMatch(c->c.getMatchSession().getSnapshotBuffer().getLatestSnapshot().gameplay().player(owner.value()).ammo()==5));
             for(var c:clients) { assertEquals(3,c.getMatchSession().getSnapshotBuffer().getLatestSnapshot().gameplay().player(owner.value()).lives()); }
             assertTrue(host.recordFrameInput(0,false,false,false,false,true));until(()->runtime.getPendingInputCount()>0);
             for(int i=0;i<3;i++) { executor.runCycle(); }

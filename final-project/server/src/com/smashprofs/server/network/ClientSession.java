@@ -10,6 +10,9 @@ import java.util.function.Consumer;
  */
 public final class ClientSession {
     private volatile boolean gameplay;
+    private volatile boolean fighter;
+    public boolean supportsFighter() { return fighter; }
+    void enableFighter() { fighter=true;gameplay=true; }
     public boolean supportsGameplay() { return gameplay; }
     public Double getRttMillis() { long nanos=heartbeat.rttNanos;return !isOpen() || nanos<0?null:nanos/1e6; }
     void enableGameplay() { gameplay=true; }

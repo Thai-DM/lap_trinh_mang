@@ -89,6 +89,8 @@ public final class InputQueue {
             boolean stomp = false;
             boolean melee = false;
             boolean ability = false;
+            boolean interact = false, drop = false;
+            var fighter=com.smashprofs.common.model.FighterInput.NONE;
             int index=0;
             for (PlayerInput input : buffer.pending) {
                 metrics.record(com.smashprofs.server.metrics.PerformanceMetrics.Stage.INPUT_QUEUE_WAIT,now-buffer.acceptedAt[index++]);
@@ -96,9 +98,12 @@ public final class InputQueue {
                 stomp |= input.stompPressed();
                 melee |= input.meleePressed();
                 ability |= input.abilityPressed();
+                interact |= input.interactPressed();
+                drop |= input.dropPressed();
+                fighter=fighter.merge(input.fighter());
             }
             drained.add(new PlayerInput(latest.playerId(), latest.sequence(), latest.clientTick(),
-                    latest.moveAxis(), jump, stomp, melee, latest.blockHeld(), ability));
+                    latest.moveAxis(), jump, stomp, melee, latest.blockHeld(), ability, interact, drop,fighter));
             buffer.pending.clear();
         }
         return List.copyOf(drained);

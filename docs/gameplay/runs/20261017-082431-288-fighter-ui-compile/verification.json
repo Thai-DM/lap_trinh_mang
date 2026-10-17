@@ -1,0 +1,11 @@
+﻿{
+    "date":  "2026-10-17T08:24:44.7629695+07:00",
+    "status":  "PASS",
+    "label":  "fighter-ui-compile",
+    "heapMiB":  128,
+    "suites":  [
+                   "com.smashprofs.server.game.FighterEngineTest",
+                   "com.smashprofs.server.room.HostRulesTest",
+                   "com.smashprofs.tests.network.OnlineRoomFlowTest"
+               ]
+}

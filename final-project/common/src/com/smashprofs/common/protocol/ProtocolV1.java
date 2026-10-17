@@ -16,9 +16,10 @@ public final class ProtocolV1 {
             MessageType.CREATE_ROOM, MessageType.ROOM_CREATED, MessageType.JOIN_ROOM, MessageType.ROOM_STATE,
             MessageType.LEAVE_ROOM, MessageType.PLAYER_READY, MessageType.GAME_START, MessageType.PLAYER_INPUT,
             MessageType.GAME_STATE, MessageType.GAME_END, MessageType.ERROR, MessageType.PING, MessageType.PONG,
-            MessageType.ROOM_SETTINGS_UPDATE, MessageType.ROOM_SETTINGS_STATE, MessageType.MATCH_EVENT,MessageType.RTT_STATE);
+            MessageType.ROOM_SETTINGS_UPDATE, MessageType.ROOM_SETTINGS_STATE, MessageType.MATCH_EVENT,MessageType.RTT_STATE,
+            MessageType.LOAD_READY,MessageType.REMATCH_REQUEST,MessageType.REMATCH_STATE);
     public static final Set<MessageType> CORRELATED_REQUESTS = Set.of(MessageType.CONNECT, MessageType.CREATE_ROOM,
-            MessageType.JOIN_ROOM, MessageType.LEAVE_ROOM, MessageType.PLAYER_READY, MessageType.PING, MessageType.ROOM_SETTINGS_UPDATE);
+            MessageType.JOIN_ROOM, MessageType.LEAVE_ROOM, MessageType.PLAYER_READY, MessageType.PING, MessageType.ROOM_SETTINGS_UPDATE,MessageType.REMATCH_REQUEST);
     private ProtocolV1() { }
 
     public static ObjectNode object() { return JsonNodeFactory.instance.objectNode(); }
@@ -60,20 +61,29 @@ public final class ProtocolV1 {
         ObjectNode p = message.payload();
         String id = message.requestId();
         fields(p, id, "sequence", "clientTick", "moveAxis", "jumpPressed", "stompPressed", "meleePressed",
-                "abilityPressed", "blockHeld");
+                "abilityPressed", "blockHeld", "interactPressed", "dropPressed", "fighter", "matchId");
+        if(p.has("matchId") && (!p.path("matchId").isTextual() || p.path("matchId").asText().isBlank() || p.path("matchId").asText().length()>128)) { throw invalid(id); }
         JsonNode axis = p.get("moveAxis");
         if (axis == null || !axis.isNumber() || !Double.isFinite(axis.doubleValue())
                 || axis.doubleValue() < -1 || axis.doubleValue() > 1) { throw invalid(id); }
         return new PlayerInput(trustedPlayerId, nonNegativeLong(p, "sequence", id), nonNegativeLong(p, "clientTick", id),
                 axis.floatValue(), bool(p, "jumpPressed", id), bool(p, "stompPressed", id), bool(p, "meleePressed", id),
-                bool(p, "blockHeld", id), bool(p, "abilityPressed", id));
+                bool(p, "blockHeld", id), bool(p, "abilityPressed", id),
+                p.has("interactPressed") && bool(p, "interactPressed", id),
+                p.has("dropPressed") && bool(p, "dropPressed", id),
+                p.has("fighter")?FighterProtocol.input(p.get("fighter"),id):com.smashprofs.common.model.FighterInput.NONE);
     }
     /** Bỏ PlayerId của DTO khi encode input: không bao giờ đưa ID client tự chọn lên wire. */
     public static ObjectNode inputPayload(PlayerInput input) {
-        return object().put("sequence", input.sequence()).put("clientTick", input.clientTick())
+        var payload = object().put("sequence", input.sequence()).put("clientTick", input.clientTick())
                 .put("moveAxis", input.moveAxis()).put("jumpPressed", input.jumpPressed())
                 .put("stompPressed", input.stompPressed()).put("meleePressed", input.meleePressed())
                 .put("abilityPressed", input.abilityPressed()).put("blockHeld", input.blockHeld());
+        // Keep the legacy wire shape when the optional gameplay actions are absent.
+        if (input.interactPressed()) { payload.put("interactPressed", true); }
+        if (input.dropPressed()) { payload.put("dropPressed", true); }
+        if (!input.fighter().equals(com.smashprofs.common.model.FighterInput.NONE)) { payload.set("fighter",FighterProtocol.input(input.fighter())); }
+        return payload;
     }
     public static ProtocolException invalid(String requestId) {
         return new ProtocolException("INVALID_PAYLOAD", "Invalid message payload", requestId);

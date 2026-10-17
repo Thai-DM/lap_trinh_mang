@@ -34,6 +34,9 @@ public final class MapCollisionBuilder {
     }
 
     public MapCollisionBodies build(HeadlessPhysicsWorld physics, MapCollisionDefinition definition) {
+        return build(physics,definition,false);
+    }
+    public MapCollisionBodies build(HeadlessPhysicsWorld physics, MapCollisionDefinition definition,boolean fighter) {
         Objects.requireNonNull(physics, "physics không được null");
         Objects.requireNonNull(definition, "definition không được null");
         // Kiểm tra phép tính float trước JNI; tọa độ âm/bên ngoài map của baseline được giữ nguyên.
@@ -68,6 +71,7 @@ public final class MapCollisionBuilder {
                     shape.setAsBox(rectangle.widthPixels() / 2 / PIXELS_PER_METER,
                             rectangle.heightPixels() / 2 / PIXELS_PER_METER);
                     fixtureCreator.accept(body, fixture);
+                    if(fighter) { body.getFixtureList().first().setUserData(rectangle); }
                 }
                 return collision;
             } catch (RuntimeException | Error failure) {

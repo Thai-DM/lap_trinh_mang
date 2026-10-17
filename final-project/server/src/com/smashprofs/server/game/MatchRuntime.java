@@ -169,7 +169,7 @@ public final class MatchRuntime implements AutoCloseable {
                 candidate = Objects.requireNonNull(physicsFactory.get(), "physicsFactory không được trả null");
                 candidate.getWorld(); // Không nhận wrapper đã dispose.
                 var geometry = new TmxCollisionLoader().loadOriginalMap();
-                candidateArena = new MapCollisionBuilder().build(candidate, geometry);
+                candidateArena = new MapCollisionBuilder().build(candidate, geometry,setup.rules().fighter());
                 candidatePlayers = new PlayerPhysicsFactory().build(candidate, setup, geometry);
                 candidateProjectiles = new ProjectileManager(candidate, initialState, candidatePlayers);
                 candidateJump = new PlayerJumpController(candidatePlayers, candidateProjectiles);
@@ -177,6 +177,7 @@ public final class MatchRuntime implements AutoCloseable {
                 candidateMelee = new MeleeCombatController(initialState, candidatePlayers, meleeCooldownTicks);
                 candidateStomp = new StompCombatController(initialState, candidatePlayers, candidateJump);
                 if(setup.rules().gameplay()) { candidateGameplay=new GameplayMatch(setup,initialState,candidatePlayers,candidateJump,geometry);candidateProjectiles.enableGameplayLimits(); }
+                if(setup.rules().fighter()) { candidateGameplay.enableFighter(candidate.getWorld(),geometry); }
                 initializationCheck.accept(candidate);
                 candidateStartedAtNanos = nanoClock.getAsLong();
             } catch (RuntimeException | Error failure) {
@@ -265,6 +266,7 @@ public final class MatchRuntime implements AutoCloseable {
         long upcomingTick=matchState.getServerTick()+1;
         if(gameplay!=null) { gameplay.beforeTick(upcomingTick); }
         List<PlayerInput> effectiveInputs = inputQueue.drainForTick();
+        if(setup.rules().fighter()) { return tickFighter(upcomingTick,effectiveInputs); }
         long phaseStarted=System.nanoTime();
         // Queue chấp nhận transport hợp lệ; simulation không áp dụng điều khiển cho player đã chết.
         // Vẫn trả batch đã drain và giữ Body chạy physics thụ động (Rocket có thể đang bám Body này).
@@ -297,6 +299,7 @@ public final class MatchRuntime implements AutoCloseable {
                 }
             }
             matchState.getPlayer(playerId).setBlocking(blockHeld);
+            if(gameplay!=null) { jumpController.setMovementIntent(playerId,moveAxis); }
             // Player gốc tính facing từ vx hiện tại TRƯỚC walking/jump; vx=0 giữ hướng lần trước.
             matchState.getPlayer(playerId).updateFacing(playerBodies.getVelocity(playerId).xMetersPerSecond());
             if(gameplay==null || !jumpController.preserveExternalImpulse(playerId)) { movementController.applyHorizontalMovement(playerBodies, playerId, moveAxis); }
@@ -327,6 +330,7 @@ public final class MatchRuntime implements AutoCloseable {
         for (var participant : participantsInSlotOrder()) {
             PlayerId attackerId = participant.playerId();
             PlayerInput input = inputByPlayer.get(attackerId);
+            if(gameplay!=null && input!=null) { gameplay.items.interact(input,upcomingTick); }
             // Cùng slot: melee trước stomp; giữa các player giữ policy slot-order/HP có hiệu lực ngay.
             if (input != null && input.meleePressed() && (gameplay==null || !gameplay.items.attack(attackerId,upcomingTick))) {
                 var hit = meleeController.attack(attackerId, serverTick);
@@ -402,6 +406,21 @@ public final class MatchRuntime implements AutoCloseable {
             if(gameplay!=null) { releaseNativeResources(); }
         }
         return effectiveInputs;
+    }
+
+    private List<PlayerInput> tickFighter(long tick,List<PlayerInput> inputs) {
+        gameplay.fighter.update(tick,inputs);
+        gameplay.items.update(tick);
+        try { physicsStepper.step(physicsWorld.getWorld(),PHYSICS_TIME_STEP,VELOCITY_ITERATIONS,POSITION_ITERATIONS); }
+        catch(RuntimeException | LinkageError error) { throw new IllegalStateException("Fighter physics step failed",error); }
+        gameplay.fighter.applyLavaContacts();jumpController.synchronizeAfterStep();
+        matchState.advanceTick();gameplay.fighter.checkBlastZones();gameplay.afterTick();
+        var base=GameSnapshotBuilder.build(matchState,playerBodies,jumpController,projectileManager);
+        var snapshot=new AuthoritativeGameSnapshot(getMatchId(),getRoomId(),tick,base.players(),base.projectiles(),gameplay.snapshot());
+        var result=MatchEndEvaluator.evaluate(snapshot,setup.rules().matchSeconds()>0 && tick>=setup.rules().matchSeconds()*60L);
+        latestSnapshot=snapshot;
+        if(result!=null) { gameplay.finished();heldInputs.clear();inputQueue.clear();matchResult=result;releaseNativeResources(); }
+        return inputs;
     }
 
     /** Chỉ gọi dưới khóa runtime, không để lifecycle chưa sẵn sàng nhận input hoặc tick. */

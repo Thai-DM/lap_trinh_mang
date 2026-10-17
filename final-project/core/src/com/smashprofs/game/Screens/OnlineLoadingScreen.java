@@ -20,6 +20,9 @@ import java.util.*;
  * animated breathing stances, and canonical segmented stat bars before entering the match map.
  */
 public class OnlineLoadingScreen implements Screen {
+    private final com.badlogic.gdx.audio.Sound countdownSound=Gdx.audio.newSound(Gdx.files.internal("sounds/clock.mp3"));
+    private final com.badlogic.gdx.audio.Sound fightSound=Gdx.audio.newSound(Gdx.files.internal("sounds/punch.mp3"));
+    private int lastCountdown=-2;
 
     public static class CharacterStats {
         public final int attack;
@@ -180,6 +183,7 @@ public class OnlineLoadingScreen implements Screen {
     @Override
     public void show() {
         Gdx.input.setInputProcessor(null);
+        if(lobby!=null) { game.prepareOnlineAssets();lobby.markLoaded(); }
     }
 
     @Override
@@ -198,6 +202,11 @@ public class OnlineLoadingScreen implements Screen {
                 }
             } else if (lobby != null) {
                 var state = lobby.getSnapshot();
+                if(lobby.getSettings()!=null && lobby.getSettings().rules().fighter()) {
+                    int seconds=state.isMatchStarted()?0:lobby.countdownSeconds();
+                    if(seconds>=0 && seconds!=lastCountdown && Game.soundEffects) { if(seconds==0) { fightSound.play(.35f); }else { countdownSound.play(.25f); } }
+                    lastCountdown=seconds;
+                }
                 // When match starts on server and minimum loading presentation time has elapsed
                 if (state.isMatchStarted() && (displayTime >= 2.0f || Game.unitTestMode)) {
                     transitioned = true;
@@ -206,7 +215,8 @@ public class OnlineLoadingScreen implements Screen {
                 }
 
                 // If countdown was cancelled back to waiting/ready (and not started)
-                if (!"COUNTDOWN".equals(state.serverPhase()) && !state.isMatchStarted() && !"PLAYING".equals(state.serverPhase())) {
+                if (!"COUNTDOWN".equals(state.serverPhase()) && !state.isMatchStarted() && !"PLAYING".equals(state.serverPhase())
+                        && !(lobby.getSettings()!=null && lobby.getSettings().rules().fighter() && state.members().size()>=2 && state.members().stream().allMatch(LobbyClient.Member::ready))) {
                     transitioned = true;
                     game.setScreen(new OnlineRoomScreen(game));
                     return;
@@ -318,11 +328,15 @@ public class OnlineLoadingScreen implements Screen {
 
         // Top Banner Text
         var headingFont = ui.skin.getFont("heading");
+        String bannerText="LOADING - ĐẤU TRƯỜNG BRAWLHAVEN";
+        if(lobby!=null && lobby.getSettings()!=null && lobby.getSettings().rules().fighter()) {
+            int seconds=lobby.countdownSeconds();bannerText=lobby.getSnapshot().isMatchStarted()?"FIGHT!":seconds<0?"ĐANG CHỜ CÁC ĐẤU THỦ":seconds==0?"SẴN SÀNG!":"CHUẨN BỊ · "+seconds;
+        }
         headingFont.getData().setScale(0.85f);
         headingFont.setColor(Color.valueOf("001830")); // drop shadow
-        headingFont.draw(batch, "LOADING - ĐẤU TRƯỜNG BRAWLHAVEN", bannerX + 2, bannerY + 28, bannerW, Align.center, false);
+        headingFont.draw(batch, bannerText, bannerX + 2, bannerY + 28, bannerW, Align.center, false);
         headingFont.setColor(Color.WHITE);
-        headingFont.draw(batch, "LOADING - ĐẤU TRƯỜNG BRAWLHAVEN", bannerX, bannerY + 30, bannerW, Align.center, false);
+        headingFont.draw(batch, bannerText, bannerX, bannerY + 30, bannerW, Align.center, false);
         headingFont.getData().setScale(1f);
 
         // Characters, Hero Names, and Subtitles
@@ -367,7 +381,9 @@ public class OnlineLoadingScreen implements Screen {
 
         // Bottom Controls Hint & Loading Dots
         smallFont.setColor(Color.valueOf("B8D8F8"));
-        smallFont.draw(batch, "Mẹo: A/D di chuyển · W nhảy · S dậm · V tấn công · F tuyệt chiêu · Ctrl đỡ đòn", 0, 40, 1280, Align.center, false);
+        smallFont.draw(batch,lobby!=null && lobby.getSettings()!=null && lobby.getSettings().rules().fighter()?
+                "A/D di chuyển · W nhảy · S rơi nhanh · S+W xuyên sàn mỏng · V đánh nhẹ · F đánh mạnh · Shift né · Q ném":
+                "Mẹo: A/D di chuyển · W nhảy · S dậm · V tấn công · F tuyệt chiêu · Ctrl đỡ đòn",0,40,1280,Align.center,false);
 
         int dotCount = ((int) (stateTime * 2.5f)) % 4;
         String dots = ".".repeat(dotCount);
@@ -557,5 +573,6 @@ public class OnlineLoadingScreen implements Screen {
         shapes.dispose();
         ui.close();
         textures.forEach(Texture::dispose);
+        countdownSound.dispose();fightSound.dispose();
     }
 }

@@ -189,6 +189,8 @@ public class TcpProtocolV1Test {
             var payload = ProtocolV1.object().put("sequence", 0).put("clientTick", 8).put("moveAxis", 1)
                     .put("jumpPressed", true).put("stompPressed", false).put("meleePressed", false)
                     .put("abilityPressed", false).put("blockHeld", true);
+            send(a,new ProtocolMessage(MessageType.PLAYER_INPUT,"unnegotiated-e",payload.deepCopy().put("interactPressed",true)));
+            error(a,"INVALID_PAYLOAD","unnegotiated-e");assertTrue(runtime.tick().isEmpty());
             if (impersonate) {
                 send(a, new ProtocolMessage(MessageType.PLAYER_INPUT, "spoof", payload.deepCopy().put("playerId", second.value())));
                 error(a, "UNAUTHORIZED_PLAYER", "spoof"); assertTrue(runtime.tick().isEmpty());

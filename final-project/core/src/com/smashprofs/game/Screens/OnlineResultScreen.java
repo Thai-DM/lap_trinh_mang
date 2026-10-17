@@ -62,6 +62,7 @@ public final class OnlineResultScreen implements Screen {
 
     private float stateTime = 0f;
     private boolean disposed;
+    private Label rematchLabel;
 
     public OnlineResultScreen(Game game, WireMatchResult result, String localId) {
         this.game = game;
@@ -155,11 +156,11 @@ public final class OnlineResultScreen implements Screen {
         var actionChips = new Table();
         actionChips.padTop(6);
 
-        var playAgainBtn = ui.comicButton("CHƠI TIẾP [ENTER]", "comic-gold", this::back);
+        var playAgainBtn = ui.comicButton("ĐẤU LẠI [ENTER]", "comic-gold", this::playAgain);
         actionChips.add(playAgainBtn).height(34).padRight(12);
 
         var reason = switch (result.finishReason()) {
-            case "TIME_LIMIT" -> "Hết giờ · Xét HP cao nhất";
+            case "TIME_LIMIT" -> result.gameplay()!=null && result.gameplay().fighter()!=null?"Hết giờ · Xét mạng, rồi % thấp nhất":"Hết giờ · Xét HP cao nhất";
             case "LAST_PLAYER_STANDING" -> "Sống sót cuối cùng";
             default -> "Đấu trường sinh tử";
         };
@@ -167,6 +168,7 @@ public final class OnlineResultScreen implements Screen {
         actionChips.add(subChip).center();
 
         centerBox.add(actionChips).center();
+        centerBox.row();rematchLabel=ui.small("",OnlineUi.BRAWL_GOLD);centerBox.add(rematchLabel).padTop(3);
         headerBar.add(centerBox).expandX().center();
 
         // Top Right: Room & Duration Badge
@@ -275,7 +277,8 @@ public final class OnlineResultScreen implements Screen {
             statsBox.add(createStatRow("KOS", Integer.toString(kills), Color.valueOf("35F3B7"))).padTop(3).row();
             statsBox.add(createStatRow("FALLS", Integer.toString(deaths), Color.valueOf("FF7A85"))).padTop(3).row();
             statsBox.add(createStatRow("DMG DONE", String.format(Locale.ROOT, "%.0f", dmgDone), Color.valueOf("FFE066"))).padTop(3).row();
-            statsBox.add(createStatRow("DMG TAKEN", Math.round(p.finalHp()) + " HP", Color.valueOf("E0F2FE"))).padTop(3).row();
+            boolean fighter=result.gameplay()!=null && result.gameplay().fighter()!=null;
+            statsBox.add(createStatRow(fighter?"FINAL %":"FINAL HP",fighter?com.smashprofs.game.network.client.FighterViewModel.damageText(result.gameplay().fighter().player(p.playerId()).damagePercent()):Math.round(p.finalHp())+" HP",Color.valueOf("E0F2FE"))).padTop(3).row();
 
             card.add(statsBox).growX().padTop(2);
 
@@ -447,6 +450,10 @@ public final class OnlineResultScreen implements Screen {
         game.leaveOnlineLobby();
         game.setScreen(new OnlineLobbyScreen(game));
     }
+    private void playAgain() {
+        if(result.gameplay()!=null && result.gameplay().fighter()!=null && game.getLobbyClient()!=null) { game.getLobbyClient().requestRematch(); }
+        else { back(); }
+    }
 
     @Override
     public void show() {
@@ -458,13 +465,20 @@ public final class OnlineResultScreen implements Screen {
         if (disposed) return;
 
         stateTime += delta;
+        var lobby=game.getLobbyClient();
+        if(lobby!=null && result.gameplay()!=null && result.gameplay().fighter()!=null) {
+            rematchLabel.setText(lobby.getRematchStatus());
+            if(lobby.getSnapshot().phase()==com.smashprofs.game.network.client.LobbyClient.Phase.WAITING_FOR_START
+                    || lobby.getMatchSession()!=null && !lobby.getMatchSession().getRoster().matchId().equals(result.matchId())) {
+                game.setScreen(new OnlineLoadingScreen(game,lobby));return;
+            }
+        }
 
-        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE) ||
-            Gdx.input.isKeyJustPressed(Input.Keys.ENTER) ||
-            Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
+        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             back();
             return;
         }
+        if(Gdx.input.isKeyJustPressed(Input.Keys.ENTER) || Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) { playAgain(); }
 
         // 1. Clear with Deep Brawlhalla Space Blue
         ScreenUtils.clear(Color.valueOf("00224A"));

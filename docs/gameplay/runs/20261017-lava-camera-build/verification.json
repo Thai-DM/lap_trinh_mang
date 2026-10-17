@@ -1,0 +1,38 @@
+{
+  "status": "PASS",
+  "tests": 725,
+  "testEvidence": "../20261017-093135-974-final-gameplay-regression/tests.log",
+  "nativeCases": [
+    {
+      "players": 2,
+      "width": 1280,
+      "evidence": "two-players-final.log"
+    },
+    {
+      "players": 4,
+      "width": 960,
+      "evidence": "four-players-small.log"
+    }
+  ],
+  "followingCamera": true,
+  "minimumCameraBottom": -0.45,
+  "solidFloorRemoved": true,
+  "lavaTop": 0.16,
+  "lavaBounceSpeed": 2.8,
+  "lavaDamagePercent": 10,
+  "lavaDamageCooldownTicks": 60,
+  "baseRunSpeed": 1.6,
+  "sha256": {
+    "final-project/common/src/com/smashprofs/common/model/FighterArena.java": "c466f69295591885b76b49b5bd7a38c9a6469af4c9f7f3dc96f629b661e0f20f",
+    "final-project/common/src/com/smashprofs/common/model/FighterMovement.java": "5cba815c15a49b72ee3092e0afdf059579e20178bbdde1cc749e8075f296821f",
+    "final-project/server/src/com/smashprofs/server/game/MatchRuntime.java": "b45c06ab71c95bfa01da280befb004df57118526236aca230e58904d3564a4bf",
+    "final-project/server/src/com/smashprofs/server/game/FighterEngine.java": "2f0dd35a50f7a477fab2479c5477393c43fd8fb1cce60f5cad92b7dbd1cee22a",
+    "final-project/server/src/com/smashprofs/server/game/physics/FighterPhysics.java": "cd6ed6b04ccb57881201a0c6d2ec6cf59e4f110250a884f1e890e9fc2ef55dff",
+    "final-project/core/src/com/smashprofs/game/network/client/LocalFighterPrediction.java": "2dfaa901245d56865109a44fee2285a2b12d9615fedc8e480483fa815df533aa",
+    "final-project/core/src/com/smashprofs/game/network/client/OnlineCameraController.java": "5695f481322b14014d8c13e6bff27108cc703df0515d04dee72d4a9c5fd405fd",
+    "final-project/core/src/com/smashprofs/game/Screens/OnlinePlayScreen.java": "4be87525629c7945de8dc11db45e5696551bd35440ef50be605f510f44abc2cc",
+    "final-project/core/src/com/smashprofs/game/Scenes/OnlineHud.java": "400ccc253707a24088d530d3556a31dce719b7c74ce5efdafa4393f14dae9997",
+    "scripts/gameplay/FighterVisualPreview.java": "30d7ff1103e6afd023d020536230597e1b574608646f3c8ce401c55c2dfd6075",
+    "final-project/desktop/build/libs/desktop-1.0.jar": "899aaf7955432bea1b9f4fe83f85ea3160d984b121896071110c301328b2fb09"
+  }
+}

@@ -4,12 +4,16 @@ import java.util.*;
 
 /** Bounded immutable gameplay-v1 extension. Stats and timers originate on the simulation owner. */
 public record GameplaySnapshot(MatchRules rules, long durationTicks, List<Player> players,
-                               List<Item> items, List<Shot> shots) {
+                               List<Item> items, List<Shot> shots, FighterSnapshot fighter) {
+    public GameplaySnapshot(MatchRules rules,long ticks,List<Player> players,List<Item> items,List<Shot> shots) {
+        this(rules,ticks,players,items,shots,null);
+    }
     public GameplaySnapshot {
         Objects.requireNonNull(rules); players=List.copyOf(players);items=List.copyOf(items);shots=List.copyOf(shots);
         if(!rules.gameplay() || durationTicks<0 || players.size()<2 || players.size()>rules.maxPlayers() || items.size()>16 || shots.size()>64) { throw new IllegalArgumentException("Invalid gameplay bounds"); }
         var ids=new HashSet<String>();
         for(var p:players) { if(!ids.add(p.playerId())) { throw new IllegalArgumentException("Duplicate progress"); } }
+        if(rules.fighter()!=(fighter!=null) || fighter!=null && (fighter.players().size()!=players.size() || fighter.players().stream().anyMatch(p->!ids.contains(p.playerId())))) { throw new IllegalArgumentException("Fighter state/rules mismatch"); }
         var itemIds=new HashSet<Long>();for(var item:items) { if(!itemIds.add(item.id())) { throw new IllegalArgumentException("Duplicate item"); } }
         var shotIds=new HashSet<Long>();for(var shot:shots) { if(!shotIds.add(shot.id()) || !ids.contains(shot.owner())) { throw new IllegalArgumentException("Invalid projectile identity"); } }
     }
@@ -36,7 +40,7 @@ public record GameplaySnapshot(MatchRules rules, long durationTicks, List<Player
         public Item { if(id<1 || !Set.of("SHOTGUN","LASER","BAZOOKA","GRENADE","HEALTH","SHIELD").contains(type) || !Float.isFinite(x) || !Float.isFinite(y)) { throw new IllegalArgumentException("Invalid item"); } }
     }
     public record Shot(long id,String type,String owner,float x,float y,float vx,float vy) {
-        public Shot { if(id<1 || owner==null || !Set.of("SHOTGUN","LASER","BAZOOKA","GRENADE","ORBIT","EXPLOSION").contains(type)
+        public Shot { if(id<1 || owner==null || !Set.of("SHOTGUN","LASER","BAZOOKA","GRENADE","ORBIT","EXPLOSION","THROWN").contains(type)
                 || !Float.isFinite(x) || !Float.isFinite(y) || !Float.isFinite(vx) || !Float.isFinite(vy)) { throw new IllegalArgumentException("Invalid item projectile"); } }
     }
     /** Ties share the title; no slot-order tie breaker, no zero-value award. */

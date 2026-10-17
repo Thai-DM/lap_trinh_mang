@@ -1,5 +1,9 @@
 # 04 — Protocol compatibility
 
+Giai đoạn 2: CONNECT `gameplay:"fighter-v1"` tạo chế độ fighter riêng. Rules có optional `fighter:true`, GAME_STATE/GAME_END có `gameplay.fighter` và PLAYER_INPUT có nhóm `fighter` cùng `matchId` bắt buộc trong chế độ này. LOAD_READY chặn countdown đến khi tất cả nạp xong; REMATCH_REQUEST/REMATCH_STATE xử lý phiếu đấu lại và runtime mới. HP/legacy vẫn giữ schema trước. Xem [kiến trúc và kiểm chứng](12-PLATFORM-FIGHTER.md).
+
+FIX1: PLAYER_INPUT có `interactPressed` (E) và `dropPressed` (G), boolean tùy chọn, mặc định false. Encoder chỉ thêm field khi true; payload cũ vẫn đúng 8 field. Dispatcher từ chối field mới ở session chưa negotiate gameplay. Đạn của súng thả được server giữ trong drop, không nhận từ client. Xem [FIX1](11-FIX1.md).
+
 UI update sau bản đầu: ROOM_SETTINGS_STATE có optional `players` (schema member như ROOM_STATE) để đồng bộ roster/nhân vật/Ready. `version` tăng thêm khi chọn nhân vật và đổi Ready; `rulesVersion` vẫn chỉ thay khi luật đổi. Xem [09](09-UI-REDESIGN.md); legacy room không nhận extension.
 
 Giữ envelope version=1, 4-byte big-endian length prefix và frame budget hiện có. Capability opt-in:

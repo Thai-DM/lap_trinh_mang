@@ -1,0 +1,13 @@
+﻿{
+    "date":  "2026-10-17T08:50:54.3410754+07:00",
+    "status":  "PASS",
+    "label":  "fighter-final-camera",
+    "heapMiB":  128,
+    "suites":  [
+                   "com.smashprofs.server.game.FighterEngineTest",
+                   "com.smashprofs.game.network.client.OnlineCameraControllerTest",
+                   "com.smashprofs.game.network.client.OnlinePresentationTest",
+                   "com.smashprofs.game.network.client.FighterClientTest",
+                   "com.smashprofs.server.game.FighterTcpIntegrationTest"
+               ]
+}

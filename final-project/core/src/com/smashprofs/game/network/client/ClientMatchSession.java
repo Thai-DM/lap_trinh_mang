@@ -21,12 +21,19 @@ public final class ClientMatchSession implements AutoCloseable {
     private boolean finished;
     private WireMatchResult result;
     private long lastClientTick;
+    private float heldAxis;
+    private boolean heldBlock;
+    private final java.util.ArrayDeque<com.smashprofs.common.model.PlayerInput> predictionInputs=new java.util.ArrayDeque<>(128);
+    public synchronized java.util.List<com.smashprofs.common.model.PlayerInput> getPredictionInputs() { return java.util.List.copyOf(predictionInputs); }
     private final KillFeedModel killFeed=new KillFeedModel();
     public record Ping(boolean connected,Double milliseconds) { }
     private volatile java.util.Map<String,Ping> pings=java.util.Map.of();
     public java.util.Map<String,Ping> getPings() { return pings; }
     public KillFeedModel getKillFeed() { return killFeed; }
     public boolean isSpectating() { var latest=snapshots.getLatestSnapshot();return latest!=null && latest.gameplay()!=null && latest.gameplay().player(localId.value()).lives()==0; }
+    public synchronized boolean isFighter() {
+        var latest=snapshots.getLatestSnapshot();return latest==null?network.isFighterEnabled():latest.gameplay()!=null && latest.gameplay().rules().fighter();
+    }
 
     ClientMatchSession(NetworkClient network, GameStartRoster roster, PlayerId localId) {
         this(network, roster, localId, System::nanoTime);
@@ -48,13 +55,25 @@ public final class ClientMatchSession implements AutoCloseable {
     /** Render callers sample once per frame. Enqueue/retry uses the existing input queue only. */
     public synchronized boolean recordFrameInput(float axis, boolean jump, boolean stomp,
                                                  boolean melee, boolean block, boolean ability) {
-        var latest=snapshots.getLatestSnapshot();
-        if(latest!=null && latest.gameplay()!=null && !latest.gameplay().player(localId.value()).status().equals("ACTIVE")) { inputQueue.clear();return false; }
-        if (!canSendInput()) { return false; }
+        return recordFrameInput(axis,jump,stomp,melee,block,ability,false,false);
+    }
+    public synchronized boolean recordFrameInput(float axis, boolean jump, boolean stomp,
+                                                 boolean melee, boolean block, boolean ability,
+                                                 boolean interact, boolean drop) {
+        return recordFrameInput(axis,jump,stomp,melee,block,ability,interact,drop,com.smashprofs.common.model.FighterInput.NONE);
+    }
+    public synchronized boolean recordFrameInput(float axis,boolean jump,boolean stomp,boolean melee,boolean block,boolean ability,
+                                                 boolean interact,boolean drop,com.smashprofs.common.model.FighterInput fighter) {
         if (!Float.isFinite(axis) || axis < -1 || axis > 1) {
             throw new IllegalArgumentException("moveAxis must be finite and in [-1,1]");
         }
-        inputQueue.recordFrameInput(axis, jump, stomp, melee, block, ability);
+        heldAxis=axis;heldBlock=block;
+        var latest=snapshots.getLatestSnapshot();
+        if(latest!=null && latest.gameplay()!=null && !latest.gameplay().player(localId.value()).status().equals("ACTIVE")) { inputQueue.clear();return false; }
+        if (!canSendInput()) { return false; }
+        inputQueue.recordFrameInput(axis, jump, stomp, melee, block, ability,
+                latest!=null && latest.gameplay()!=null && interact, latest!=null && latest.gameplay()!=null && drop,
+                isFighter()?fighter:com.smashprofs.common.model.FighterInput.NONE);
         return flushInput();
     }
 
@@ -66,8 +85,13 @@ public final class ClientMatchSession implements AutoCloseable {
         long tick = (elapsed / 1_000_000_000L) * SIMULATION_HZ
                 + (elapsed % 1_000_000_000L) * SIMULATION_HZ / 1_000_000_000L;
         lastClientTick = Math.max(lastClientTick, tick);
-        return inputQueue.trySendAccumulatedInput(lastClientTick, input -> network.sendMessage(
-                new ProtocolMessage(MessageType.PLAYER_INPUT, null, ProtocolV1.inputPayload(input))));
+        return inputQueue.trySendAccumulatedInput(lastClientTick, input -> {
+            var latest=snapshots.getLatestSnapshot();
+            var payload=ProtocolV1.inputPayload(input);
+            if(network.isFighterEnabled() || isFighter()) { payload.put("matchId",roster.matchId()); }
+            boolean sent=network.sendMessage(new ProtocolMessage(MessageType.PLAYER_INPUT,null,payload));
+            if(sent && isFighter()) { if(predictionInputs.size()>=128) { predictionInputs.removeFirst(); }predictionInputs.addLast(input); }return sent;
+        });
     }
 
     private boolean canSendInput() {
@@ -85,10 +109,23 @@ public final class ClientMatchSession implements AutoCloseable {
         var state = WireGameSnapshot.parse(message.payload());
         state.validateRoster(roster);
         GameStartRoster.require(!finished || state.phase().equals("FINISHED"), "PLAYING snapshot after FINISHED");
+        var previous=snapshots.getLatestSnapshot();
         if (!snapshots.push(state)) { return false; }
+        if(state.gameplay()!=null && state.gameplay().fighter()!=null) {
+            long ack=state.gameplay().fighter().player(localId.value()).acknowledgedSequence();
+            predictionInputs.removeIf(input->input.sequence()<=ack);
+            if(!state.gameplay().player(localId.value()).status().equals("ACTIVE")) { predictionInputs.clear(); }
+        }
         if(state.gameplay()!=null && !state.gameplay().player(localId.value()).status().equals("ACTIVE")) { inputQueue.clear(); }
         metrics.onSnapshotReceived(state.serverTick());
-        if (state.phase().equals("FINISHED")) { finished = true; inputQueue.clear(); }
+        if (state.phase().equals("FINISHED")) { finished = true; inputQueue.clear();predictionInputs.clear(); }
+        else if(previous!=null && previous.gameplay()!=null && state.gameplay()!=null
+                && previous.gameplay().player(localId.value()).status().equals("RESPAWNING")
+                && state.gameplay().player(localId.value()).status().equals("ACTIVE")) {
+            // Resume held movement on the reader's first active snapshot, without replaying dead-time attacks.
+            inputQueue.recordFrameInput(heldAxis,false,false,false,heldBlock,false);
+            flushInput();
+        }
         return true;
     }
 
@@ -113,6 +150,7 @@ public final class ClientMatchSession implements AutoCloseable {
         GameStartRoster.require(Objects.equals(incoming.gameplay(),last.gameplay()),"Result statistics differ from final state");
         finished = true;
         inputQueue.clear();
+        predictionInputs.clear();
         result = incoming;
         return true;
     }
@@ -148,6 +186,8 @@ public final class ClientMatchSession implements AutoCloseable {
     public synchronized WireMatchResult getResult() { return result; }
     @Override public synchronized void close() {
         active = false;
+        heldAxis=0;heldBlock=false;
+        predictionInputs.clear();
         inputQueue.clear();
         snapshots.clear();
         killFeed.clear();

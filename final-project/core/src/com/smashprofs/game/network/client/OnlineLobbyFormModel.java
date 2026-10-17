@@ -18,7 +18,7 @@ public final class OnlineLobbyFormModel implements AutoCloseable {
             catch (NumberFormatException invalid) { throw new IllegalArgumentException("Cổng phải là số từ 1 đến 65535."); }
             var configuration = new LobbyConfiguration(address, number, room, mode);
             pending = new LobbyClient(configuration);
-            pending.enableGameplay();
+            pending.enableFighter();
             error = false;
             pending.startAsync();
             return true;

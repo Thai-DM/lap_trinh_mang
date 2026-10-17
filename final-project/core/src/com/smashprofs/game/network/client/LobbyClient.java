@@ -36,6 +36,7 @@ public final class LobbyClient implements ConnectionListener, AutoCloseable {
     private PlayerId localId;
     private List<Member> members = List.of();
     private String selectedCharacter, serverPhase = "", errorCode, statusText = "Not connected";
+    private String queuedCharacter;
     private GameStartRoster match;
     private volatile ClientMatchSession matchSession;
     private Pending pending;
@@ -122,6 +123,7 @@ public final class LobbyClient implements ConnectionListener, AutoCloseable {
             fail("INVALID_CHARACTER", "Choose a valid character", true);
             return false;
         }
+        queuedCharacter = null;
         return request(MessageType.PLAYER_READY, ProtocolV1.object().put("roomId", configuration.roomId())
                 .put("characterId", characterId).put("ready", true), characterId);
     }
@@ -129,8 +131,30 @@ public final class LobbyClient implements ConnectionListener, AutoCloseable {
     /** Gameplay lobby can cancel readiness before the server starts the match. */
     public synchronized boolean unready() {
         if(!gameplay || closed || phase!=Phase.WAITING_FOR_START || pending!=null || selectedCharacter==null) { return false; }
+        queuedCharacter = null;
         return request(MessageType.PLAYER_READY,ProtocolV1.object().put("roomId",configuration.roomId())
                 .put("characterId",selectedCharacter).put("ready",false),selectedCharacter);
+    }
+
+    /**
+     * Selects a character without marking the player ready.
+     * Both the local client and server will synchronize the chosen hero across all room members.
+     */
+    public synchronized boolean selectCharacter(String characterId) {
+        if (closed || phase != Phase.JOINED) { return false; }
+        if (characterId == null || !CHARACTERS.contains(characterId)) {
+            return false;
+        }
+        if (pending != null) {
+            queuedCharacter = characterId;
+            return true;
+        }
+        if (characterId.equals(selectedCharacter)) {
+            return true;
+        }
+        selectedCharacter = characterId;
+        return request(MessageType.PLAYER_READY, ProtocolV1.object().put("roomId", configuration.roomId())
+                .put("characterId", characterId).put("ready", false), characterId);
     }
 
     private boolean request(MessageType type, ObjectNode payload, String characterId) {
@@ -139,7 +163,7 @@ public final class LobbyClient implements ConnectionListener, AutoCloseable {
         phase = switch (type) {
             case CREATE_ROOM -> Phase.CREATING;
             case JOIN_ROOM -> Phase.JOINING;
-            case PLAYER_READY -> Phase.READY_PENDING;
+            case PLAYER_READY -> (payload.path("ready").asBoolean(true) || phase == Phase.WAITING_FOR_START) ? Phase.READY_PENDING : phase;
             case ROOM_SETTINGS_UPDATE -> Phase.READY_PENDING;
             default -> throw new IllegalArgumentException("Not a lobby request");
         };
@@ -148,7 +172,8 @@ public final class LobbyClient implements ConnectionListener, AutoCloseable {
             case CREATE_ROOM -> "Creating room " + configuration.roomId();
             case JOIN_ROOM -> "Joining room " + configuration.roomId();
             case ROOM_SETTINGS_UPDATE -> "Updating room rules";
-            default -> "Sending ready: " + characterId;
+            case PLAYER_READY -> payload.path("ready").asBoolean(true) ? "Confirming readiness..." : (phase == Phase.WAITING_FOR_START ? "Canceling readiness..." : "Selecting character " + characterId);
+            default -> "Sending request: " + characterId;
         });
         if (closed) { return false; }
         if (!networkClient.sendMessage(new ProtocolMessage(type, operation.requestId(), payload))) {
@@ -245,6 +270,13 @@ public final class LobbyClient implements ConnectionListener, AutoCloseable {
         if(readyResponse && settings!=null && confirmedReadyRulesVersion<settings.rulesVersion()) { phase=Phase.JOINED; }
         publish(readyResponse ? (local.ready()?"Ready. Waiting for server to start the match":"Not ready. You can change character or room rules.")
                 : "Joined " + configuration.roomId() + ". Choose your character, then press Ready");
+        if (queuedCharacter != null) {
+            String next = queuedCharacter;
+            queuedCharacter = null;
+            if (!next.equals(selectedCharacter) && phase == Phase.JOINED) {
+                selectCharacter(next);
+            }
+        }
     }
     private void acceptSettings(ProtocolMessage message) {
         var incoming=readSettings(message.payload());boolean response=correlates(message,MessageType.ROOM_SETTINGS_UPDATE);
@@ -252,7 +284,13 @@ public final class LobbyClient implements ConnectionListener, AutoCloseable {
             if(response) { pending=null;phase=Phase.JOINED;publish("Room rules updated. Ready again."); }return;
         }
         settings=incoming;
-        if(!incoming.members().isEmpty()) { members=incoming.members(); }
+        if(!incoming.members().isEmpty()) {
+            members=incoming.members();
+            if (localId != null) {
+                incoming.members().stream().filter(m -> m.playerId().equals(localId)).findFirst()
+                        .ifPresent(m -> { if (m.characterId() != null) selectedCharacter = m.characterId(); });
+            }
+        }
         if(response || (phase==Phase.WAITING_FOR_START && incoming.rulesVersion()>confirmedReadyRulesVersion)) {
             pending=null;phase=Phase.JOINED;publish("Room rules updated. Ready again.");
         } else { publish(statusText); }
@@ -374,6 +412,7 @@ public final class LobbyClient implements ConnectionListener, AutoCloseable {
         match = null;
         members = List.of();
         selectedCharacter = null;
+        queuedCharacter = null;
         serverPhase = "";
         errorCode = null;
     }

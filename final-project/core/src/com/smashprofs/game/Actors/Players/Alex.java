@@ -11,6 +11,12 @@ import com.smashprofs.game.Helper.PlayerTypes;
  */
 public class Alex extends Player {
 
+    // Character Stats (Chỉ số nhân vật: thang điểm 1 - 8)
+    public static final int STAT_ATTACK    = 7; // Sát thương
+    public static final int STAT_DEFENSE   = 6; // Phòng thủ / Giáp
+    public static final int STAT_SPEED     = 5; // Tốc độ di chuyển
+    public static final int STAT_DEXTERITY = 5; // Khéo léo / Hồi chiêu
+
     /**
      * Alex's default constructor. Creates Alex at the set spawnpoint.
      * @param world

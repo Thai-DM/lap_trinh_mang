@@ -11,6 +11,12 @@ import com.smashprofs.game.Helper.PlayerTypes;
  */
 public class Luca extends Player {
 
+    // Character Stats (Chỉ số nhân vật: thang điểm 1 - 8)
+    public static final int STAT_ATTACK    = 6; // Sát thương
+    public static final int STAT_DEFENSE   = 4; // Phòng thủ / Giáp
+    public static final int STAT_SPEED     = 8; // Tốc độ di chuyển
+    public static final int STAT_DEXTERITY = 6; // Khéo léo / Hồi chiêu
+
     /**
      * Luca's default constructor. Creates Luca at the set spawnpoint.
      * @param world

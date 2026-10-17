@@ -58,6 +58,7 @@ public class OnlineRoomScreen implements Screen {
     // Character Selection Roster
     private final Table[] characterCards = new Table[5];
     private String selected = "Alex";
+    private boolean initialCharacterSynced;
 
     // 4 Player Pedestals
     private final Table[] slotPedestalCard = new Table[4];
@@ -65,6 +66,8 @@ public class OnlineRoomScreen implements Screen {
     private final Image[] slotCharacterImg = new Image[4];
     private final Label[] slotNameLabel = new Label[4];
     private final Label[] slotHeroLabel = new Label[4];
+    private final Table[] slotStatsBox = new Table[4];
+    private final String[] slotLastChar = new String[4];
     private final Table[] slotStatusBadge = new Table[4];
     private final Label[] slotStatusLabel = new Label[4];
 
@@ -164,6 +167,7 @@ public class OnlineRoomScreen implements Screen {
                 @Override public void clicked(InputEvent event, float x, float y) {
                     if (lobby.getSnapshot().canReady() && lobby.getSnapshot().phase() != LobbyClient.Phase.WAITING_FOR_START) {
                         selected = name;
+                        lobby.selectCharacter(name);
                     }
                 }
             });
@@ -188,7 +192,7 @@ public class OnlineRoomScreen implements Screen {
             var stageArea = new Table();
 
             slotCharacterImg[i] = new Image(characterRegions[0]);
-            stageArea.add(slotCharacterImg[i]).size(140, 140).center().padBottom(-14);
+            stageArea.add(slotCharacterImg[i]).size(130, 130).center().padBottom(-14);
             stageArea.row();
 
             slotPedestalBase[i] = new Table();
@@ -196,16 +200,19 @@ public class OnlineRoomScreen implements Screen {
             slotPedestalBase[i].add().size(175, 18);
             stageArea.add(slotPedestalBase[i]).center();
 
-            pedestal.add(stageArea).growX().padTop(4).padBottom(6);
+            pedestal.add(stageArea).growX().padTop(2).padBottom(4);
             pedestal.row();
 
             // Tablet / Info beneath pedestal
             var tablet = new Table();
             tablet.setBackground(ui.comicBox(Color.valueOf("061324"), OnlineUi.BRAWL_BORDER, 2f, 0, 0));
-            tablet.pad(6, 8, 8, 8);
+            tablet.pad(4, 6, 6, 6);
 
             slotNameLabel[i] = ui.small("P" + (i + 1) + "  ·  TRỐNG", Color.WHITE);
             slotHeroLabel[i] = ui.heading("ALEX", Color.WHITE);
+
+            slotStatsBox[i] = new Table();
+            slotStatsBox[i].setVisible(false);
 
             slotStatusBadge[i] = new Table();
             slotStatusBadge[i].setBackground(ui.comicBox(Color.valueOf("0D1B2A"), OnlineUi.BRAWL_BORDER, 1.5f, 0, 0));
@@ -214,14 +221,16 @@ public class OnlineRoomScreen implements Screen {
 
             tablet.add(slotNameLabel[i]).center();
             tablet.row();
-            tablet.add(slotHeroLabel[i]).center().padTop(2).padBottom(4);
+            tablet.add(slotHeroLabel[i]).center().padTop(1).padBottom(2);
+            tablet.row();
+            tablet.add(slotStatsBox[i]).center().padBottom(4);
             tablet.row();
             tablet.add(slotStatusBadge[i]).center();
 
             pedestal.add(tablet).growX().bottom();
 
             slotPedestalCard[i] = pedestal;
-            pedestalsRow.add(pedestal).width(286).height(330).padRight(i == 3 ? 0 : 20);
+            pedestalsRow.add(pedestal).width(286).height(340).padRight(i == 3 ? 0 : 20);
         }
 
         root.add(pedestalsRow).padTop(4);
@@ -370,6 +379,35 @@ public class OnlineRoomScreen implements Screen {
         return characterRegions[0];
     }
 
+    private Table createMiniStatRow(String label, int val, int max) {
+        var row = new Table();
+        var lbl = ui.small(label, Color.valueOf("84A8C8"));
+        row.add(lbl).padRight(3);
+
+        var bars = new Table();
+        for (int seg = 0; seg < max; seg++) {
+            var drawable = ui.skin.newDrawable("pixel", seg < val ? Color.valueOf("00E5FF") : Color.valueOf("122034"));
+            bars.add(new Image(drawable)).size(5.5f, 6f).padRight(1.5f);
+        }
+        row.add(bars);
+        return row;
+    }
+
+    private void updateSlotStats(int slotIndex, OnlineLoadingScreen.CharacterStats stats) {
+        var box = slotStatsBox[slotIndex];
+        box.clear();
+        if (stats == null) {
+            box.setVisible(false);
+            return;
+        }
+        box.setVisible(true);
+        box.add(createMiniStatRow("DMG", stats.attack, 8)).padRight(8);
+        box.add(createMiniStatRow("DEF", stats.defense, 8));
+        box.row().padTop(2);
+        box.add(createMiniStatRow("SPD", stats.speed, 8)).padRight(8);
+        box.add(createMiniStatRow("DEX", stats.dexterity, 8));
+    }
+
     @Override
     public void show() {
         Gdx.input.setInputProcessor(stage);
@@ -379,8 +417,8 @@ public class OnlineRoomScreen implements Screen {
     public void render(float delta) {
         if (disposed) { return; }
         var state = lobby.getSnapshot();
-        if (state.isMatchStarted()) {
-            game.setScreen(new PlayScreen(game));
+        if ("COUNTDOWN".equals(state.serverPhase()) || state.isMatchStarted()) {
+            game.setScreen(new OnlineLoadingScreen(game, lobby));
             return;
         }
 
@@ -401,6 +439,12 @@ public class OnlineRoomScreen implements Screen {
         boolean joined = state.canReady();
         boolean waiting = state.phase() == LobbyClient.Phase.WAITING_FOR_START;
         boolean host = settings != null && state.localPlayerId() != null && settings.hostId().equals(state.localPlayerId().value());
+
+        // Sync initial default character to server once room is joined
+        if (joined && !initialCharacterSynced && state.phase() == LobbyClient.Phase.JOINED) {
+            lobby.selectCharacter(selected);
+            initialCharacterSynced = true;
+        }
 
         // Sync rules from server if updated by host
         if (settings != null && settings.rulesVersion() != displayedRules) {
@@ -469,6 +513,10 @@ public class OnlineRoomScreen implements Screen {
 
             if (member == null) {
                 slotCharacterImg[i].setVisible(false);
+                if (slotLastChar[i] != null) {
+                    updateSlotStats(i, null);
+                    slotLastChar[i] = null;
+                }
                 if (i >= capacity) {
                     slotNameLabel[i].setText("P" + (i + 1) + "  ·  ĐÃ KHÓA");
                     slotNameLabel[i].setColor(Color.valueOf("6B7280"));
@@ -497,9 +545,19 @@ public class OnlineRoomScreen implements Screen {
             boolean local = member.playerId().equals(state.localPlayerId());
             boolean owner = settings != null && settings.hostId().equals(member.playerId().value());
 
-            String charName = member.characterId() != null ? member.characterId() : (local ? selected : "Alex");
+            if (local && !initialCharacterSynced && member.characterId() != null) {
+                selected = member.characterId();
+                initialCharacterSynced = true;
+            }
+
+            String charName = local ? selected : (member.characterId() != null ? member.characterId() : "Alex");
             slotCharacterImg[i].setDrawable(new TextureRegionDrawable(getCharacterRegion(charName)));
             slotCharacterImg[i].setVisible(true);
+
+            if (!charName.equals(slotLastChar[i])) {
+                updateSlotStats(i, OnlineLoadingScreen.getStats(charName));
+                slotLastChar[i] = charName;
+            }
 
             String pLabel = "P" + (i + 1) + (local ? " · BẠN" : "") + (owner ? " ★" : "");
             slotNameLabel[i].setText(pLabel);

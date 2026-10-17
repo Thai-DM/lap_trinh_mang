@@ -12,6 +12,12 @@ import com.smashprofs.game.Helper.PlayerTypes;
  */
 public class Maurice extends Player {
 
+    // Character Stats (Chỉ số nhân vật: thang điểm 1 - 8)
+    public static final int STAT_ATTACK    = 4; // Sát thương
+    public static final int STAT_DEFENSE   = 4; // Phòng thủ / Giáp
+    public static final int STAT_SPEED     = 7; // Tốc độ di chuyển
+    public static final int STAT_DEXTERITY = 8; // Khéo léo / Hồi chiêu
+
 
     /**
      * Maurice's default constructor. Creates Maurice at the set spawnpoint.

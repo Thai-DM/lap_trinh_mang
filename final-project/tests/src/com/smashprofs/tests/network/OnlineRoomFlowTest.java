@@ -36,4 +36,34 @@ public class OnlineRoomFlowTest {
             try { peer.getSettings().members().clear();fail("Roster must be immutable"); }catch(UnsupportedOperationException expected) { }
         } finally { host.closeAndWait(5000);peer.closeAndWait(5000);server.stop(); }
     }
+
+    @Test(timeout=20000) public void characterSelectionWithoutReadySynchronizesAcrossPeers() throws Exception {
+        var server=new GameServer();server.start();String room=OnlineRoomPresentation.newRoomCode();
+        var host=new LobbyClient(new LobbyConfiguration("127.0.0.1",server.getBoundPort(),room,LobbyConfiguration.Mode.CREATE));
+        var peer=new LobbyClient(new LobbyConfiguration("127.0.0.1",server.getBoundPort(),room,LobbyConfiguration.Mode.JOIN));
+        host.enableGameplay();peer.enableGameplay();
+        try {
+            assertTrue(host.startAsync());until(()->host.getSnapshot().canReady());
+            assertTrue(peer.startAsync());until(()->peer.getSnapshot().canReady());
+            until(()->host.getSettings()!=null && peer.getSettings()!=null && host.getSettings().members().size()==2 && peer.getSettings().members().size()==2);
+            String hostId=host.getSnapshot().localPlayerId().value();
+            String peerId=peer.getSnapshot().localPlayerId().value();
+
+            // Peer clicks Maurice without readying
+            assertTrue(peer.selectCharacter("Maurice"));
+            until(()->"Maurice".equals(peer.getSnapshot().selectedCharacter()));
+            assertEquals(LobbyClient.Phase.JOINED, peer.getSnapshot().phase());
+
+            // Host receives room settings showing peer chose Maurice and is not ready
+            until(()->host.getSettings().members().stream().anyMatch(m->m.playerId().value().equals(peerId) && "Maurice".equals(m.characterId()) && !m.ready()));
+
+            // Host clicks Leo without readying
+            assertTrue(host.selectCharacter("Leo"));
+            until(()->"Leo".equals(host.getSnapshot().selectedCharacter()));
+            assertEquals(LobbyClient.Phase.JOINED, host.getSnapshot().phase());
+
+            // Peer receives room settings showing host chose Leo and is not ready
+            until(()->peer.getSettings().members().stream().anyMatch(m->m.playerId().value().equals(hostId) && "Leo".equals(m.characterId()) && !m.ready()));
+        } finally { host.closeAndWait(5000);peer.closeAndWait(5000);server.stop(); }
+    }
 }

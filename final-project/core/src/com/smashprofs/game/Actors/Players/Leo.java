@@ -13,6 +13,12 @@ import com.smashprofs.game.Helper.PlayerTypes;
  */
 public class Leo extends Player {
 
+    // Character Stats (Chỉ số nhân vật: thang điểm 1 - 8)
+    public static final int STAT_ATTACK    = 6; // Sát thương
+    public static final int STAT_DEFENSE   = 6; // Phòng thủ / Giáp
+    public static final int STAT_SPEED     = 6; // Tốc độ di chuyển
+    public static final int STAT_DEXTERITY = 6; // Khéo léo / Hồi chiêu
+
     /**
      * Leo's default constructor. Creates Leo at the set spawnpoint.
      * @param world

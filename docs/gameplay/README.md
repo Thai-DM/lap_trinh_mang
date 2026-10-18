@@ -4,6 +4,8 @@
 
 [Kiểm chứng bản khôi phục trang bị](runs/20261018-equipment-restored/verification.json) · [Túi đồ ở 960×540](runs/20261018-equipment-restored/four-players-small/weapon-inventory.png). Phải mở lại cả server và client sau khi cập nhật; phòng mới mặc định rơi đồ, phòng đã chọn Tắt cần chủ phòng đổi lại trước trận.
 
+**Cầm súng chỉ bắn:** J/K hoặc C/X tạo projectile, không kèm đòn tay/animation đấm. Cooldown và viên cuối cũng không đánh tay thay thế. Bỏ súng hoặc hết đạn rồi nhập lần tiếp theo mới đánh tay không. [Kiểm chứng](runs/20261018-projectile-only/verification.json) · [Bắn trong trận 4 người](runs/20261018-projectile-only/four-players-small/weapon-fired.png).
+
 [Bộ fixture combo tay không](runs/20261018-unarmed-build/combos.json) · [Manifest lịch sử Unarmed](runs/20261018-unarmed-build/verification.json). Chạy `.\scripts\gameplay\Run-Unarmed-Training.ps1`. Danh mục vẫn UNVERIFIED, không mặc định là true combo. Tài liệu 12 và các evidence dưới đây ghi lịch sử trước Unarmed.
 
 Kiểm chứng mới: [JUnit](runs/20261017-085338-383-final-gameplay-regression/tests.log) · [30 kiểm tra cuối](runs/20261017-085538-830-fighter-final-lifecycle/tests.log) · [Build JAR](runs/20261017-fighter-build/build-packaged-final.log) · [HUD/bệ hồi sinh ở 960×540](runs/20261017-fighter-native/final-small-screen/respawn-platform.png) · [Podium](runs/20261017-fighter-native/final-two-players/result.png) · [Rematch 4 người](runs/20261017-fighter-native/final-four-players/rematch.png).

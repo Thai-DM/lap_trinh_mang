@@ -128,6 +128,9 @@ public final class FighterVisualPreview extends Game {
             host.recordFrameInput(0,false,false,true,false,false);step=48;frames=0;
         } else if(step==48 && frames>4 && host.getMatchSession().getSnapshotBuffer().getLatestSnapshot().gameplay().player(owner.value()).ammo()==5
                 && runtime.gameplay().fighter.fighters.get(owner).attack==null) {
+            var shotState=host.getMatchSession().getSnapshotBuffer().getLatestSnapshot();
+            if(!shotState.gameplay().fighter().player(owner.value()).attack().equals("NONE")) { throw new IllegalStateException("Gun also started a punch animation"); }
+            if(shotState.player(peers.get(0).getSnapshot().localPlayerId().value()).hp()!=56) { throw new IllegalStateException("Gun did not deal projectile-only damage"); }
             verifyEquipmentHud(false,5);capture("weapon-fired");
             host.recordFrameInput(0,false,false,false,false,false,false,false,new FighterInput(false,false,false,false,false,false,true,false));step=49;frames=0;
         } else if(step==49 && frames>4 && !runtime.gameplay().items.itemViews().isEmpty()

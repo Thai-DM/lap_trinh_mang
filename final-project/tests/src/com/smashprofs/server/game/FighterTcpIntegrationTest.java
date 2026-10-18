@@ -88,6 +88,22 @@ public class FighterTcpIntegrationTest {
             for(int i=0;i<9;i++) { executor.runCycle(); }
             float hp=r.gameplay().state.getPlayer(victim).getHp();assertTrue(hp<100);
             until(()->clients.stream().allMatch(c->c.getMatchSession().getSnapshotBuffer().getLatestSnapshot().player(victim.value()).hp()==hp));
+            // Picking up a gun switches the same input to projectile-only damage and no punch animation/state.
+            for(int i=0;i<25;i++) { executor.runCycle(); }
+            r.gameplay().state.getPlayer(victim).heal(100);
+            r.gameplay().bodies.respawn(owner,5.45f,.23f);r.gameplay().bodies.respawn(victim,5.72f,.23f);
+            r.gameplay().fighter.physics.reset(owner);r.gameplay().fighter.physics.reset(victim);
+            r.gameplay().items.drop("LASER",5.45f,.23f,r.getMatchState().getServerTick());
+            assertTrue(clients.get(0).recordFrameInput(0,false,false,false,false,false,true,false));until(()->r.getPendingInputCount()>0);
+            for(int i=0;i<3;i++) { executor.runCycle(); }
+            until(()->clients.stream().allMatch(c->c.getMatchSession().getSnapshotBuffer().getLatestSnapshot().gameplay().player(owner.value()).weapon().equals("LASER")));
+            assertTrue(clients.get(0).recordFrameInput(0,false,false,true,false,false));until(()->r.getPendingInputCount()>0);
+            for(int i=0;i<6;i++) { executor.runCycle(); }
+            assertEquals(76,r.gameplay().state.getPlayer(victim).getHp(),.001f);assertNull(r.gameplay().fighter.fighters.get(owner).attack);
+            until(()->clients.stream().allMatch(c->{
+                var state=c.getMatchSession().getSnapshotBuffer().getLatestSnapshot();
+                return state.player(victim.value()).hp()==76 && state.gameplay().player(owner.value()).ammo()==5 && state.gameplay().fighter().player(owner.value()).attack().equals("NONE");
+            }));
             String oldId=r.getMatchId();
             // Every losing participant exhausts three stocks. Platform invulnerability does not block a blast KO.
             for(int stock=0;stock<3;stock++) {

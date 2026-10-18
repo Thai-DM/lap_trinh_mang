@@ -171,9 +171,6 @@ final class ItemSystem implements AutoCloseable {
         }
     }
     boolean attack(PlayerId id,long tick) {
-        return attack(id,tick,null);
-    }
-    boolean attack(PlayerId id,long tick,Set<PlayerId> sharedHits) {
         var p=game.progress.get(id);
         if(!game.active(id) || p.weapon.equals("NONE")) { return false; }
         // An equipped weapon consumes the melee edge even during its fire cooldown.
@@ -186,7 +183,7 @@ final class ItemSystem implements AutoCloseable {
             float angle=count==3?(i-1)*.20f:0;
             var shot=new Shot(nextId++,p.weapon,id,tick,pos.xMeters(),pos.yMeters(),
                     direction*speed*(float)Math.cos(angle),p.weapon.equals("GRENADE")?2.2f:speed*(float)Math.sin(angle),0);
-            if(sharedHits!=null) { shot.hit=sharedHits; }shots.add(shot);
+            shots.add(shot);
         }
         p.nextShot=tick+24;if(--p.ammo==0) { p.weapon="NONE"; }
         return true;

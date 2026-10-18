@@ -45,7 +45,7 @@ Khi lấy source sang máy khác, chạy `Verify-Gameplay.ps1` để biên dịc
 | Thả / ném vũ khí | G / Q | G / Q |
 | Túi đồ | Tab | Tab |
 
-Đang cầm vũ khí, đòn tấn công bắn một lần ở active frame và giữ hệ số tầm đánh/sát thương trang bị đã có. Projectile và melee dùng chung danh sách mục tiêu để một đòn không gây sát thương lặp trên cùng người. J (preset B) / C (preset A) là nút dùng nhanh; K / X vẫn giữ đòn mạnh/Recovery. Nhặt/thả/ném thực hiện khi nhân vật đang tự do, bị khóa trong hitstun/dodge/đòn đang chạy. Q ưu tiên hơn nhặt và đánh nếu bấm cùng frame. Không thay công thức HP, dung nham hay hồi sinh.
+**Đang cầm súng thì chỉ bắn.** J/K (preset B) hoặc C/X (preset A) dùng vũ khí, chỉ tạo projectile; không tạo hitbox, sát thương hay animation đánh tay, không chạy Heavy/Recovery/Ground Pound tay không. Bắn ngay theo hướng đang nhập, cooldown 24 tick (0,4 giây). Bấm trong cooldown không đánh tay thay thế. Viên cuối vẫn chỉ là một phát bắn; từ lần nhập tiếp theo sau khi hết đạn, G thả hoặc Q ném súng mới dùng bộ đòn tay không. Nhặt/thả/ném thực hiện khi nhân vật đang tự do, bị khóa trong hitstun/dodge/đòn đang chạy. Q ưu tiên hơn nhặt và đánh nếu bấm cùng frame. Không thay công thức HP, dung nham hay hồi sinh.
 
 Đọc đồng thời mọi phím; trái+phải cho axis=0. Jump và aim-up tách riêng. Hướng đòn chọn **Down > aim-up Neutral > Side > Neutral**; hướng mặt và hướng đòn lưu riêng. Trên đất, ngang+Dodge là Dash/Backdash không bất tử; đứng yên+Dodge là Ground Spot. Trên không, không hướng là Air Spot, có hướng là Directional Air Dodge. Dash Jump giữ đà burst. Sprint sau 18 tick chạy liên tục: tốc cơ sở 1,6 m/s theo stats, sprint x1,12; dash/dodge 2,6 m/s.
 
@@ -89,6 +89,8 @@ Tool ghi `combos.json`/`training.log` vào run mới. **17 chuỗi × 4 mức HP
 Vì chọn HP, dùng dải HP thay các mốc % của hướng dẫn damage-meter. **Danh mục vẫn UNVERIFIED**. `observedZeroWindowInThisFixture` chỉ đúng khi đủ mọi đòn theo thứ tự và không có cửa sổ nhập Dodge; không chứng nhận chuỗi luôn true. Cần playtest thêm khoảng cách/độ cao và đo lại sau đổi balance.
 
 ## Netcode, kiểm chứng và giới hạn
+
+**Tách bắn và đánh tay:** [manifest](runs/20261018-projectile-only/verification.json). 769 kiểm tra hồi quy PASS; TCP với 2/3/4 client xác nhận Laser chỉ trừ 24 HP, bớt một viên và snapshot không có attack tay không. Có kiểm tra cooldown, viên cuối, bắn hụt qua vị trí thuộc tầm tay, hướng bắn ở frame đầu và bắn trên không bằng Heavy không tạo Recovery. Native 4 người/960×540 xác nhận HP 80→56 sau một phát Laser, không có animation/hitbox đấm; giữ được nhặt/thả/ném/túi đồ, dung nham và hồi sinh.
 
 **Bản khôi phục trang bị theo yêu cầu giữ tính năng cũ:** [manifest](runs/20261018-equipment-restored/verification.json), [túi đồ 4 người/960×540](runs/20261018-equipment-restored/four-players-small/weapon-inventory.png). Đã qua 764 kiểm tra hồi quy, 27 kiểm tra cuối gồm rơi đồ theo tick thật; native 2/4 người xác nhận E nhặt, active frame bắn một lần, Q ném, nhặt lại giữ đạn, G thả và túi Tab giữ trạng thái qua các frame HUD. Các log/manifest Unarmed bên dưới ghi lịch sử trước khi khôi phục vũ khí. Cần dừng và mở lại server/client; phòng mới mặc định Medium, phòng đã chọn Tắt phải đổi cài đặt.
 

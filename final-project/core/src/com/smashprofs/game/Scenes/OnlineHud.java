@@ -112,7 +112,7 @@ public final class OnlineHud implements AutoCloseable {
             if(fighter) { unarmedHint.setText((controlPreset==UnarmedControls.Preset.B?"J đánh/bắn · K mạnh · L né/lướt":"C đánh/bắn · X mạnh · Z né/lướt")+" · F6 đổi phím"); }
             bagHint.setText(fighter?"E nhặt · G thả · Q ném khi đang tự do. Đổi súng giữ đạn của súng cũ. Bình hồi phục: hồi 30 HP. Khiên chặn một đòn.":
                     "Đến gần, bấm E để nhặt; G để thả súng. Đổi súng giữ đạn của súng cũ. Bình máu dùng ngay khi nhặt.");
-            helpText.setText(fighter?UnarmedControls.hint(controlPreset)+"\nĐòn tấn công dùng vũ khí đang cầm; hết đạn về tay không\nE nhặt · G thả · Q ném (I lên / xuống để ngắm) · Tab túi\nI hướng lên: ưu tiên Neutral, không tiêu nhảy\nXuống + nhảy: xuyên sàn mềm · Giữ xuống: rơi nhanh\nNé tại chỗ trên không rồi đánh: Gravity Cancel\nSau đánh trúng: hướng đuổi + né để Chase Dodge\n2 lượt nhảy trên không · Recovery dùng chung ngân sách\nHết HP hoặc vượt biên: mất mạng · Dung nham -10 HP\nF2 hitbox / Show Stun · F6 đổi preset A/B":
+            helpText.setText(fighter?UnarmedControls.hint(controlPreset)+"\nCó súng: chỉ bắn · Hết đạn hoặc bỏ súng: đánh tay không\nE nhặt · G thả · Q ném (I lên / xuống để ngắm) · Tab túi\nI hướng lên: ưu tiên Neutral, không tiêu nhảy\nXuống + nhảy: xuyên sàn mềm · Giữ xuống: rơi nhanh\nNé tại chỗ trên không rồi đánh tay không: Gravity Cancel\nSau đánh trúng: hướng đuổi + né để Chase Dodge\n2 lượt nhảy trên không · Recovery tay không dùng chung ngân sách\nHết HP hoặc vượt biên: mất mạng · Dung nham -10 HP\nF2 hitbox / Show Stun · F6 đổi preset A/B":
                     "A/D di chuyển · W nhảy · S dậm\nV/Space bắn hoặc đánh · F tuyệt chiêu\nE nhặt gần nhất · G thả súng\nCtrl đỡ · Tab túi đồ · Esc rời trận\nDung nham: -10 HP và bật lên");
             for(var p:latest.players()) {
                 var card=players.get(p.playerId());card.bar.setValue(p.hp());card.hp.setText(Math.round(p.hp())+" HP");
@@ -158,6 +158,9 @@ public final class OnlineHud implements AutoCloseable {
                 ability.setColor(local.ultimateTicks()==0 && local.status().equals("ACTIVE")?OnlineUi.ACCENT:OnlineUi.MUTED);
                 if(fighter) {
                     var value=gameplay.fighter().player(localId);
+                    if(!local.weapon().equals("NONE")) {
+                        unarmedHint.setText((controlPreset==UnarmedControls.Preset.B?"J/K chỉ bắn · L né/lướt":"C/X chỉ bắn · Z né/lướt")+" · F6 đổi phím");
+                    }
                     ability.setText(value.dodgeCooldownTicks()==0?"NÉ SẴN SÀNG":"Né · "+String.format(Locale.ROOT,"%.1fs",value.dodgeCooldownTicks()/60f));
                     ability.setColor(value.dodgeCooldownTicks()==0?OnlineUi.ACCENT:OnlineUi.MUTED);
                     airBudget.setText("Nhảy "+value.airJumps()+"/2 · GC "+value.detail().gravityCancelTicks()+" · CD "+value.detail().chaseCharges()+" · Tường "+value.detail().wallActions());

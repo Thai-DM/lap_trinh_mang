@@ -25,18 +25,52 @@ public class FighterEquipmentTest {
         var position=game.bodies.getPosition(a);assertTrue(game.items.drop(type,position.xMeters(),position.yMeters(),runtime.getMatchState().getServerTick()));
         send(input(false,true,false,false));
     }
-    @Test public void activeFramesFireOnlyOnceAndProjectileAndMeleeCannotDoubleHitAVictim() {
+    @Test public void equippedAttackOnlyDealsProjectileDamageAndNeverStartsAPunch() {
         pickup("LASER");send(input(true,false,false,false));
-        assertEquals(6,game.progress.get(a).ammo);assertTrue(game.items.shotViews().isEmpty());
-        ticks(6);assertEquals(5,game.progress.get(a).ammo);
-        float hp=game.state.getPlayer(b).getHp();assertEquals(100-7*1.1f*1.35f,hp,.001f);
-        ticks(8);assertEquals(hp,game.state.getPlayer(b).getHp(),.001f);assertEquals(5,game.progress.get(a).ammo);
+        assertEquals(5,game.progress.get(a).ammo);assertNull(game.fighter.fighters.get(a).attack);
+        assertEquals("NONE",game.snapshot().fighter().player("a").attack());
+        float hp=game.state.getPlayer(b).getHp();assertEquals(76,hp,.001f);
+        ticks(14);assertEquals(hp,game.state.getPlayer(b).getHp(),.001f);assertEquals(5,game.progress.get(a).ammo);
     }
     @Test public void finalRoundIsUsedOnceAndTheNextAttackReturnsToUnarmed() {
-        pickup("LASER");game.progress.get(a).ammo=1;send(input(true,false,false,false));ticks(25);
+        pickup("LASER");game.progress.get(a).ammo=1;send(input(true,false,false,false));
         assertEquals("NONE",game.progress.get(a).weapon);assertEquals(0,game.progress.get(a).ammo);
-        send(input(true,false,false,false));assertEquals(1,game.fighter.fighters.get(a).attack.reach,0);
+        assertNull(game.fighter.fighters.get(a).attack);assertEquals(76,game.state.getPlayer(b).getHp(),.001f);ticks(25);
+        send(input(true,false,false,false));assertEquals("NLIGHT",game.fighter.fighters.get(a).attack.move.name());
         ticks(8);assertEquals(0,game.progress.get(a).ammo);
+    }
+    @Test public void cooldownAndAllAttackKeysStillCannotFallThroughToMelee() {
+        pickup("LASER");send(input(true,false,false,false));
+        for(int i=0;i<10;i++) {
+            send(new PlayerInput(a,sequence++,sequence,0,false,false,true,false,true,false,false,
+                    new FighterInput(true,false,false,true,true,false,false,false)));
+            assertNull(game.fighter.fighters.get(a).attack);assertEquals("NONE",game.snapshot().fighter().player("a").attack());
+        }
+        assertEquals(5,game.progress.get(a).ammo);assertEquals(76,game.state.getPlayer(b).getHp(),.001f);
+    }
+    @Test public void aMissedGunShotHasNoHandHitboxForAnOpponentAboveTheBulletPath() {
+        pickup("LASER");game.bodies.respawn(b,5.65f,.54f);game.fighter.physics.reset(b);
+        send(input(true,false,false,false));assertEquals(100,game.state.getPlayer(b).getHp(),0);
+        ticks(8);assertEquals(100,game.state.getPlayer(b).getHp(),0);assertNull(game.fighter.fighters.get(a).attack);
+    }
+    @Test public void shootingInAirWithTheHeavyKeyDoesNotStartAnUnarmedRecoveryOrGroundPound() {
+        pickup("LASER");game.bodies.respawn(a,6,3);game.fighter.physics.reset(a);runtime.tick();
+        send(new PlayerInput(a,sequence++,sequence,0,false,false,false,false,false,false,false,
+                new FighterInput(false,false,false,true,true,false,false,false)));
+        assertNull(game.fighter.fighters.get(a).attack);assertEquals(0,game.snapshot().fighter().player("a").detail().recoveries());
+        assertEquals(5,game.progress.get(a).ammo);assertTrue(game.bodies.getVelocity(a).yMetersPerSecond()<0);
+    }
+    @Test public void firstShotUsesTheDirectionPressedInThatSameFrame() {
+        pickup("SHOTGUN");game.bodies.respawn(b,8,.23f);
+        send(new PlayerInput(a,sequence++,sequence,-1,false,false,true,false,false));
+        assertFalse(game.state.getPlayer(a).isFacingRight());assertEquals(3,game.items.shotViews().size());
+        for(var shot:game.items.shotViews()) { assertTrue(shot.vx()<0); }
+        assertNull(game.fighter.fighters.get(a).attack);
+    }
+    @Test public void droppingTheGunAllowsTheNextInputToPunchAgain() {
+        pickup("LASER");send(input(false,false,true,false));send(input(true,false,false,false));
+        assertEquals("NONE",game.progress.get(a).weapon);assertEquals("NLIGHT",game.fighter.fighters.get(a).attack.move.name());
+        assertTrue(game.items.shotViews().isEmpty());
     }
     @Test public void pickupSwapAndDropPreserveAmmoAndStaleEdgesCannotDuplicateItems() {
         pickup("SHOTGUN");game.progress.get(a).ammo=4;pickup("LASER");

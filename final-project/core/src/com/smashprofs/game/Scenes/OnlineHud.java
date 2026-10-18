@@ -80,18 +80,23 @@ public final class OnlineHud implements AutoCloseable {
         shieldIcon=new Image(icons.drawable("SHIELD"));shieldIcon.setColor(1,1,1,.25f);equipment.add(shieldIcon).size(30).padRight(12);
         equipment.add(new Image(icons.drawable("ABILITY"))).size(30).padRight(4);ability=ui.small("F · Sẵn sàng");equipment.add(ability).width(115);
         equipment.add(ui.small("[E] Nhặt  [G] Thả  [Q] Ném  [Tab] Túi  [H] Phím")).padLeft(12);
-        if(unarmed) { equipment.clearChildren();equipment.add(unarmedHint).padRight(12);equipment.add(ability).width(100).padRight(8);equipment.add(airBudget); }
-        bottom.add(stunPanel).padBottom(4);bottom.row();bottom.add(equipment).height(48);stage.addActor(bottom);
+        if(unarmed) {
+            equipment.clearChildren();equipment.add(weaponIcon).size(30).padRight(6);equipment.add(description).width(170).padRight(10);
+            equipment.add(shieldIcon).size(24).padRight(10);equipment.add(ability).width(130).padRight(10);
+            equipment.add(ui.small("E nhặt · G thả · Q ném · Tab túi · H phím")).colspan(2);
+            equipment.row();equipment.add(unarmedHint).colspan(4).padTop(5).padRight(12);equipment.add(airBudget).colspan(2).padTop(5);
+        }
+        bottom.add(stunPanel).padBottom(4);bottom.row();bottom.add(equipment).height(unarmed?72:48);stage.addActor(bottom);
         var pingRoot=new Table();pingRoot.setFillParent(true);pingRoot.bottom().right().padRight(12).padBottom(12);networkPing=ui.small("");networkPing.setColor(OnlineUi.MUTED);pingRoot.add(networkPing);stage.addActor(pingRoot);
 
-        var bagRoot=new Table();bagRoot.setFillParent(true);bagRoot.bottom().right().padRight(12).padBottom(68);
+        var bagRoot=new Table();bagRoot.setFillParent(true);bagRoot.bottom().right().padRight(12).padBottom(unarmed?92:68);
         bag=ui.panel();bag.pad(14);bag.defaults().left();bag.add(ui.label("TRANG BỊ ĐANG MANG")).colspan(2);bag.row();
         bagIcon=new Image(icons.drawable("NONE"));bag.add(bagIcon).size(54).padRight(10).padTop(12);
         bagWeapon=ui.wrapped("Tay không");bag.add(bagWeapon).width(245).padTop(12);bag.row();
         bag.add(new Image(icons.drawable("SHIELD"))).size(40).padRight(10).padTop(8);bagShield=ui.small("Chưa có khiên");bag.add(bagShield).padTop(8);bag.row();
         bagHint=ui.small("");bagHint.setWrap(true);
         bag.add(bagHint).colspan(2).width(310).padTop(12);bag.setVisible(false);bagRoot.add(bag).width(350);stage.addActor(bagRoot);
-        var helpRoot=new Table();helpRoot.setFillParent(true);helpRoot.bottom().left().padLeft(12).padBottom(68);
+        var helpRoot=new Table();helpRoot.setFillParent(true);helpRoot.bottom().left().padLeft(12).padBottom(unarmed?92:68);
         help=ui.panel();help.pad(12);helpText=ui.small("");help.add(helpText);help.setVisible(false);helpRoot.add(help);stage.addActor(helpRoot);
     }
     private void addClock(Table strip) { strip.add().expandX();var clock=ui.panel();clock.pad(5);clock.add(timer);clock.row();clock.add(remaining).padTop(3);strip.add(clock).width(106).height(52).padLeft(5).padRight(10);strip.add().expandX(); }
@@ -104,10 +109,10 @@ public final class OnlineHud implements AutoCloseable {
         if(frame!=null) {
             var latest=frame.authoritative();var gameplay=latest.gameplay();
             boolean fighter=gameplay!=null && gameplay.fighter()!=null;
-            if(fighter) { bag.setVisible(false);unarmedHint.setText((controlPreset==UnarmedControls.Preset.B?"J nhẹ · K mạnh · L né/lướt":"C nhẹ · X mạnh · Z né/lướt")+" · F6 đổi phím · H hướng dẫn"); }
-            bagHint.setText(fighter?"E nhặt · G thả · Q ném để ngắt đòn. Đổi súng giữ đạn của súng cũ. Bình hồi phục: hồi 30 HP và giảm 30% sát thương tích lũy.":
+            if(fighter) { unarmedHint.setText((controlPreset==UnarmedControls.Preset.B?"J đánh/bắn · K mạnh · L né/lướt":"C đánh/bắn · X mạnh · Z né/lướt")+" · F6 đổi phím"); }
+            bagHint.setText(fighter?"E nhặt · G thả · Q ném khi đang tự do. Đổi súng giữ đạn của súng cũ. Bình hồi phục: hồi 30 HP. Khiên chặn một đòn.":
                     "Đến gần, bấm E để nhặt; G để thả súng. Đổi súng giữ đạn của súng cũ. Bình máu dùng ngay khi nhặt.");
-            helpText.setText(fighter?UnarmedControls.hint(controlPreset)+"\nI hướng lên: ưu tiên Neutral, không tiêu nhảy\nXuống + nhảy: xuyên sàn mềm · Giữ xuống: rơi nhanh\nNé tại chỗ trên không rồi đánh: Gravity Cancel\nSau đánh trúng: hướng đuổi + né để Chase Dodge\n2 lượt nhảy trên không · Recovery dùng chung ngân sách\nHết HP hoặc vượt biên: mất mạng · Dung nham -10 HP\nF2 hitbox / Show Stun · F6 đổi preset A/B":
+            helpText.setText(fighter?UnarmedControls.hint(controlPreset)+"\nĐòn tấn công dùng vũ khí đang cầm; hết đạn về tay không\nE nhặt · G thả · Q ném (I lên / xuống để ngắm) · Tab túi\nI hướng lên: ưu tiên Neutral, không tiêu nhảy\nXuống + nhảy: xuyên sàn mềm · Giữ xuống: rơi nhanh\nNé tại chỗ trên không rồi đánh: Gravity Cancel\nSau đánh trúng: hướng đuổi + né để Chase Dodge\n2 lượt nhảy trên không · Recovery dùng chung ngân sách\nHết HP hoặc vượt biên: mất mạng · Dung nham -10 HP\nF2 hitbox / Show Stun · F6 đổi preset A/B":
                     "A/D di chuyển · W nhảy · S dậm\nV/Space bắn hoặc đánh · F tuyệt chiêu\nE nhặt gần nhất · G thả súng\nCtrl đỡ · Tab túi đồ · Esc rời trận\nDung nham: -10 HP và bật lên");
             for(var p:latest.players()) {
                 var card=players.get(p.playerId());card.bar.setValue(p.hp());card.hp.setText(Math.round(p.hp())+" HP");
@@ -135,7 +140,7 @@ public final class OnlineHud implements AutoCloseable {
             if(gameplay!=null) {
                 remaining.setText("Còn "+gameplay.players().stream().filter(p->p.lives()>0).count()+" người");
                 var local=gameplay.player(localId);
-                if(!fighter && connected && local.status().equals("ACTIVE")) {
+                if(connected && local.status().equals("ACTIVE")) {
                     var position=latest.player(localId);com.smashprofs.common.model.GameplaySnapshot.Item nearest=null;double best=.35*.35;
                     for(var item:gameplay.items()) {
                         double dx=position.x()-item.x(),dy=position.y()-item.y(),distance=dx*dx+dy*dy;
@@ -145,8 +150,9 @@ public final class OnlineHud implements AutoCloseable {
                 }
                 if(!displayedWeapon.equals(local.weapon())) { displayedWeapon=local.weapon();weaponIcon.setDrawable(icons.drawable(displayedWeapon));bagIcon.setDrawable(icons.drawable(displayedWeapon)); }
                 weaponName.setText(CombatIcons.name(local.weapon()));String ammunition=local.ammo()<0?"—":Integer.toString(local.ammo());
-                ammo.setText(local.weapon().equals("NONE")?"V / Space: đánh":"V / Space: bắn · "+ammunition+" viên");
-                bagWeapon.setText(CombatIcons.name(local.weapon())+(local.weapon().equals("NONE")?"\nChưa nhặt vũ khí":"\nCòn "+ammunition+" viên · V/Space để dùng"));
+                String attackKey=fighter?(controlPreset==UnarmedControls.Preset.B?"J":"C"):"V / Space";
+                ammo.setText(local.weapon().equals("NONE")?attackKey+": đánh":attackKey+": bắn · "+ammunition+" viên");
+                bagWeapon.setText(CombatIcons.name(local.weapon())+(local.weapon().equals("NONE")?"\nChưa nhặt vũ khí":"\nCòn "+ammunition+" viên · "+attackKey+" để dùng"));
                 bagShield.setText(local.shield()?"Khiên · Chặn 1 đòn":"Chưa có khiên");shieldIcon.setColor(1,1,1,local.shield()?1:.25f);
                 ability.setText(!local.status().equals("ACTIVE")?"F · Tạm khóa":local.ultimateTicks()==0?"F · SẴN SÀNG":"F · "+((local.ultimateTicks()+59)/60)+" giây");
                 ability.setColor(local.ultimateTicks()==0 && local.status().equals("ACTIVE")?OnlineUi.ACCENT:OnlineUi.MUTED);

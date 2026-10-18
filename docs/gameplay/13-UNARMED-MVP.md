@@ -1,4 +1,4 @@
-# Unarmed MVP — điều khiển, di chuyển và combat
+# Combat — điều khiển, di chuyển và trang bị
 
 Đặc tả: [bản người dùng gửi](specifications/20261018-UNARMED-MVP.md). Tài liệu này thay phần điều khiển/combat của [giai đoạn 2](12-PLATFORM-FIGHTER.md). Giữ nhân vật, sprite/map, camera bám có chặn đáy, phòng 2–4 người và rematch.
 
@@ -7,7 +7,8 @@
 - **HP thống nhất:** đòn đánh và dung nham đều trừ HP. Hết HP hoặc vượt biên mất một mạng; hồi sinh 100 HP sau 90 tick (1,5 giây). Hết giờ xét stocks rồi HP cao hơn, bằng nhau hòa.
 - HP thấp tăng lực văng theo mô hình nội bộ. Không tuyên bố đây là công thức Brawlhalla. HUD/podium chỉ hiện HP; trường `damagePercent` cũ trên wire giữ 0, không dùng làm mô hình thứ hai.
 - Dung nham bật lên ngay và trừ 10 HP, tối đa một lần/60 tick. Bảo vệ sau hồi sinh chặn damage nhưng vẫn bật lên. Không có sàn đất bổ sung, không lọt xuống đáy trống.
-- Chế độ mới chỉ có **tay không**: server không spawn/nhặt/thả/ném vũ khí/gadget, kể cả khi client cũ gửi các input đó. Không tạo weaponId/weaponMode/legendId cho MVP. Chế độ HP/legacy cũ được giữ riêng.
+- **Giữ các tính năng vũ khí/vật phẩm sẵn có** cùng bộ đòn tay không mới. Có Shotgun/Laser/Bazooka/Grenade, bình hồi 30 HP và khiên chặn một đòn. E nhặt/đổi súng, G thả, Q ném, Tab xem túi. Đổi/thả/ném giữ số đạn còn lại; hết đạn trở về tay không. Server tiếp tục sở hữu sát thương, đạn và việc nhặt đồ.
+- Phòng mới mặc định rơi đồ **15 giây/lần**; chủ phòng chọn Tắt/30/15/8 giây trong cài đặt trước khi sẵn sàng. Vật phẩm xuất hiện trên cao rồi rơi xuống bệ, chỉ nhặt khi bấm E trong khoảng 0,35 m. Bộ đòn tay không bổ sung cho game hiện có; các hệ vũ khí/Signature mới theo Legend vẫn ngoài phạm vi.
 - Các thông số frame/force/recovery là **balance prototype để playtest**, không phải bảng chính thức của game gốc.
 
 ## Chạy và điều khiển
@@ -36,6 +37,11 @@ Khi lấy source sang máy khác, chạy `Verify-Gameplay.ps1` để biên dịc
 | Đổi/lưu preset | F6 | F6 |
 | Hướng dẫn | H | H |
 | Hitbox/hurtbox, Show Stun | F2 | F2 |
+| Nhặt / đổi vũ khí | E | E |
+| Thả / ném vũ khí | G / Q | G / Q |
+| Túi đồ | Tab | Tab |
+
+Đang cầm vũ khí, đòn tấn công bắn một lần ở active frame và giữ hệ số tầm đánh/sát thương trang bị đã có. Projectile và melee dùng chung danh sách mục tiêu để một đòn không gây sát thương lặp trên cùng người. J (preset B) / C (preset A) là nút dùng nhanh; K / X vẫn giữ đòn mạnh/Recovery. Nhặt/thả/ném thực hiện khi nhân vật đang tự do, bị khóa trong hitstun/dodge/đòn đang chạy. Q ưu tiên hơn nhặt và đánh nếu bấm cùng frame. Không thay công thức HP, dung nham hay hồi sinh.
 
 Đọc đồng thời mọi phím; trái+phải cho axis=0. Jump và aim-up tách riêng. Hướng đòn chọn **Down > aim-up Neutral > Side > Neutral**; hướng mặt và hướng đòn lưu riêng. Trên đất, ngang+Dodge là Dash/Backdash không bất tử; đứng yên+Dodge là Ground Spot. Trên không, không hướng là Air Spot, có hướng là Directional Air Dodge. Dash Jump giữ đà burst. Sprint sau 18 tick chạy liên tục: tốc cơ sở 1,6 m/s theo stats, sprint x1,12; dash/dodge 2,6 m/s.
 
@@ -80,6 +86,8 @@ Vì chọn HP, dùng dải HP thay các mốc % của hướng dẫn damage-mete
 
 ## Netcode, kiểm chứng và giới hạn
 
+**Bản khôi phục trang bị theo yêu cầu giữ tính năng cũ:** [manifest](runs/20261018-equipment-restored/verification.json), [túi đồ 4 người/960×540](runs/20261018-equipment-restored/four-players-small/weapon-inventory.png). Đã qua 764 kiểm tra hồi quy, 27 kiểm tra cuối gồm rơi đồ theo tick thật; native 2/4 người xác nhận E nhặt, active frame bắn một lần, Q ném, nhặt lại giữ đạn, G thả và túi Tab giữ trạng thái qua các frame HUD. Các log/manifest Unarmed bên dưới ghi lịch sử trước khi khôi phục vũ khí. Cần dừng và mở lại server/client; phòng mới mặc định Medium, phòng đã chọn Tắt phải đổi cài đặt.
+
 Capability **unarmed-v1** ngăn client fighter cũ vào trận có schema/đòn mới; cần mở lại cả server/client. Giữ framing v1, matchId/sequence, queue hữu hạn, ACK/history và constructor HP legacy. `fighter.detail` được kiểm tra chặt; airJumps=0..2. Client không khai damage/stocks/hitbox.
 
 Prediction chỉ replay movement/jump/dash; dừng trước combat transition chưa biết, dùng authority cho attack/GC/dodge/stun. Tick 60 Hz tránh chạy gấp đôi ở 120 FPS. Đã đối chiếu tọa độ native cho sprint, dash chốt hướng, dash-jump và air jumps.
@@ -90,4 +98,4 @@ Kết quả: [754 kiểm tra hồi quy PASS](runs/20261018-084628-416-final-game
 
 Wiki trực tiếp trả 403; đã đối chiếu nội dung được lập chỉ mục của [Terminology](https://brawlhalla.wiki.gg/wiki/Terminology) và [Hints](https://brawlhalla.wiki.gg/wiki/Hints) về Chase/GC. [Patch notes chính thức 2.24](https://cms.brawlhalla.com/news/patch-2-24/) mô tả quyền Chase sau hit kể cả normal dodge đang cooldown. Các nguồn hỗ trợ ý nghĩa/điều kiện, không chứng thực balance prototype là số liệu hiện hành chính thức.
 
-Vũ khí/gadget/Signature theo Legend, DI/X-pivot, directional GC nâng cao, taunt và UI remap từng phím nằm ngoài MVP. Có đổi/lưu hai preset; không thêm tài khoản/skin/cosmetic hay backend bên ngoài.
+Hệ vũ khí/gadget/Signature mới theo Legend, DI/X-pivot, directional GC nâng cao, taunt và UI remap từng phím nằm ngoài MVP. Vũ khí/vật phẩm cũ được giữ nguyên. Có đổi/lưu hai preset; không thêm tài khoản/skin/cosmetic hay backend bên ngoài.

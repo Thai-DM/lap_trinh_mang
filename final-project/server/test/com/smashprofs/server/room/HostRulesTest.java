@@ -28,4 +28,12 @@ public class HostRulesTest {
         for(int value:new int[]{0,4,6}) { assertThrows(IllegalArgumentException.class,()->new MatchRules(4,120,value,MatchRules.DropRate.NONE,true)); }
         assertEquals(MatchRules.DEFAULT,GameplayProtocol.rules(GameplayProtocol.rules(MatchRules.DEFAULT)));
     }
+    @Test public void fighterRoomsDefaultToMediumDropsAndTheHostCanChangeTheRate() {
+        var room=new GameRoom("fighter");var host=new PlayerId("host");room.configureGameplay(host,true);room.joinPlayer(host);
+        assertEquals(MatchRules.DropRate.MEDIUM,room.getRules().dropRate());
+        for(var rate:MatchRules.DropRate.values()) {
+            room.updateSettings(host,new MatchRules(4,120,3,rate,true,true));
+            assertEquals(rate,room.getRules().dropRate());assertTrue(room.getRules().fighter());
+        }
+    }
 }

@@ -87,7 +87,7 @@ final class OnlinePlayScreen implements Screen {
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) { game.leaveOnlineLobby();game.setScreen(new OnlineLobbyScreen(game));return; }
         if (Gdx.input.isKeyJustPressed(Input.Keys.F9)) { game.getLobbyClient().close(); }
-        if (Gdx.input.isKeyJustPressed(Input.Keys.TAB) && !session.isFighter()) { hud.toggleInventory(); }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.TAB)) { hud.toggleInventory(); }
         if(Gdx.input.isKeyJustPressed(Input.Keys.F2)) { debugCombat=!debugCombat; }
         if(Gdx.input.isKeyJustPressed(Input.Keys.F6) && session.isFighter()) {
             controls=controls==UnarmedControls.Preset.B?UnarmedControls.Preset.A:UnarmedControls.Preset.B;
@@ -99,7 +99,7 @@ final class OnlinePlayScreen implements Screen {
             boolean fighter=session.isFighter();
             if(fighter) {
                 var command=UnarmedControls.sample(controls,Gdx.input::isKeyPressed,Gdx.input::isKeyJustPressed);
-                game.getLobbyClient().recordFrameInput(command.horizontal(),command.jumpPressed(),false,command.lightPressed(),false,false,false,false,command.fighter());
+                game.getLobbyClient().recordFrameInput(command.horizontal(),command.jumpPressed(),false,command.lightPressed(),false,false,command.interactPressed(),command.dropPressed(),command.fighter());
             } else {
             float axis = (Gdx.input.isKeyPressed(Input.Keys.D) ? 1 : 0) - (Gdx.input.isKeyPressed(Input.Keys.A) ? 1 : 0);
             game.getLobbyClient().recordFrameInput(axis, Gdx.input.isKeyJustPressed(Input.Keys.W),

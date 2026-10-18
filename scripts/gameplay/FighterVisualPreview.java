@@ -70,6 +70,19 @@ public final class FighterVisualPreview extends Game {
         try { var f=PlayScreen.class.getDeclaredField("onlineScreen");f.setAccessible(true);var screen=f.get(getScreen());var h=screen.getClass().getDeclaredField("hud");h.setAccessible(true);return (OnlineHud)h.get(screen); }
         catch(ReflectiveOperationException error) { throw new IllegalStateException(error); }
     }
+    private void verifyEquipmentHud(boolean bagVisible,int ammo) {
+        try {
+            var current=hud();var bag=OnlineHud.class.getDeclaredField("bag");bag.setAccessible(true);
+            if(((Actor)bag.get(current)).isVisible()!=bagVisible) { throw new IllegalStateException("Inventory visibility lost on HUD update"); }
+            for(String name:List.of("weaponIcon","weaponName","ammo","shieldIcon")) {
+                var field=OnlineHud.class.getDeclaredField(name);field.setAccessible(true);var actor=(Actor)field.get(current);
+                if(actor.getParent()==null || !actor.isVisible()) { throw new IllegalStateException("Missing equipment HUD: "+name); }
+            }
+            var field=OnlineHud.class.getDeclaredField("bagWeapon");field.setAccessible(true);
+            var label=(com.badlogic.gdx.scenes.scene2d.ui.Label)field.get(current);
+            if(!label.getText().toString().contains(Integer.toString(ammo))) { throw new IllegalStateException("Inventory ammo does not match authority"); }
+        } catch(ReflectiveOperationException error) { throw new IllegalStateException(error); }
+    }
     private void enableCombatDebug() {
         try {
             var field=PlayScreen.class.getDeclaredField("onlineScreen");field.setAccessible(true);var screen=field.get(getScreen());
@@ -102,10 +115,32 @@ public final class FighterVisualPreview extends Game {
             step=3;frames=0;
         } else if(step==3 && frames>4) {
             var state=host.getMatchSession().getSnapshotBuffer().getLatestSnapshot();
-            if(!state.gameplay().items().isEmpty() || !state.gameplay().shots().isEmpty()) { throw new IllegalStateException("Items leaked into Unarmed mode"); }
             capture("unarmed-hud");enableCombatDebug();step=4;frames=0;
         } else if(step==4 && frames>4) {
-            capture("unarmed-debug");hud().toggleHelp();step=44;frames=0;
+            capture("unarmed-debug");var game=runtime.gameplay();var p=game.bodies.getPosition(owner);
+            game.items.drop("LASER",p.xMeters(),p.yMeters(),runtime.getMatchState().getServerTick());step=45;frames=0;
+        } else if(step==45 && frames>4 && !host.getMatchSession().getSnapshotBuffer().getLatestSnapshot().gameplay().items().isEmpty()) {
+            capture("weapon-pickup");host.recordFrameInput(0,false,false,false,false,false,true,false);step=46;frames=0;
+        } else if(step==46 && frames>4 && host.getMatchSession().getSnapshotBuffer().getLatestSnapshot().gameplay().player(owner.value()).weapon().equals("LASER")) {
+            hud().toggleInventory();step=47;frames=0;
+        } else if(step==47 && frames>4) {
+            verifyEquipmentHud(true,6);capture("weapon-inventory");hud().toggleInventory();
+            host.recordFrameInput(0,false,false,true,false,false);step=48;frames=0;
+        } else if(step==48 && frames>4 && host.getMatchSession().getSnapshotBuffer().getLatestSnapshot().gameplay().player(owner.value()).ammo()==5
+                && runtime.gameplay().fighter.fighters.get(owner).attack==null) {
+            verifyEquipmentHud(false,5);capture("weapon-fired");
+            host.recordFrameInput(0,false,false,false,false,false,false,false,new FighterInput(false,false,false,false,false,false,true,false));step=49;frames=0;
+        } else if(step==49 && frames>4 && !runtime.gameplay().items.itemViews().isEmpty()
+                && runtime.gameplay().items.shotViews().stream().noneMatch(s->s.type().equals("THROWN"))) {
+            var item=runtime.gameplay().items.itemViews().stream().filter(i->i.type().equals("LASER")).findFirst().orElseThrow();
+            runtime.gameplay().bodies.respawn(owner,item.x(),item.y());runtime.gameplay().fighter.physics.reset(owner);
+            host.recordFrameInput(0,false,false,false,false,false,true,false);step=52;frames=0;
+        } else if(step==52 && frames>4 && host.getMatchSession().getSnapshotBuffer().getLatestSnapshot().gameplay().player(owner.value()).weapon().equals("LASER")) {
+            if(host.getMatchSession().getSnapshotBuffer().getLatestSnapshot().gameplay().player(owner.value()).ammo()!=5) { throw new IllegalStateException("Throw lost ammo"); }
+            host.recordFrameInput(0,false,false,false,false,false,false,true);step=53;frames=0;
+        } else if(step==53 && frames>4 && host.getMatchSession().getSnapshotBuffer().getLatestSnapshot().gameplay().player(owner.value()).weapon().equals("NONE")) {
+            if(runtime.gameplay().items.itemViews().stream().noneMatch(i->i.type().equals("LASER"))) { throw new IllegalStateException("Drop lost weapon"); }
+            capture("weapon-dropped");hud().toggleHelp();step=44;frames=0;
         } else if(step==44 && frames>4) {
             capture("unarmed-help");hud().toggleHelp();runtime.gameplay().bodies.respawn(owner,2.5f,1.2f);
             runtime.gameplay().fighter.physics.reset(owner);step=41;frames=0;

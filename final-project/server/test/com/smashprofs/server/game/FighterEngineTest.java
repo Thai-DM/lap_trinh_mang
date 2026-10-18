@@ -223,20 +223,30 @@ public class FighterEngineTest {
         runtime.tick();assertEquals(x,game.bodies.getPosition(a).xMeters(),.00001f);runtime.tick();assertEquals(x,game.bodies.getPosition(a).xMeters(),.00001f);
         runtime.tick();assertTrue(game.bodies.getPosition(a).xMeters()>x);
     }
-    @Test public void unarmedRejectsPickupDropThrowAndWeaponProjectiles() {
-        floor();assertFalse(game.items.drop("LASER",5.45f,.23f,0));
-        game.items.interact(new PlayerInput(a,1,0,0,false,false,false,false,false,true,true),1);
-        assertFalse(game.items.throwWeapon(a,1,0,1));assertFalse(game.items.attack(a,1));
-        assertEquals("NONE",game.progress.get(a).weapon);assertTrue(game.items.itemViews().isEmpty());assertTrue(game.items.shotViews().isEmpty());
+    @Test public void throwingAWeaponCanHitAndReturnsTheRemainingAmmoToTheFloor() {
+        floor();var position=game.bodies.getPosition(a);assertTrue(game.items.drop("LASER",position.xMeters(),position.yMeters(),0));
+        game.items.interact(new PlayerInput(a,1,0,0,false,false,false,false,false,true,false),1);game.progress.get(a).ammo=4;
+        assertTrue(game.items.throwWeapon(a,1,0,1));assertEquals("NONE",game.progress.get(a).weapon);
+        for(int i=0;i<100;i++) { runtime.tick(); }
+        assertTrue(game.state.getPlayer(b).getHp()<100);
+        var drop=game.items.itemViews().stream().filter(p->p.type().equals("LASER")).findFirst().orElseThrow();
+        game.bodies.respawn(a,drop.x(),drop.y());game.items.interact(new PlayerInput(a,2,0,0,false,false,false,false,false,true,false),102);
+        assertEquals("LASER",game.progress.get(a).weapon);assertEquals(4,game.progress.get(a).ammo);
     }
     @Test public void airDodgeCooldownAndHealthAreAuthoritative() {
         game.bodies.respawn(a,6,2);runtime.tick();frame(0,false,false,false,false,false,true);assertEquals(UnarmedRules.AIR_COOLDOWN,state().dodgeCooldownTicks());
         game.state.getPlayer(a).applyDamage(60);game.fighter.heal(a);
         assertEquals(0,state().damagePercent(),0);assertEquals(70,game.state.getPlayer(a).getHp(),0);
     }
-    @Test public void unarmedNeverSpawnsItemsEvenWhenOlderRoomRulesRequestHighDrops() {
-        runtime.close();runtime=new MatchRuntime(new MatchSetup("no-drop","room",List.of(new MatchSetup.Participant(a,0,"Alex"),new MatchSetup.Participant(b,1,"Luca")),new MatchRules(2,0,3,MatchRules.DropRate.HIGH,true,true)));
-        runtime.start();game=runtime.gameplay();for(int i=0;i<1000;i++) { runtime.tick(); }
-        assertTrue(game.items.itemViews().isEmpty());assertTrue(game.items.shotViews().isEmpty());
+    @Test public void periodicFighterDropsFallFromAboveAndSettleOnAPlatformUntilEIsPressed() {
+        runtime.close();runtime=new MatchRuntime(new MatchSetup("falling-drop","room",List.of(new MatchSetup.Participant(a,0,"Alex"),new MatchSetup.Participant(b,1,"Luca")),new MatchRules(2,0,3,MatchRules.DropRate.HIGH,true,true)));
+        runtime.start();game=runtime.gameplay();game.bodies.respawn(a,5.45f,.23f);game.bodies.respawn(b,5.72f,.23f);
+        for(int i=0;i<479;i++) { runtime.tick(); }assertTrue(game.items.itemViews().isEmpty());runtime.tick();
+        var first=game.items.itemViews().get(0);assertTrue(first.y()>4.19f);runtime.tick();assertTrue(game.items.itemViews().get(0).y()<first.y());
+        for(int i=0;i<220;i++) { runtime.tick(); }
+        var landed=game.items.itemViews().get(0);assertTrue(landed.y()<first.y());runtime.tick();assertEquals(landed.y(),game.items.itemViews().get(0).y(),0);
+        game.bodies.respawn(a,landed.x(),landed.y());runtime.tick();assertEquals(1,game.items.itemViews().size());
+        runtime.submitInput(new PlayerInput(a,1,0,0,false,false,false,false,false,true,false));runtime.tick();
+        assertTrue(game.items.itemViews().isEmpty());assertEquals(1,game.progress.get(a).pickups);
     }
 }

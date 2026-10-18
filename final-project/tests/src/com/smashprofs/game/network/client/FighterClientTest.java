@@ -30,6 +30,24 @@ public class FighterClientTest {
             assertThrows(IllegalArgumentException.class,()->GameplayProtocol.snapshot(node));
         }
     }
+    @Test public void equipmentBindingsSurviveBothPresetsAndTheInputCodec() throws Exception {
+        for(var preset:UnarmedControls.Preset.values()) {
+            var pressed=Set.of(com.badlogic.gdx.Input.Keys.E,com.badlogic.gdx.Input.Keys.G,com.badlogic.gdx.Input.Keys.Q);
+            var command=UnarmedControls.sample(preset,key->false,pressed::contains);
+            assertTrue(command.interactPressed());assertTrue(command.dropPressed());assertTrue(command.fighter().throwPressed());
+            assertFalse(command.lightPressed());assertFalse(command.fighter().heavyPressed());assertFalse(command.fighter().dodgePressed());
+            var transport=new ValueTransport(a);transport.enableFighter();
+            var roster=new GameStartRoster("fighter","room",List.of(new GameStartRoster.Participant(a,0,"Alex"),new GameStartRoster.Participant(b,1,"Luca")));
+            try(var session=new ClientMatchSession(transport,roster,a,()->0L);var r=runtime()) {
+                session.acceptState(message(r));
+                assertTrue(session.recordFrameInput(command.horizontal(),command.jumpPressed(),false,command.lightPressed(),false,false,command.interactPressed(),command.dropPressed(),command.fighter()));
+                var decoded=ProtocolV1.playerInput(transport.last,a);
+                assertTrue(decoded.interactPressed());assertTrue(decoded.dropPressed());assertTrue(decoded.fighter().throwPressed());
+            }
+            var released=UnarmedControls.sample(preset,pressed::contains,key->false);
+            assertFalse(released.interactPressed());assertFalse(released.dropPressed());assertFalse(released.fighter().throwPressed());
+        }
+    }
     private final PlayerId a=new PlayerId("a"),b=new PlayerId("b");
     private MatchRuntime runtime() {
         var r=new MatchRuntime(new MatchSetup("fighter","room",List.of(new MatchSetup.Participant(a,0,"Alex"),new MatchSetup.Participant(b,1,"Luca")),new MatchRules(2,0,3,MatchRules.DropRate.NONE,true,true)));r.start();r.tick();return r;

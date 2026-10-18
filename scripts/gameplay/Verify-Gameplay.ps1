@@ -5,6 +5,7 @@ $server=@(
     'com.smashprofs.server.room.GameRoomMatchSetupTest',
     'com.smashprofs.server.game.StockGameplayTest',
     'com.smashprofs.server.game.FighterEngineTest',
+    'com.smashprofs.server.game.FighterEquipmentTest',
     'com.smashprofs.server.game.UnarmedGameplayTest',
     'com.smashprofs.server.game.LavaReboundTest',
     'com.smashprofs.server.game.ItemGameplayTest',

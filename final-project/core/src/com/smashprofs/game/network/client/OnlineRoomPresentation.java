@@ -16,7 +16,7 @@ public final class OnlineRoomPresentation {
         return rules.matchSeconds()==0?"Người cuối cùng còn mạng sẽ thắng.":"Còn một người có mạng: thắng ngay. Hết giờ: xét HP cao nhất; bằng HP thì hòa.";
     }
     public static String stockRule() { return "Dung nham: -10 HP và bật lên. HP về 0: mất 1 mạng, hồi sinh sau 1,5 giây với 100 HP."; }
-    public static String stockRule(MatchRules rules) { return rules.fighter()?"Tay không · Hết HP hoặc vượt biên mất 1 mạng; hồi sinh 100 HP sau 1,5 giây.":stockRule(); }
+    public static String stockRule(MatchRules rules) { return rules.fighter()?"Hết HP hoặc vượt biên mất 1 mạng; hồi sinh 100 HP sau 1,5 giây. Có nhặt và dùng vũ khí.":stockRule(); }
     public static String dropRate(MatchRules.DropRate rate) { return switch(rate) {
         case NONE->"Tắt vật phẩm";case LOW->"Thấp · 30 giây/lần";case MEDIUM->"Vừa · 15 giây/lần";case HIGH->"Cao · 8 giây/lần";
     }; }

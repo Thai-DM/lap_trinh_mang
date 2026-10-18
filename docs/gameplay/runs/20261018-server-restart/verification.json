@@ -1,0 +1,20 @@
+﻿{
+    "status":  "PASS",
+    "date":  "2026-10-18T09:38:49.8026434+07:00",
+    "cause":  "Server PID 70060 started 09:02, before equipment restoration at 09:13; newer client connected to that old process",
+    "replacementServerPid":  50000,
+    "replacementStartedAt":  "2026-10-18T09:37:27+07:00",
+    "startupCompilation":  "PASS: current common and server sources compiled by Run-Server.ps1 -BuildOnly",
+    "occupiedPortGuard":  "PASS: rejects second server before compilation and explains Ctrl+C",
+    "liveTcp":  {
+                    "injectedDrops":  false,
+                    "productionScheduler":  true,
+                    "firstObservedItem":  "SHOTGUN",
+                    "clients":  2,
+                    "defaultDropRate":  "MEDIUM",
+                    "port":  54555,
+                    "evidence":  "live-drop.log",
+                    "firstObservedDropTick":  900
+                },
+    "scriptSHA256":  "dd781dfbb8ce852ebb762543e5d3bd7bae706f4ce3b1390160aa4fae75b545b1"
+}

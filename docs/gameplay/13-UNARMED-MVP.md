@@ -25,6 +25,10 @@ Dừng server/client cũ. Từ `smashprofs-integration`, chạy ở hai terminal
 
 Khi lấy source sang máy khác, chạy `Verify-Gameplay.ps1` để biên dịch server và bỏ `-SkipBuild` khi mở client lần đầu; cần JDK17 và dependency cache.
 
+`Run-Server.ps1` tự biên dịch common/server trước mỗi lần mở, in `SERVER_BUILD` kèm commit và thời gian. Nếu cổng đang có server cũ, script dừng với hướng dẫn Ctrl+C tại terminal cũ; mở lại client không cập nhật code của server đang chạy. Có thể dùng `Run-Server.ps1 -BuildOnly` để chỉ biên dịch. Sau cập nhật phải dừng server cũ, chạy lại server và tạo phòng mới. Bản rơi đồ mặc định Medium bắt đầu ở giây 15; có thể chọn High để thử ở giây 8.
+
+Đã tìm và thay tiến trình local cũ mở 09:02 trước bản sửa trang bị. [Kiểm tra trực tiếp TCP54555](runs/20261018-server-restart/live-drop.log) dùng hai client/phòng riêng, không inject đồ hay điều khiển tick: server mới mặc định Medium và gửi Shotgun tự rơi ở **tick 900 (15 giây)** tới cả hai client.
+
 | Hành động | Preset B mặc định | Preset A |
 |---|---|---|
 | Di chuyển | A/D | Trái/Phải |

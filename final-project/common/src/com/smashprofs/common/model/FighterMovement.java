@@ -10,7 +10,10 @@ public final class FighterMovement {
     private FighterMovement() { }
     public record Velocity(float x,float y,boolean fastFalling) { }
     public static Velocity step(float x,float y,float axis,int speed,boolean grounded,boolean down,boolean shortHop,boolean canMove) {
-        float max=BASE_RUN_SPEED*(.8f+speed*.04f);
+        return step(x,y,axis,speed,grounded,down,shortHop,canMove,false);
+    }
+    public static Velocity step(float x,float y,float axis,int speed,boolean grounded,boolean down,boolean shortHop,boolean canMove,boolean sprint) {
+        float max=BASE_RUN_SPEED*(.8f+speed*.04f)*(sprint?1.12f:1);
         if(canMove && Math.abs(axis)>.01f) {
             float target=axis*max,step=(grounded?GROUND_ACCELERATION:AIR_ACCELERATION)/60f;
             x=x<target?Math.min(target,x+step):Math.max(target,x-step);

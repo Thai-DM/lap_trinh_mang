@@ -25,6 +25,7 @@ final class ItemSystem implements AutoCloseable {
         nextDrop=game.setup.rules().dropRate().intervalTicks;
     }
     void update(long tick) {
+        if(game.setup.rules().fighter()) { return; }
         int interval=game.setup.rules().dropRate().intervalTicks;
         if(interval>0 && tick>=nextDrop) {
             nextDrop=tick+interval;
@@ -109,12 +110,14 @@ final class ItemSystem implements AutoCloseable {
     }
     /** Simulation/test seam; not exposed through protocol. Normal drops use validated platform candidates. */
     boolean drop(String type,float x,float y,long tick) {
+        if(game.setup.rules().fighter()) { return false; }
         if(itemSlots()>=MAX_ITEMS) { return false; }
         if(!List.of(TYPES).contains(type) || !Float.isFinite(x) || !Float.isFinite(y)) { throw new IllegalArgumentException("Invalid drop"); }
         drops.add(new Drop(nextId++,type,x,y,tick,type.equals("GRENADE")?1:6));return true;
     }
     /** One edge per simulation batch. Identity, distance, ammo and capacity are server-owned. */
     void interact(PlayerInput input,long tick) {
+        if(game.setup.rules().fighter()) { return; }
         var id=input.playerId();if(!game.active(id)) { return; }
         var p=game.progress.get(id);
         if(input.dropPressed()) {
@@ -174,6 +177,7 @@ final class ItemSystem implements AutoCloseable {
         return attack(id,tick,null);
     }
     boolean attack(PlayerId id,long tick,Set<PlayerId> sharedHits) {
+        if(game.setup.rules().fighter()) { return false; }
         var p=game.progress.get(id);
         if(!game.active(id) || p.weapon.equals("NONE")) { return false; }
         // An equipped weapon consumes the melee edge even during its fire cooldown.
@@ -193,6 +197,7 @@ final class ItemSystem implements AutoCloseable {
     }
     private int itemSlots() { return drops.size()+(int)shots.stream().filter(s->s.type.equals("THROWN")).count(); }
     boolean throwWeapon(PlayerId id,float axis,float aimY,long tick) {
+        if(game.setup.rules().fighter()) { return false; }
         var p=game.progress.get(id);
         if(!game.active(id) || p.weapon.equals("NONE") || itemSlots()>=MAX_ITEMS || shots.size()>=MAX_SHOTS) { return false; }
         var pos=game.bodies.getPosition(id);float direction=axis==0?(game.state.getPlayer(id).isFacingRight()?1:-1):Math.signum(axis);

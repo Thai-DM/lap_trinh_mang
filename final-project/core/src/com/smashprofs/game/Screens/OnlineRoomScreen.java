@@ -335,7 +335,7 @@ public class OnlineRoomScreen implements Screen {
             maxSelect.getSelectedIndex() + 2,
             TIMES[timeSelect.getSelectedIndex()],
             LIVES[livesSelect.getSelectedIndex()],
-            MatchRules.DropRate.values()[dropsSelect.getSelectedIndex()],
+            lobby.getSettings()!=null && lobby.getSettings().rules().fighter()?MatchRules.DropRate.NONE:MatchRules.DropRate.values()[dropsSelect.getSelectedIndex()],
             true, lobby.getSettings()!=null && lobby.getSettings().rules().fighter()
         );
     }
@@ -344,7 +344,7 @@ public class OnlineRoomScreen implements Screen {
         maxSelect.setSelectedIndex(rules.maxPlayers() - 2);
         timeSelect.setSelectedIndex(Arrays.asList(TIMES).indexOf(rules.matchSeconds()));
         livesSelect.setSelectedIndex(Arrays.asList(LIVES).indexOf(rules.lives()));
-        dropsSelect.setSelectedIndex(rules.dropRate().ordinal());
+        dropsSelect.setSelectedIndex(rules.fighter()?0:rules.dropRate().ordinal());dropsSelect.setDisabled(rules.fighter());
     }
 
     private void toggleSettings() {
@@ -457,6 +457,7 @@ public class OnlineRoomScreen implements Screen {
         for (var box : new SelectBox[]{maxSelect, timeSelect, livesSelect, dropsSelect}) {
             box.setDisabled(!host || !joined || settings == null || state.serverPhase().equals("COUNTDOWN"));
         }
+        if(settings!=null && settings.rules().fighter()) { dropsSelect.setDisabled(true); }
         boolean dirty = settings != null && !draft().equals(settings.rules());
         boolean belowCount = settings != null && draft().maxPlayers() < settings.playerCount();
         applyRulesBtn.setDisabled(!host || !joined || !dirty || belowCount || state.serverPhase().equals("COUNTDOWN"));
@@ -595,7 +596,7 @@ public class OnlineRoomScreen implements Screen {
             case READY_PENDING -> "Đang chờ máy chủ xác nhận trạng thái…";
             case WAITING_FOR_START -> "Bạn đã sẵn sàng! Đang đợi những người chơi còn lại…";
             case ERROR, DISCONNECTED -> "Mất kết nối với máy chủ. Bấm Rời phòng để thử lại.";
-            default -> settings!=null && settings.rules().fighter()?"A/D di chuyển · W nhảy · S rơi nhanh · V đánh nhẹ · F đánh mạnh · Shift né · E nhặt · Q ném":
+            default -> settings!=null && settings.rules().fighter()?"Tay không · A/D di chuyển · W nhảy · J đánh nhẹ · K đánh mạnh · L né/lướt · F6 đổi preset":
                     "A/D di chuyển · W nhảy · S dậm · V/Space tấn công · F tuyệt chiêu · Ctrl đỡ đòn";
         };
         statusLabel.setText(message);

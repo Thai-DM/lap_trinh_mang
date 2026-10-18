@@ -5,14 +5,15 @@ import com.smashprofs.common.model.*;
 import com.smashprofs.server.game.physics.*;
 import java.util.*;
 
-/** One simulation owner, fixed 60 Hz. Combat uses percent; lava depletes HP before stock respawn. */
+/** Simulation-owned Unarmed prototype. HP is the sole damage/life model. */
 final class FighterEngine implements AutoCloseable {
     static final float LEFT=1,RIGHT=11.5f,BOTTOM=-1.5f,TOP=9;
     final GameplayMatch game;
     final FighterPhysics physics;
     final Map<PlayerId,Fighter> fighters=new LinkedHashMap<>();
     private final float spawnY;
-    private long tick,nextAttackId=1;
+    private final int bufferFrames=UnarmedRules.inputBufferFrames();
+    private long tick,nextAttackId=1,hitSerial;
     FighterEngine(GameplayMatch game,World world,MapCollisionDefinition geometry) {
         this.game=game;physics=new FighterPhysics(world,game.bodies,game.jumps,geometry);
         spawnY=geometry.mapHeightPixels()/100-.55f;
@@ -22,9 +23,11 @@ final class FighterEngine implements AutoCloseable {
         return new SpawnProvider.SpawnPosition(6+(game.state.getPlayer(id).getSlotIndex()-1.5f)*.22f,spawnY);
     }
     void respawn(PlayerId id,long tick) {
-        var f=fighters.get(id);f.damage=0;f.attack=null;f.hitstun=0;f.hitstop=0;f.frozen=false;
-        f.nextDodge=0;f.dodgeStart=-1000;f.dashUntil=0;f.platformUntil=tick+180;f.nextLavaDamage=0;
-        f.airJumps=1;f.wallJumps=3;f.airDodgeUsed=false;f.recovery=true;f.fastFall=false;f.jumping=false;
+        var f=fighters.get(id);f.damage=0;f.attack=null;f.pending=null;f.hitstun=f.hitstop=0;f.frozen=false;
+        f.nextDodge=f.nextDash=f.nextWallJump=f.nextLavaDamage=0;f.dodgeStart=-1000;f.dashUntil=0;f.platformUntil=tick+180;
+        f.gcUntil=f.chaseUntil=0;f.chaseCharges=0;f.dodgeKind="NONE";f.air.reset();f.wallJumps=3;f.lastWall=f.wallActions=f.runTicks=0;
+        f.airDodgeUsed=f.fastFall=f.jumping=f.wallSliding=f.wasGrounded=false;f.recovery=true;f.airJumps=UnarmedRules.AIR_JUMPS;
+        f.combo="UNVERIFIED";f.dodgeFrames=-1;f.lastComboAttacker=null;f.hitSerial=0;
         f.axis=0;f.held=FighterInput.NONE;physics.reset(id);game.progress.get(id).invulnerableUntil=0;
     }
     void update(long tick,List<PlayerInput> inputs) {
@@ -35,144 +38,184 @@ final class FighterEngine implements AutoCloseable {
             f.axis=input.moveAxis();f.held=input.fighter().heldOnly();f.lastInput=tick;
             f.acknowledgedSequence=input.sequence();f.acknowledgedClientTick=input.clientTick();
         }
-        for(var entry:fighters.entrySet()) {
-            var id=entry.getKey();var f=entry.getValue();
-            if(!game.active(id)) { f.attack=null;f.fastFall=false;continue; }
-            if(tick-f.lastInput>=15) { f.axis=0;f.held=FighterInput.NONE; }
-            var input=requests.get(id);var velocity=game.bodies.getVelocity(id);
-            if(f.platformUntil>0) {
-                boolean leave=tick>=f.platformUntil || input!=null && (input.moveAxis()!=0 || input.jumpPressed() || input.meleePressed()
-                        || input.interactPressed() || input.dropPressed() || !input.fighter().equals(FighterInput.NONE));
-                if(!leave) { physics.velocity(id,0,0);continue; }
-                f.platformUntil=0;game.progress.get(id).invulnerableUntil=tick+120;
-            }
-            if(f.hitstop>0) { continue; }
-            if(f.frozen) { physics.velocity(id,f.frozenX,f.frozenY);f.frozen=false;velocity=game.bodies.getVelocity(id); }
-            boolean grounded=game.jumps.getJumpState(id).grounded();int wall=game.jumps.wallDirection(id);
-            if(grounded) { f.airJumps=1;f.wallJumps=3;f.airDodgeUsed=false;f.recovery=true;f.jumping=false; }
-            if(wall!=0 && f.lastWall==0 && f.wallJumps>0) { f.airJumps=1; }
-            f.lastWall=wall;
-            if(f.hitstun>0) {
-                f.hitstun--;f.attack=null;var v=game.bodies.getVelocity(id);physics.velocity(id,v.xMetersPerSecond(),v.yMetersPerSecond()-9.8f/60);continue;
-            }
-            game.state.getPlayer(id).setBlocking(false);
-            if(f.axis!=0) { game.state.getPlayer(id).updateFacing(f.axis); }
-            if(input!=null && f.attack==null && tick-f.dodgeStart>=22) {
-                if(input.fighter().dodgePressed() && tick>=f.nextDodge && (grounded || !f.airDodgeUsed)) {
-                    f.dodgeStart=tick;f.nextDodge=tick+(grounded?60:150);f.airDodgeUsed|=!grounded;
-                    double y=input.fighter().upHeld()?1:input.fighter().downHeld()?-1:0,length=Math.hypot(input.moveAxis(),y);
-                    f.dodgeX=length==0?0:(float)(input.moveAxis()/length*FighterMovement.DODGE_SPEED);
-                    f.dodgeY=length==0?0:(float)(y/length*FighterMovement.DODGE_SPEED);
-                } else if(input.fighter().dashPressed() && grounded && tick>=f.nextDash) {
-                    f.dashUntil=tick+12;f.nextDash=tick+24;
-                    f.dashX=(input.moveAxis()!=0?Math.signum(input.moveAxis()):game.state.getPlayer(id).isFacingRight()?1:-1)*FighterMovement.DASH_SPEED;
-                } else {
-                    if(input.jumpPressed()) {
-                        if(f.held.downHeld() && grounded && physics.dropThrough(id)) { f.jumping=false; }
-                        else if(!grounded && wall!=0 && f.wallJumps>0 && tick>=f.nextWallJump) {
-                            physics.velocity(id,wall*.6f,4.2f);f.wallJumps--;f.airJumps=1;f.nextWallJump=tick+12;f.jumping=true;
-                        } else if(grounded || f.airJumps>0) {
-                            physics.velocity(id,velocity.xMetersPerSecond(),4.2f);if(!grounded) { f.airJumps--; }f.jumping=true;
-                        }
-                    }
-                    if(input.fighter().throwPressed()) { game.items.throwWeapon(id,input.moveAxis(),f.held.upHeld()?1:f.held.downHeld()?-1:0,tick); }
-                    else { game.items.interact(input,tick); }
-                    if(input.meleePressed() || input.fighter().heavyPressed() || input.abilityPressed()) {
-                        String move;
-                        boolean heavy=input.fighter().heavyPressed() || input.abilityPressed();
-                        if(heavy) {
-                            if(!grounded && f.held.downHeld()) { move="GROUND_POUND"; }
-                            else if(!grounded) { move="RECOVERY"; }
-                            else { move=f.held.downHeld()?"DSIG":Math.abs(f.axis)>.1f?"SSIG":"NSIG"; }
-                        } else { move=grounded?(f.held.downHeld()?"DLIGHT":Math.abs(f.axis)>.1f?"SLIGHT":"NLIGHT")
-                                :(f.held.downHeld()?"DAIR":Math.abs(f.axis)>.1f?"SAIR":"NAIR"); }
-                        if(!move.equals("RECOVERY") || f.recovery) {
-                            f.attack=new Attack(nextAttackId++,FighterMoves.get(move),game.state.getPlayer(id).isFacingRight()?1:-1,
-                                    heavy && grounded && input.fighter().heavyHeld());
-                            if(move.equals("RECOVERY")) { f.recovery=false;physics.velocity(id,game.bodies.getVelocity(id).xMetersPerSecond(),4.8f); }
-                        }
-                    }
-                }
-            }
-            int dodgeAge=(int)(tick-f.dodgeStart);
-            if(dodgeAge>=0 && dodgeAge<22) {
-                if(dodgeAge>=2 && dodgeAge<17) { physics.velocity(id,f.dodgeX,f.dodgeY); }
-                else { gravity(id,false); }
-                continue;
-            }
-            velocity=game.bodies.getVelocity(id);float x=velocity.xMetersPerSecond(),y=velocity.yMetersPerSecond();
-            boolean locked=f.attack!=null;
-            var movement=FighterMovement.step(x,y,f.axis,f.stats.speed(),grounded,f.held.downHeld(),f.jumping && !f.held.jumpHeld(),!locked && tick>=f.nextWallJump-8);
-            x=movement.x();y=movement.y();f.fastFall=movement.fastFalling();
-            if(f.dashUntil>tick) { x=f.dashX; }
-            if(f.jumping && !f.held.jumpHeld()) { f.jumping=false; }
-            f.wallSliding=wall!=0 && !grounded && f.axis*wall<0 && tick>=f.nextWallJump && f.hitstun==0;
-            if(f.wallSliding) { x=0;y=Math.max(y,-.55f); }
-            physics.velocity(id,x,y);
-            game.state.getPlayer(id).updateFacing(f.axis!=0?f.axis:x);
-            if(f.attack!=null) {
-                var attack=f.attack;
-                if(attack.charging) {
-                    attack.charge++;
-                    if(!f.held.heavyHeld() || attack.charge>=45) { attack.charging=false; }
-                } else {
-                    attack.frame++;
-                    if(attack.move.name().equals("GROUND_POUND") && attack.move.activeAt(attack.frame)) { physics.velocity(id,x,-9.6f); }
-                    if(attack.frame>=attack.move.total()) { f.attack=null; }
-                }
-            }
+        for(var id:fighters.keySet()) { updatePlayer(id,requests.get(id)); }
+        // Every player pose is updated before any hit query; only active-frame hitboxes can register.
+        for(var id:fighters.keySet()) {
+            var f=fighters.get(id);physics.hurtbox(id,f.attack==null?"NONE":f.attack.move.name(),f.attack==null?0:f.attack.frame);
         }
-        // Stable participant order plus per-instance target set makes contact registration reproducible.
-        for(var entry:fighters.entrySet()) {
-            var id=entry.getKey();var f=entry.getValue();var attack=f.attack;
+        for(var id:fighters.keySet()) {
+            var f=fighters.get(id);var attack=f.attack;
             if(!game.active(id) || f.hitstun>0 || f.hitstop>0 || attack==null || attack.charging || !attack.move.activeAt(attack.frame)) { continue; }
-            var position=game.bodies.getPosition(id);var move=attack.move;float reach=game.progress.get(id).weapon.equals("NONE")?1:1.35f;
-            if(!attack.fired) { attack.fired=true;game.items.attack(id,tick,attack.hit); }
-            float cx=position.xMeters()+attack.direction*move.x()*reach,cy=position.yMeters()+move.y();
-            var targets=physics.targets(cx-move.halfWidth()*reach,cy-move.halfHeight(),cx+move.halfWidth()*reach,cy+move.halfHeight());
+            var p=game.bodies.getPosition(id);var m=attack.move;
+            var targets=physics.targets(p.xMeters()+attack.direction*m.x()-m.halfWidth(),p.yMeters()+m.y()-m.halfHeight(),
+                    p.xMeters()+attack.direction*m.x()+m.halfWidth(),p.yMeters()+m.y()+m.halfHeight());
             for(var victim:fighters.keySet()) {
                 if(victim.equals(id) || !targets.contains(victim) || attack.hit.contains(victim)) { continue; }
-                if(hit(id,victim,move.name(),move.damage()*(.75f+f.stats.attack()*.05f)*(1+attack.charge/90f)*reach,
-                        move.base(),move.scaling(),attack.direction*(float)Math.cos(Math.toRadians(move.angle())),(float)Math.sin(Math.toRadians(move.angle())),move.heavy())) { attack.hit.add(victim); }
+                if(hit(id,victim,m.name(),m.damage()*(.75f+f.stats.attack()*.05f)*(1+attack.charge/90f),m.base(),m.scaling(),
+                        attack.direction*(float)Math.cos(Math.toRadians(m.angle())),(float)Math.sin(Math.toRadians(m.angle())),m.heavy())) { attack.hit.add(victim); }
             }
         }
-        for(var entry:fighters.entrySet()) {
-            var f=entry.getValue();if(f.hitstop>0 && game.active(entry.getKey())) { physics.velocity(entry.getKey(),0,0);f.hitstop--; }
+        for(var id:fighters.keySet()) {
+            var f=fighters.get(id);f.airJumps=f.air.jumps();f.recovery=f.air.canRecover();f.wallJumps=Math.min(3,Math.max(0,UnarmedRules.WALL_SLIP-f.wallActions));
+            if(f.hitstop>0 && game.active(id)) { physics.velocity(id,0,0);f.hitstop--; }
         }
     }
-    private void gravity(PlayerId id,boolean fast) { var v=game.bodies.getVelocity(id);physics.velocity(id,v.xMetersPerSecond(),Math.max(fast?-9.6f:-6,v.yMetersPerSecond()-9.8f/60)); }
-    boolean projectileHit(PlayerId attacker,PlayerId victim,String weapon,float damage,float x,float y) {
-        double length=Math.hypot(x,y);return hit(attacker,victim,weapon,damage,Math.max(.8f,(float)length*.3f),.22f,
-                length==0?0:(float)(x/length),length==0?1:(float)(y/length),false);
+    private void updatePlayer(PlayerId id,PlayerInput input) {
+        var f=fighters.get(id);
+        if(!game.active(id)) { f.attack=null;f.pending=null;f.fastFall=false;return; }
+        if(f.pending!=null && tick>f.pending.expires) { f.pending=null; }
+        if(tick>f.chaseUntil) { f.chaseCharges=0; }
+        if(tick-f.lastInput>=15) { f.axis=0;f.held=FighterInput.NONE; }
+        if(f.platformUntil>0) {
+            boolean leave=tick>=f.platformUntil || input!=null && (input.moveAxis()!=0 || UnarmedInputResolver.hasAction(input) || !input.fighter().equals(FighterInput.NONE));
+            if(!leave) { physics.velocity(id,0,0);return; }
+            f.platformUntil=0;f.pending=null;game.progress.get(id).invulnerableUntil=tick+120;
+        }
+        if(f.hitstop>0) { return; }
+        if(f.frozen) { physics.velocity(id,f.frozenX,f.frozenY);f.frozen=false; }
+        boolean grounded=game.jumps.getJumpState(id).grounded();int wall=game.jumps.wallDirection(id);
+        if(grounded) {
+            f.air.reset();f.wallJumps=3;f.airDodgeUsed=false;f.jumping=false;f.wallActions=0;
+            if(!f.wasGrounded && f.nextDodge>tick+UnarmedRules.GROUND_COOLDOWN) { f.nextDodge=tick+UnarmedRules.GROUND_COOLDOWN; }
+        } else if(wall!=0 && f.lastWall==0 && f.wallActions<UnarmedRules.WALL_SLIP) { f.air.reset(); }
+        f.wasGrounded=grounded;f.lastWall=wall;
+        if(f.hitstun>0) { f.hitstun--;f.attack=null;f.pending=null;gravity(id,false);return; }
+        game.state.getPlayer(id).setBlocking(false);
+        boolean attackEdge=input!=null && (input.meleePressed() || input.fighter().heavyPressed() || input.abilityPressed());
+        boolean dodging=dodgeRemaining(f)>0;
+        boolean gc=attackEdge && !grounded && f.dodgeKind.equals("AIR_SPOT") && tick<=f.gcUntil && dodging;
+        boolean chaseCancel=attackEdge && f.dodgeKind.equals("CHASE") && dodging;
+        if(gc || chaseCancel) { f.dodgeStart=-1000;f.gcUntil=0;dodging=false; }
+        if(f.attack!=null && UnarmedInputResolver.hasAction(input) && !f.attack.charging
+                && f.attack.move.phase(f.attack.frame).equals("RECOVERY") && f.attack.move.total(!f.attack.hit.isEmpty())-1-f.attack.frame<=bufferFrames) {
+            f.pending=new Pending(input,tick+bufferFrames);
+        }
+        if(f.attack==null && !dodging) {
+            if(!UnarmedInputResolver.hasAction(input) && f.pending!=null) { input=f.pending.input;f.pending=null; }
+            boolean usedDodge=false;
+            if(input!=null && (input.fighter().dodgePressed() || input.fighter().dashPressed())) {
+                usedDodge=movementAction(id,f,input,grounded);
+            }
+            if(!usedDodge && input!=null) {
+                if(input.jumpPressed()) {
+                    var v=game.bodies.getVelocity(id);
+                    if(grounded && f.held.downHeld() && physics.dropThrough(id)) { grounded=false;f.jumping=false; }
+                    else if(!grounded && wall!=0 && f.wallActions<UnarmedRules.WALL_SLIP && tick>=f.nextWallJump) {
+                        physics.velocity(id,wall*.6f,4.2f);f.air.reset();f.nextWallJump=tick+12;f.jumping=true;f.wallActions++;
+                    } else if(grounded || f.air.jump()) {
+                        physics.velocity(id,v.xMetersPerSecond(),4.2f);f.jumping=true;if(!grounded) { f.wallActions=Math.min(99,f.wallActions+1); }grounded=false;
+                    }
+                }
+                if(input.meleePressed() || input.fighter().heavyPressed() || input.abilityPressed()) { startAttack(id,f,input,grounded || gc,gc); }
+            }
+        } else if(f.dodgeKind.equals("CHASE") && dodging && f.chaseCharges>0 && tick<=f.chaseUntil && input!=null && input.fighter().dodgePressed()) {
+            movementAction(id,f,input,grounded);
+        }
+        if(dodgeRemaining(f)>0) {
+            int age=(int)(tick-f.dodgeStart);boolean spot=f.dodgeKind.endsWith("SPOT");
+            if(spot || age>=UnarmedRules.DODGE_STARTUP && age<UnarmedRules.DODGE_STARTUP+UnarmedRules.invulnerableFrames(f.dodgeKind)) {
+                physics.velocity(id,f.dodgeX,f.dodgeY);
+            } else { gravity(id,false); }
+            return;
+        }
+        var v=game.bodies.getVelocity(id);boolean locked=f.attack!=null;
+        if(f.attack!=null && f.attack.gravityCancelled) { physics.velocity(id,0,0); }
+        else {
+            f.runTicks=grounded && f.axis!=0 && !locked?Math.min(18,f.runTicks+1):0;
+            var move=FighterMovement.step(v.xMetersPerSecond(),v.yMetersPerSecond(),f.axis,f.stats.speed(),grounded,f.held.downHeld(),
+                    f.jumping && !f.held.jumpHeld(),!locked && tick>=f.nextWallJump-8,f.runTicks>=18);
+            float x=f.dashUntil>tick?f.dashX:move.x(),y=move.y();f.fastFall=move.fastFalling();
+            if(f.jumping && !f.held.jumpHeld()) { f.jumping=false; }
+            f.wallSliding=wall!=0 && !grounded && f.axis*wall<0 && tick>=f.nextWallJump;
+            if(f.wallSliding) { x=0;y=Math.max(y,f.wallActions>=UnarmedRules.WALL_SLIP?-1.5f:-.55f); }
+            physics.velocity(id,x,y);
+            if(!(f.dashUntil>tick && f.backdash)) { game.state.getPlayer(id).updateFacing(f.axis!=0?f.axis:x); }
+        }
+        if(f.attack!=null) {
+            var attack=f.attack;
+            if(attack.charging) {
+                attack.charge++;
+                if(attack.charge>=attack.move.maxCharge() || attack.charge>=attack.move.minCharge() && !f.held.heavyHeld()) { attack.charging=false; }
+            } else {
+                attack.frame++;
+                if(attack.move.name().equals("GROUND_POUND") && attack.move.activeAt(attack.frame)) { physics.velocity(id,game.bodies.getVelocity(id).xMetersPerSecond(),-9.6f); }
+                if(attack.frame>=attack.move.total(!attack.hit.isEmpty())) { f.attack=null; }
+            }
+        }
     }
-    boolean hit(PlayerId attacker,PlayerId victim,String weapon,float amount,float base,float scaling,float ux,float uy,boolean heavy) {
+    private void startAttack(PlayerId id,Fighter f,PlayerInput input,boolean grounded,boolean gc) {
+        boolean heavy=input.fighter().heavyPressed() || input.abilityPressed();
+        var direction=UnarmedInputResolver.direction(input.moveAxis(),input.fighter().downHeld(),input.fighter().upHeld(),true);
+        String name=UnarmedInputResolver.move(grounded,heavy,direction);float recoverySpeed=0;
+        if(name.equals("RECOVERY")) { recoverySpeed=f.air.recover();if(recoverySpeed==0) { return; }f.wallActions=Math.min(99,f.wallActions+1); }
+        int facing=game.state.getPlayer(id).isFacingRight()?1:-1;
+        int attackDirection=direction==UnarmedInputResolver.Direction.SIDE?(input.moveAxis()<0?-1:1):facing;
+        var move=FighterMoves.get(name);f.attack=new Attack(nextAttackId++,move,attackDirection,move.chargeable(),gc);f.pending=null;
+        if(recoverySpeed>0) { physics.velocity(id,game.bodies.getVelocity(id).xMetersPerSecond(),recoverySpeed);f.jumping=false; }
+        if(gc) { physics.velocity(id,0,0); }
+    }
+    private boolean movementAction(PlayerId id,Fighter f,PlayerInput input,boolean grounded) {
+        float y=input.fighter().upHeld()?1:input.fighter().downHeld()?-1:0,x=input.moveAxis();double length=Math.hypot(x,y);
+        boolean chase=f.chaseCharges>0 && tick<=f.chaseUntil && length>0 && !(grounded && y<0 && x!=0);
+        if(chase && f.chaseTarget!=null && game.active(f.chaseTarget)) {
+            float dx=game.bodies.getPosition(f.chaseTarget).xMeters()-game.bodies.getPosition(id).xMeters();
+            chase=x==0 && y!=0 || x!=0 && Math.signum(x)==Math.signum(dx);
+        } else { chase=false; }
+        if(chase) {
+            f.chaseCharges--;f.dodgeKind="CHASE";f.dodgeStart=tick;f.gcUntil=0;
+            f.dodgeX=(float)(x/length*UnarmedRules.CHASE_SPEED);f.dodgeY=(float)(y/length*UnarmedRules.CHASE_SPEED);return true;
+        }
+        if(grounded && (x!=0 || input.fighter().dashPressed())) {
+            if(tick<f.nextDash) { return false; }
+            int direction=x!=0?(x<0?-1:1):game.state.getPlayer(id).isFacingRight()?1:-1;
+            f.backdash=direction!=(game.state.getPlayer(id).isFacingRight()?1:-1);f.dashX=direction*FighterMovement.DASH_SPEED;
+            f.dashUntil=tick+12;f.nextDash=tick+24;return false;
+        }
+        if(tick<f.nextDodge || !grounded && f.airDodgeUsed) { return false; }
+        f.dodgeKind=grounded?"GROUND_SPOT":length==0?"AIR_SPOT":"AIR_DIRECTION";f.dodgeStart=tick;
+        f.nextDodge=tick+(grounded?UnarmedRules.GROUND_COOLDOWN:UnarmedRules.AIR_COOLDOWN);f.airDodgeUsed|=!grounded;
+        f.gcUntil=f.dodgeKind.equals("AIR_SPOT")?tick+UnarmedRules.GC_WINDOW:0;
+        f.dodgeX=length==0?0:(float)(x/length*FighterMovement.DODGE_SPEED);f.dodgeY=length==0?0:(float)(y/length*FighterMovement.DODGE_SPEED);return true;
+    }
+    private int dodgeRemaining(Fighter f) { return (int)Math.max(0,UnarmedRules.totalDodgeFrames(f.dodgeKind)-(tick-f.dodgeStart)); }
+    private void gravity(PlayerId id,boolean ignored) { var v=game.bodies.getVelocity(id);physics.velocity(id,v.xMetersPerSecond(),v.yMetersPerSecond()-9.8f/60); }
+    boolean projectileHit(PlayerId attacker,PlayerId victim,String weapon,float damage,float x,float y) {
+        double length=Math.hypot(x,y);return hit(attacker,victim,weapon,damage,Math.max(.8f,(float)length*.3f),.22f,length==0?0:(float)(x/length),length==0?1:(float)(y/length),false);
+    }
+    boolean hit(PlayerId attacker,PlayerId victim,String moveName,float amount,float base,float scaling,float ux,float uy,boolean heavy) {
         if(!Float.isFinite(amount) || amount<=0 || !Float.isFinite(ux) || !Float.isFinite(uy)) { throw new IllegalArgumentException("Hit"); }
         if(!game.active(victim) || attacker!=null && !game.active(attacker)) { return false; }
         var f=fighters.get(victim);var progress=game.progress.get(victim);long age=tick-f.dodgeStart;
-        if(f.platformUntil>0 || tick<progress.invulnerableUntil || age>=2 && age<14) { return false; }
+        if(f.platformUntil>0 || tick<progress.invulnerableUntil || age>=UnarmedRules.DODGE_STARTUP && age<UnarmedRules.DODGE_STARTUP+UnarmedRules.invulnerableFrames(f.dodgeKind)) { return false; }
         if(progress.shield) { progress.shield=false;return true; }
-        f.damage=Math.min(Double.MAX_VALUE,f.damage+amount);
-        double strength=FighterMoves.knockback(f.damage,base,scaling,f.stats.defense());
-        double length=Math.hypot(ux,uy);if(length==0) { ux=0;uy=1;length=1; }
-        float vx=(float)(strength*ux/length),vy=(float)(strength*uy/length);
-        f.frozen=false;f.hitstop=0;
-        physics.velocity(victim,vx,vy);f.hitstun=FighterMoves.hitstun(f.damage,scaling);f.tumble=strength>6;f.attack=null;f.dodgeStart=-1000;
+        var player=game.state.getPlayer(victim);float before=player.getHp();player.applyDamage(amount);f.damage=100-player.getHp();
+        if(f.lastComboAttacker!=null && f.lastComboAttacker.equals(attacker) && tick-f.lastHitTick<=90) {
+            f.dodgeFrames=(int)Math.min(999,Math.max(0,tick-f.lastDodgeReadyTick+1));
+            f.combo=f.lastDodgeUnavailable?"DODGE_UNAVAILABLE":f.dodgeFrames==0?"ZERO_WINDOW":"STRING";
+        } else { f.dodgeFrames=-1;f.combo="UNVERIFIED"; }
+        double strength=FighterMoves.knockback(f.damage,base,scaling,f.stats.defense());double length=Math.hypot(ux,uy);
+        if(length==0) { ux=0;uy=1;length=1; }
+        float vx=(float)(strength*ux/length),vy=(float)(strength*uy/length);f.frozen=false;f.hitstop=0;
+        int stun;try { stun=FighterMoves.get(moveName).baseStun()+(int)Math.ceil(f.damage*scaling/10); }catch(IllegalArgumentException unknown) { stun=FighterMoves.hitstun(f.damage,scaling); }
+        f.lastDodgeUnavailable=f.airDodgeUsed && !game.jumps.getJumpState(victim).grounded() || f.nextDodge>tick+stun+1;
+        // Count opportunities to INPUT a dodge, not only frames where its startup has finished.
+        f.lastDodgeReadyTick=tick+Math.min(45,stun)+1+(heavy?UnarmedRules.HEAVY_HITSTOP:0);f.lastHitTick=tick;f.lastComboAttacker=attacker;f.hitSerial=++hitSerial;
+        physics.velocity(victim,vx,vy);f.hitstun=Math.min(45,stun);f.tumble=strength>6;f.attack=null;f.pending=null;f.dodgeStart=-1000;f.gcUntil=0;f.dashUntil=0;f.wallActions=0;
+        if(player.isDead()) { progress.koCause="HP_ZERO"; }
         if(attacker!=null && !attacker.equals(victim)) {
-            game.progress.get(attacker).damage+=amount;progress.lastAttacker=attacker;progress.lastHitTick=tick;progress.lastWeapon=weapon;
+            game.progress.get(attacker).damage+=before-player.getHp();progress.lastAttacker=attacker;progress.lastHitTick=tick;progress.lastWeapon=moveName;
+            var a=fighters.get(attacker);a.chaseCharges=UnarmedRules.CHASE_CHARGES;a.chaseUntil=tick+UnarmedRules.CHASE_WINDOW;a.chaseTarget=victim;a.wallActions=0;
         }
-        if(heavy) { freeze(victim);if(attacker!=null) { freeze(attacker); } }
-        return true;
+        if(heavy) { freeze(victim);if(attacker!=null) { freeze(attacker); } }return true;
     }
     private void freeze(PlayerId id) {
-        var f=fighters.get(id);var velocity=game.bodies.getVelocity(id);
-        f.frozenX=velocity.xMetersPerSecond();f.frozenY=velocity.yMetersPerSecond();f.frozen=true;
-        f.hitstop=2;
+        var f=fighters.get(id);var v=game.bodies.getVelocity(id);f.frozenX=v.xMetersPerSecond();f.frozenY=v.yMetersPerSecond();f.frozen=true;f.hitstop=UnarmedRules.HEAVY_HITSTOP;
     }
     void checkBlastZones() {
         for(var id:fighters.keySet()) {
             if(!game.active(id)) { continue; }var p=game.bodies.getPosition(id);var f=fighters.get(id);
             String edge=p.xMeters()<LEFT?"LEFT":p.xMeters()>RIGHT?"RIGHT":p.yMeters()<BOTTOM?"BOTTOM":p.yMeters()>TOP && f.hitstun>0?"TOP":null;
-            if(edge!=null) { game.progress.get(id).koCause="BLAST_"+edge;game.state.getPlayer(id).applyDamage(100);f.attack=null;f.platformUntil=0; }
+            if(edge!=null) { game.progress.get(id).koCause="BLAST_"+edge;game.state.getPlayer(id).applyDamage(100);f.attack=null;f.pending=null;f.platformUntil=0; }
         }
     }
     void applyLavaContacts() {
@@ -180,40 +223,45 @@ final class FighterEngine implements AutoCloseable {
             if(!game.active(id) || game.jumps.isSupportedBySolid(id)) { continue; }
             var p=game.bodies.getPosition(id);var v=game.bodies.getVelocity(id);var f=fighters.get(id);
             if(f.platformUntil>0 || !FighterArena.touchesLava(p.xMeters(),p.yMeters(),v.yMetersPerSecond())) { continue; }
-            physics.bounceFromLava(id);
-            f.attack=null;f.dodgeStart=-1000;f.dashUntil=0;f.frozen=false;f.hitstop=0;
-            f.hitstun=FighterArena.LAVA_STUN_TICKS;f.tumble=false;f.fastFall=false;f.jumping=false;
-            f.airJumps=1;f.wallJumps=3;f.airDodgeUsed=false;f.recovery=true;f.nextWallJump=0;
+            physics.bounceFromLava(id);f.attack=null;f.pending=null;f.dodgeStart=-1000;f.gcUntil=0;f.chaseCharges=0;f.dashUntil=0;f.frozen=false;f.hitstop=0;
+            f.hitstun=FighterArena.LAVA_STUN_TICKS;f.tumble=f.fastFall=f.jumping=false;f.air.reset();f.airJumps=UnarmedRules.AIR_JUMPS;f.wallJumps=3;f.airDodgeUsed=false;f.recovery=true;f.nextWallJump=0;
             if(tick>=f.nextLavaDamage && tick>=game.progress.get(id).invulnerableUntil) {
-                var player=game.state.getPlayer(id);player.applyFallPenalty();f.nextLavaDamage=tick+60;
-                if(player.isDead()) { game.progress.get(id).fell=true; }
+                var player=game.state.getPlayer(id);player.applyFallPenalty();f.nextLavaDamage=tick+60;f.damage=100-player.getHp();if(player.isDead()) { game.progress.get(id).fell=true; }
             }
         }
     }
     FighterSnapshot snapshot() {
         var values=new ArrayList<FighterSnapshot.Player>();
-        for(var entry:fighters.entrySet()) {
-            var id=entry.getKey();var f=entry.getValue();var attack=f.attack;int dodge=(int)Math.max(0,22-(tick-f.dodgeStart));
-            String action=!game.active(id)?"KO":f.platformUntil>0?"RESPAWN_PLATFORM":f.hitstun>0?(f.tumble?"TUMBLE":"HITSTUN"):
-                    dodge>0?"DODGE":attack==null?"IDLE":attack.charging?"CHARGE":"ATTACK";
-            values.add(new FighterSnapshot.Player(id.value(),f.damage,action,attack==null?"NONE":attack.move.name(),attack==null?0:attack.id,
-                    attack==null?0:Math.max(0,attack.frame),f.hitstun,dodge,(int)Math.max(0,f.nextDodge-tick),
-                    (int)Math.max(0,f.platformUntil-tick),f.fastFall,f.recovery,f.airJumps,f.wallJumps,f.acknowledgedSequence,f.acknowledgedClientTick));
+        for(var id:fighters.keySet()) {
+            var f=fighters.get(id);var a=f.attack;int dodge=dodgeRemaining(f);
+            String action=!game.active(id)?"KO":f.platformUntil>0?"RESPAWN_PLATFORM":f.hitstun>0?(f.tumble?"TUMBLE":"HITSTUN"):dodge>0?"DODGE":a==null?"IDLE":a.charging?"CHARGE":"ATTACK";
+            var velocity=game.bodies.getVelocity(id);
+            String state=action.equals("IDLE")?(f.dashUntil>tick?(f.backdash?"BACKDASH":"DASH"):f.wallSliding?(f.wallActions>=UnarmedRules.WALL_SLIP?"WALL_SLIP":"WALL_SLIDE"):
+                    !game.jumps.getJumpState(id).grounded()?(f.fastFall?"FAST_FALL":velocity.yMetersPerSecond()>0?"AIR_RISING":"AIR_FALLING"):f.axis!=0?(f.runTicks>=18?"SPRINT":"RUN"):"IDLE"):
+                    action.equals("DODGE") && f.dodgeKind.equals("CHASE")?"CHASE_DODGE":a!=null && a.gravityCancelled?"GRAVITY_CANCEL":action;
+            String phase=a==null?(dodge>0?(tick-f.dodgeStart<UnarmedRules.DODGE_STARTUP?"STARTUP":tick-f.dodgeStart<UnarmedRules.DODGE_STARTUP+UnarmedRules.invulnerableFrames(f.dodgeKind)?"ACTIVE":"RECOVERY"):"NONE"):a.charging?"CHARGE":a.move.phase(a.frame);
+            var detail=new FighterSnapshot.Detail(state,phase,dodge>0?f.dodgeKind:"NONE",f.air.recoveries(),f.air.used(),(int)Math.max(0,f.gcUntil-tick),f.chaseCharges,(int)Math.max(0,f.chaseUntil-tick),
+                    f.pending==null?0:(int)Math.max(0,f.pending.expires-tick),a!=null && a.gravityCancelled,f.wallActions,f.dodgeFrames,f.combo,f.hitSerial,(int)Math.max(0,f.dashUntil-tick),f.dashX,(int)Math.max(0,f.nextWallJump-tick),f.runTicks,(int)Math.max(0,f.nextDash-tick),a==null?(game.state.getPlayer(id).isFacingRight()?1:-1):a.direction);
+            values.add(new FighterSnapshot.Player(id.value(),0,action,a==null?"NONE":a.move.name(),a==null?0:a.id,a==null?0:Math.max(0,a.frame),f.hitstun,dodge,(int)Math.max(0,f.nextDodge-tick),
+                    (int)Math.max(0,f.platformUntil-tick),f.fastFall,f.air.canRecover(),f.air.jumps(),f.wallJumps,f.acknowledgedSequence,f.acknowledgedClientTick,detail));
         }
         return new FighterSnapshot(values);
     }
-    void heal(PlayerId id) { fighters.get(id).damage=Math.max(0,fighters.get(id).damage-30);game.state.getPlayer(id).heal(30); }
+    void heal(PlayerId id) { game.state.getPlayer(id).heal(30);fighters.get(id).damage=100-game.state.getPlayer(id).getHp(); }
     @Override public void close() { physics.close();fighters.clear(); }
     static final class Fighter {
-        final FighterStats stats;double damage;float axis,dodgeX,dodgeY,dashX,frozenX,frozenY;
-        FighterInput held=FighterInput.NONE;long lastInput,nextDodge,dodgeStart=-1000,nextDash,dashUntil,platformUntil,nextWallJump,nextLavaDamage;
-        long acknowledgedSequence,acknowledgedClientTick;
-        int airJumps=1,wallJumps=3,lastWall,hitstun,hitstop;boolean recovery=true,airDodgeUsed,fastFall,wallSliding,jumping,tumble,frozen;
+        final FighterStats stats;final AirActionBudget air=new AirActionBudget();double damage;float axis,dodgeX,dodgeY,dashX,frozenX,frozenY;
+        FighterInput held=FighterInput.NONE;long lastInput,nextDodge,dodgeStart=-1000,nextDash,dashUntil,platformUntil,nextWallJump,nextLavaDamage,gcUntil,chaseUntil;
+        long acknowledgedSequence,acknowledgedClientTick,lastHitTick,lastDodgeReadyTick,hitSerial;
+        int airJumps=UnarmedRules.AIR_JUMPS,wallJumps=3,lastWall,wallActions,hitstun,hitstop,runTicks,chaseCharges,dodgeFrames=-1;
+        boolean recovery=true,airDodgeUsed,fastFall,wallSliding,jumping,tumble,frozen,wasGrounded,backdash,lastDodgeUnavailable;
+        String dodgeKind="NONE",combo="UNVERIFIED";PlayerId chaseTarget,lastComboAttacker;Pending pending;
         Attack attack;Fighter(FighterStats stats) { this.stats=stats; }
     }
-    private static final class Attack {
-        final long id;final FighterMoves.Move move;final int direction;final Set<PlayerId> hit=new HashSet<>();
-        int frame=-1,charge;boolean charging,fired;
-        Attack(long id,FighterMoves.Move move,int direction,boolean charging) { this.id=id;this.move=move;this.direction=direction;this.charging=charging; }
+    private record Pending(PlayerInput input,long expires) { }
+    static final class Attack {
+        final long id;final FighterMoves.Move move;final int direction;final Set<PlayerId> hit=new HashSet<>();final boolean gravityCancelled;
+        int frame=-1,charge;boolean charging;
+        Attack(long id,FighterMoves.Move move,int direction,boolean charging,boolean gc) { this.id=id;this.move=move;this.direction=direction;this.charging=charging;this.gravityCancelled=gc; }
     }
 }

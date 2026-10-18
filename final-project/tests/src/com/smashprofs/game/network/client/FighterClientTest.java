@@ -10,6 +10,26 @@ import java.util.*;
 import static org.junit.Assert.*;
 
 public class FighterClientTest {
+    @Test public void bothControlPresetsResolveMultiKeyInputWithoutMixingAimAndJump() {
+        var held=new HashSet<Integer>();var pressed=new HashSet<Integer>();
+        held.add(com.badlogic.gdx.Input.Keys.A);held.add(com.badlogic.gdx.Input.Keys.W);held.add(com.badlogic.gdx.Input.Keys.J);
+        pressed.add(com.badlogic.gdx.Input.Keys.W);pressed.add(com.badlogic.gdx.Input.Keys.J);
+        var command=UnarmedControls.sample(UnarmedControls.Preset.B,held::contains,pressed::contains);
+        assertEquals(-1,command.horizontal(),0);assertTrue(command.jumpPressed());assertTrue(command.lightPressed());assertFalse(command.fighter().upHeld());assertFalse(command.fighter().heavyPressed());
+        held.clear();pressed.clear();held.add(com.badlogic.gdx.Input.Keys.RIGHT);held.add(com.badlogic.gdx.Input.Keys.DOWN);held.add(com.badlogic.gdx.Input.Keys.X);held.add(com.badlogic.gdx.Input.Keys.I);
+        pressed.add(com.badlogic.gdx.Input.Keys.X);pressed.add(com.badlogic.gdx.Input.Keys.Z);
+        command=UnarmedControls.sample(UnarmedControls.Preset.A,held::contains,pressed::contains);
+        assertEquals(1,command.horizontal(),0);assertFalse(command.jumpPressed());assertTrue(command.fighter().upHeld());assertTrue(command.fighter().downHeld());assertTrue(command.fighter().heavyPressed());assertTrue(command.fighter().dodgePressed());
+        held.add(com.badlogic.gdx.Input.Keys.LEFT);assertEquals(0,UnarmedControls.sample(UnarmedControls.Preset.A,held::contains,pressed::contains).horizontal(),0);
+    }
+    @Test public void unarmedDetailRoundTripsAndRejectsInvalidResourceCounters() {
+        try(var r=runtime()) {
+            var snapshot=r.getLatestSnapshot().gameplay();var node=GameplayProtocol.snapshot(snapshot);
+            assertEquals(snapshot,GameplayProtocol.snapshot(node));
+            ((com.fasterxml.jackson.databind.node.ObjectNode)node.path("fighter").path("players").get(0).path("detail")).put("aerialActionsUsed",4);
+            assertThrows(IllegalArgumentException.class,()->GameplayProtocol.snapshot(node));
+        }
+    }
     private final PlayerId a=new PlayerId("a"),b=new PlayerId("b");
     private MatchRuntime runtime() {
         var r=new MatchRuntime(new MatchSetup("fighter","room",List.of(new MatchSetup.Participant(a,0,"Alex"),new MatchSetup.Participant(b,1,"Luca")),new MatchRules(2,0,3,MatchRules.DropRate.NONE,true,true)));r.start();r.tick();return r;

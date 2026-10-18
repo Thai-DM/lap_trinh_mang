@@ -11,6 +11,7 @@ public final class FighterPhysics implements AutoCloseable {
     private final PlayerPhysicsFactory.PlayerPhysicsBodies players;
     private final PlayerJumpController jumps;
     private final Map<PlayerId,Integer> dropTicks=new HashMap<>();
+    private final Map<PlayerId,Float> hurtboxHigh=new HashMap<>();
     private final List<MapCollisionDefinition.CollisionRectangle> platforms;
     public record Hurtbox(PlayerId id) { }
     public FighterPhysics(World world,PlayerPhysicsFactory.PlayerPhysicsBodies players,PlayerJumpController jumps,MapCollisionDefinition geometry) {
@@ -61,7 +62,7 @@ public final class FighterPhysics implements AutoCloseable {
             if(fixture.getUserData() instanceof Hurtbox hurt) {
                 var p=players.getPosition(hurt.id);float dx=p.xMeters()-Math.max(left,Math.min(p.xMeters(),right));
                 // Closest segment-to-box distance, exact for the axis-aligned capsule hurtbox.
-                float low=p.yMeters()-.01f,high=p.yMeters()+.17f;
+                float low=p.yMeters()-.01f,high=p.yMeters()+hurtboxHigh.getOrDefault(hurt.id,.17f);
                 float dy=high<bottom?bottom-high:low>top?low-top:0;
                 if(dx*dx+dy*dy<=.085f*.085f) { result.add(hurt.id); }
             }
@@ -70,10 +71,11 @@ public final class FighterPhysics implements AutoCloseable {
         return result;
     }
     public void reset(PlayerId id) { dropTicks.remove(id);jumps.resetAfterRespawn(id); }
+    public void hurtbox(PlayerId id,String move,int frame) { hurtboxHigh.put(id,com.smashprofs.common.model.FighterMoves.hurtboxHigh(move,frame)); }
     public void bounceFromLava(PlayerId id) {
         var body=players.getBody(id);float vx=body.getLinearVelocity().x;
         body.setTransform(body.getPosition().x,com.smashprofs.common.model.FighterArena.LAVA_CENTER_Y,0);
         body.setLinearVelocity(vx,com.smashprofs.common.model.FighterArena.LAVA_BOUNCE_SPEED);reset(id);
     }
-    @Override public void close() { dropTicks.clear();jumps.setContactPolicy(null); }
+    @Override public void close() { dropTicks.clear();hurtboxHigh.clear();jumps.setContactPolicy(null); }
 }

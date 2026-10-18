@@ -1,6 +1,8 @@
 # Super Smash Profs — Platform Fighter
 
-**Bản mới nhất:** [Platform Fighter giai đoạn 2](12-PLATFORM-FIGHTER.md). Giao diện online mặc định dùng **0% sát thương tích lũy + stocks + K.O theo biên**; có light/heavy theo frame, dodge/dash/recovery, sàn phụ xuyên được và đấu lại trên cùng kết nối. Luật lava -10 HP/bật lên của FIX1 thuộc chế độ HP được giữ để tương thích. **713 kiểm thử hồi quy PASS**.
+**Bản mới nhất:** [Unarmed MVP](13-UNARMED-MVP.md). Dùng **HP thống nhất**, tay không, J/K/L (hoặc preset mũi tên + C/X/Z), hai Air Jumps, Recovery kiệt sức, Dodge/Dash riêng, Gravity Cancel, Chase Dodge, input buffer và F2 Show Stun. Không có vũ khí/vật phẩm. F6 đổi/lưu preset. Camera tiếp tục bám; dung nham bật lên, -10 HP; hết HP mất mạng/hồi sinh.
+
+[Bộ fixture combo](runs/20261018-unarmed-build/combos.json) · [Manifest hiện tại](runs/20261018-unarmed-build/verification.json). Chạy `.\scripts\gameplay\Run-Unarmed-Training.ps1`. Danh mục vẫn UNVERIFIED, không mặc định là true combo. Tài liệu 12 và các evidence dưới đây ghi lịch sử trước Unarmed.
 
 Kiểm chứng mới: [JUnit](runs/20261017-085338-383-final-gameplay-regression/tests.log) · [30 kiểm tra cuối](runs/20261017-085538-830-fighter-final-lifecycle/tests.log) · [Build JAR](runs/20261017-fighter-build/build-packaged-final.log) · [HUD/bệ hồi sinh ở 960×540](runs/20261017-fighter-native/final-small-screen/respawn-platform.png) · [Podium](runs/20261017-fighter-native/final-two-players/result.png) · [Rematch 4 người](runs/20261017-fighter-native/final-four-players/rematch.png).
 

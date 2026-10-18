@@ -22,11 +22,15 @@ public final class OnlineHud implements AutoCloseable {
     private final Label pickupHint,networkPing,bagHint;
     private final Label[] feed=new Label[2];
     private final Image weaponIcon,bagIcon,shieldIcon;
-    private final Table bag,help;
+    private final Table bag,help,stunPanel;
+    private final boolean unarmedMode;
     private String displayedWeapon="NONE";
     private final java.util.List<com.badlogic.gdx.graphics.Texture> portraits=new ArrayList<>();
     private final Label helpText;
     private float uiTime;
+    private final Label unarmedHint,airBudget,stunInfo;
+    private UnarmedControls.Preset controlPreset=UnarmedControls.Preset.B;
+    private boolean showStun;
     private static final Color[] DAMAGE_COLORS={Color.WHITE,Color.valueOf("FFE35B"),Color.valueOf("FF932C"),Color.valueOf("FF4545"),Color.valueOf("AD142B")};
     private static final class PlayerCard {
         final Label hp,lives,ping;final ProgressBar bar;
@@ -34,7 +38,12 @@ public final class OnlineHud implements AutoCloseable {
         PlayerCard(OnlineUi ui) { hp=ui.small("100 HP");lives=ui.small("×3 mạng");ping=ui.small("… ms");bar=new ProgressBar(0,100,1,false,ui.skin); }
     }
     public OnlineHud(SpriteBatch batch,GameStartRoster roster,String localId) {
-        this.localId=localId;stage=new Stage(new FitViewport(1280,720),batch);
+        this(batch,roster,localId,false);
+    }
+    public OnlineHud(SpriteBatch batch,GameStartRoster roster,String localId,boolean unarmed) {
+        this.localId=localId;unarmedMode=unarmed;stage=new Stage(new FitViewport(1280,720),batch);
+        unarmedHint=ui.small("");airBudget=ui.small("");stunInfo=ui.small("");
+        stunPanel=ui.panel();stunPanel.pad(7);stunPanel.add(stunInfo);stunPanel.setVisible(false);
         var root=new Table();root.setFillParent(true);root.top().pad(8);
         var strip=new Table();int index=0,split=(roster.players().size()+1)/2;
         timer=ui.label("--:--");remaining=ui.small("Đang vào trận");
@@ -70,7 +79,9 @@ public final class OnlineHud implements AutoCloseable {
         equipment.add(description).width(140).padRight(12);
         shieldIcon=new Image(icons.drawable("SHIELD"));shieldIcon.setColor(1,1,1,.25f);equipment.add(shieldIcon).size(30).padRight(12);
         equipment.add(new Image(icons.drawable("ABILITY"))).size(30).padRight(4);ability=ui.small("F · Sẵn sàng");equipment.add(ability).width(115);
-        equipment.add(ui.small("[E] Nhặt  [G] Thả  [Q] Ném  [Tab] Túi  [H] Phím")).padLeft(12);bottom.add(equipment).height(48);stage.addActor(bottom);
+        equipment.add(ui.small("[E] Nhặt  [G] Thả  [Q] Ném  [Tab] Túi  [H] Phím")).padLeft(12);
+        if(unarmed) { equipment.clearChildren();equipment.add(unarmedHint).padRight(12);equipment.add(ability).width(100).padRight(8);equipment.add(airBudget); }
+        bottom.add(stunPanel).padBottom(4);bottom.row();bottom.add(equipment).height(48);stage.addActor(bottom);
         var pingRoot=new Table();pingRoot.setFillParent(true);pingRoot.bottom().right().padRight(12).padBottom(12);networkPing=ui.small("");networkPing.setColor(OnlineUi.MUTED);pingRoot.add(networkPing);stage.addActor(pingRoot);
 
         var bagRoot=new Table();bagRoot.setFillParent(true);bagRoot.bottom().right().padRight(12).padBottom(68);
@@ -85,6 +96,7 @@ public final class OnlineHud implements AutoCloseable {
     }
     private void addClock(Table strip) { strip.add().expandX();var clock=ui.panel();clock.pad(5);clock.add(timer);clock.row();clock.add(remaining).padTop(3);strip.add(clock).width(106).height(52).padLeft(5).padRight(10);strip.add().expandX(); }
     public void toggleInventory() { bag.setVisible(!bag.isVisible()); }
+    public void controls(UnarmedControls.Preset preset,boolean debug) { controlPreset=preset;showStun=debug;stunPanel.setVisible(unarmedMode && debug); }
     public void toggleHelp() { help.setVisible(!help.isVisible()); }
     public void update(StateInterpolator.V1.Frame frame,String connectionStatus,boolean connected) { update(frame,connectionStatus,connected,null); }
     public void update(StateInterpolator.V1.Frame frame,String connectionStatus,boolean connected,ClientMatchSession session) {
@@ -92,9 +104,10 @@ public final class OnlineHud implements AutoCloseable {
         if(frame!=null) {
             var latest=frame.authoritative();var gameplay=latest.gameplay();
             boolean fighter=gameplay!=null && gameplay.fighter()!=null;
+            if(fighter) { bag.setVisible(false);unarmedHint.setText((controlPreset==UnarmedControls.Preset.B?"J nhẹ · K mạnh · L né/lướt":"C nhẹ · X mạnh · Z né/lướt")+" · F6 đổi phím · H hướng dẫn"); }
             bagHint.setText(fighter?"E nhặt · G thả · Q ném để ngắt đòn. Đổi súng giữ đạn của súng cũ. Bình hồi phục: hồi 30 HP và giảm 30% sát thương tích lũy.":
                     "Đến gần, bấm E để nhặt; G để thả súng. Đổi súng giữ đạn của súng cũ. Bình máu dùng ngay khi nhặt.");
-            helpText.setText(fighter?"A/D di chuyển · W nhảy (giữ = cao)\nS rơi nhanh · S+W xuyên sàn mỏng\nV/Space đánh nhẹ · F/J đánh mạnh (giữ tích lực)\nShift/Ctrl né 8 hướng · C lướt đất\nTrên không F cứu sinh · S+F bổ xuống\nE nhặt · G thả · Q ném · Tab túi\nDung nham: bật lên, -10 HP; hết HP mất mạng\nVăng khỏi biên mất mạng; % cao dễ văng xa":
+            helpText.setText(fighter?UnarmedControls.hint(controlPreset)+"\nI hướng lên: ưu tiên Neutral, không tiêu nhảy\nXuống + nhảy: xuyên sàn mềm · Giữ xuống: rơi nhanh\nNé tại chỗ trên không rồi đánh: Gravity Cancel\nSau đánh trúng: hướng đuổi + né để Chase Dodge\n2 lượt nhảy trên không · Recovery dùng chung ngân sách\nHết HP hoặc vượt biên: mất mạng · Dung nham -10 HP\nF2 hitbox / Show Stun · F6 đổi preset A/B":
                     "A/D di chuyển · W nhảy · S dậm\nV/Space bắn hoặc đánh · F tuyệt chiêu\nE nhặt gần nhất · G thả súng\nCtrl đỡ · Tab túi đồ · Esc rời trận\nDung nham: -10 HP và bật lên");
             for(var p:latest.players()) {
                 var card=players.get(p.playerId());card.bar.setValue(p.hp());card.hp.setText(Math.round(p.hp())+" HP");
@@ -104,8 +117,7 @@ public final class OnlineHud implements AutoCloseable {
                 for(int i=0;i<card.stockIcons.length;i++) { card.stockIcons[i].setVisible(i<gameplay.rules().lives());card.stockIcons[i].setColor(i<progress.lives()?Color.GOLD:Color.DARK_GRAY); }
                 if(fighter) {
                     var value=gameplay.fighter().player(p.playerId());double damage=value.damagePercent();
-                    card.hp.setFontScale(1.1f);card.hp.setText(FighterViewModel.damageText(damage)+" · "+Math.round(p.hp())+" HP");card.hp.setColor(DAMAGE_COLORS[FighterViewModel.damageBand(damage)]);
-                    card.hp.getColor().a=damage>160?(.7f+.3f*(float)Math.sin(uiTime*10)):1;
+                    card.hp.setFontScale(1.1f);card.hp.setText(Math.round(p.hp())+" HP");card.hp.setColor(p.hp()<=30?OnlineUi.DANGER:Color.WHITE);
                     card.bar.setRange(0,100);card.bar.setValue(p.hp());card.bar.setColor(p.hp()<=30?OnlineUi.DANGER:OnlineUi.ACCENT);
                     if(value.platformTicks()>0) { card.hp.setText("Bệ hồi sinh"); }
                 }
@@ -123,7 +135,7 @@ public final class OnlineHud implements AutoCloseable {
             if(gameplay!=null) {
                 remaining.setText("Còn "+gameplay.players().stream().filter(p->p.lives()>0).count()+" người");
                 var local=gameplay.player(localId);
-                if(connected && local.status().equals("ACTIVE")) {
+                if(!fighter && connected && local.status().equals("ACTIVE")) {
                     var position=latest.player(localId);com.smashprofs.common.model.GameplaySnapshot.Item nearest=null;double best=.35*.35;
                     for(var item:gameplay.items()) {
                         double dx=position.x()-item.x(),dy=position.y()-item.y(),distance=dx*dx+dy*dy;
@@ -140,8 +152,14 @@ public final class OnlineHud implements AutoCloseable {
                 ability.setColor(local.ultimateTicks()==0 && local.status().equals("ACTIVE")?OnlineUi.ACCENT:OnlineUi.MUTED);
                 if(fighter) {
                     var value=gameplay.fighter().player(localId);
-                    ability.setText(value.dodgeCooldownTicks()==0?"Shift · NÉ":"Né · "+String.format(Locale.ROOT,"%.1fs",value.dodgeCooldownTicks()/60f));
+                    ability.setText(value.dodgeCooldownTicks()==0?"NÉ SẴN SÀNG":"Né · "+String.format(Locale.ROOT,"%.1fs",value.dodgeCooldownTicks()/60f));
                     ability.setColor(value.dodgeCooldownTicks()==0?OnlineUi.ACCENT:OnlineUi.MUTED);
+                    airBudget.setText("Nhảy "+value.airJumps()+"/2 · GC "+value.detail().gravityCancelTicks()+" · CD "+value.detail().chaseCharges()+" · Tường "+value.detail().wallActions());
+                    airBudget.setColor(value.detail().wallActions()>=com.smashprofs.common.model.UnarmedRules.WALL_DANGER?OnlineUi.DANGER:value.detail().wallActions()>=com.smashprofs.common.model.UnarmedRules.WALL_WARNING?OnlineUi.GOLD:OnlineUi.TEXT);
+                    var lines=new StringBuilder();if(showStun) { for(var player:gameplay.fighter().players()) {
+                        var d=player.detail();lines.append("P").append(slots.get(player.playerId())+1).append(" ").append(d.state()).append("/").append(d.phase())
+                                .append(" f").append(player.attackFrame()).append(" stun ").append(player.hitstunTicks()).append(" DodgeFrames ").append(d.dodgeFrames()).append(" ").append(d.combo()).append('\n');
+                    } }stunInfo.setText(lines.toString());
                 }
             }
         }

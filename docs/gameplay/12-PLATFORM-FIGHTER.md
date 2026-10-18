@@ -1,5 +1,7 @@
 # Platform Fighter — giai đoạn 2
 
+> Lịch sử triển khai. Bản hiện hành: [Unarmed MVP](13-UNARMED-MVP.md), dùng HP thống nhất, không có vũ khí/vật phẩm.
+
 Chế độ online tạo từ giao diện mặc định dùng **fighter-v1**: bắt đầu ở **0%**, sát thương chiến đấu tích lũy làm tăng knockback, mất mạng khi vượt blast zone. Theo luật dung nham người dùng đã chọn, mỗi mạng còn có **100 HP**: chạm dung nham bật lên ngay tại mặt lửa và **trừ 10 HP**, tối đa một lần mỗi giây. HP về 0 mất một mạng và hồi sinh với 100 HP/0%. Chế độ `gameplay-v1` HP và offline/mock cũ được giữ để tương thích; không có hai engine cùng điều khiển một trận.
 
 ## P0 — vật lý, damage %, stock và K.O

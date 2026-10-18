@@ -1,0 +1,12 @@
+﻿{
+    "date":  "2026-10-18T08:38:34.6669968+07:00",
+    "status":  "PASS",
+    "label":  "unarmed-prediction-and-controls",
+    "heapMiB":  128,
+    "suites":  [
+                   "com.smashprofs.server.game.UnarmedGameplayTest",
+                   "com.smashprofs.server.game.FighterEngineTest",
+                   "com.smashprofs.game.network.client.FighterClientTest",
+                   "com.smashprofs.server.game.FighterTcpIntegrationTest"
+               ]
+}

@@ -1,0 +1,68 @@
+{
+  "status": "PASS",
+  "date": "2026-10-18T08:54:57.199518+07:00",
+  "branch": "dev",
+  "baseCommit": "1720212ef0edaf7a887533f34d207d6967fc4709",
+  "damageModel": "HP",
+  "capability": "unarmed-v1",
+  "fullRegression": {
+    "tests": 754,
+    "evidence": "../20261018-084628-416-final-gameplay-regression/tests.log"
+  },
+  "finalTargeted": {
+    "tests": 66,
+    "evidence": "../20261018-085310-007-unarmed-final-actions/tests.log"
+  },
+  "nativeCases": [
+    {
+      "players": 2,
+      "width": 1280,
+      "evidence": "two-players-final.log"
+    },
+    {
+      "players": 4,
+      "width": 960,
+      "evidence": "four-players-small-final.log"
+    }
+  ],
+  "training": {
+    "fixtures": 136,
+    "chains": 17,
+    "firstOpportunityDodgeCases": 68,
+    "status": "UNVERIFIED catalogue; per-fixture observations only",
+    "evidence": "combos.json"
+  },
+  "clientJarSHA256": "f1f66c858c849c7f78b8ab65144e9961db53812f9fe925d8a6f9cf82d2a0392d",
+  "sourceSHA256": {
+    "docs/gameplay/13-UNARMED-MVP.md": "362068b99bdada4158704cd5612a4bc732475a9e511964172479db5602c4d67b",
+    "docs/gameplay/README.md": "c1730c223aa26ff316b2cd025e30dc2cf8008117c7ba08f166793b87d3d67c2f",
+    "docs/gameplay/specifications/20261018-UNARMED-MVP.md": "60d21d153b3f32a338ef948263ec13c198d02a01994fc07b1d80feb12f818eed",
+    "final-project/common/src/com/smashprofs/common/model/AirActionBudget.java": "ada8c78bba45f79f1f39674a7b03028a1db3f97f18b43b457b9862a5277424d4",
+    "final-project/common/src/com/smashprofs/common/model/FighterMovement.java": "f13178d4b2d9de1227b4506994740bfbd8b4fccbc77019911c8100ac26fc49b4",
+    "final-project/common/src/com/smashprofs/common/model/FighterMoves.java": "17cc139a9ea41e56ebddc01bef9f99d3879429b5641913ec0a44b491b6e8fb1f",
+    "final-project/common/src/com/smashprofs/common/model/FighterSnapshot.java": "b92ca5a4bd2264f78d590ec4a581530ab8dc62c6016dec2bc03be5d533c7f76d",
+    "final-project/common/src/com/smashprofs/common/model/MatchRules.java": "0394ec00b76c87a5ad7d763fcc6b92a0a35aa71932708c2ee9009f1be7ae3d2d",
+    "final-project/common/src/com/smashprofs/common/model/UnarmedInputResolver.java": "0d17daea5ed08225d21a7ba019426a02394cce26cb5071e7e02200182bd9fe68",
+    "final-project/common/src/com/smashprofs/common/model/UnarmedRules.java": "4d6a39867e6e08a0f2f38a1108ad0ce61cfc175ea787f54d5e84bfd27eb69454",
+    "final-project/common/src/com/smashprofs/common/protocol/FighterProtocol.java": "9411e69c05396a0f80853478fa8a7a5560275d0e53a7640b7ab5181de5f08b73",
+    "final-project/core/src/com/smashprofs/game/Scenes/OnlineHud.java": "491c3a6f1c64ae6c349a95d682673a9f4e3f606d21a845225c891dbe146698f4",
+    "final-project/core/src/com/smashprofs/game/Screens/OnlinePlayScreen.java": "13732d41aa20d353a509fc2a0215af6d142472ffc2dd06f818e728cafbb5695d",
+    "final-project/core/src/com/smashprofs/game/Screens/OnlineResultScreen.java": "e44ea32e9401f97fc833b60dc1240d9a66ef76100684a33cd458843704a18607",
+    "final-project/core/src/com/smashprofs/game/Screens/OnlineRoomScreen.java": "3569efc2bde1d98ae4bd014e3337be0974edf3d5a65bce88e12f84ad1aa15083",
+    "final-project/core/src/com/smashprofs/game/network/client/LocalFighterPrediction.java": "8ec9338e9a766ac4c55ade22460ab6dd806ca3a2f25a6bde2f54c602cd9ca273",
+    "final-project/core/src/com/smashprofs/game/network/client/OnlineRoomPresentation.java": "c7e8fbb98b86af6f9f40d639559f13742b2a5a9126097caa94c43a3ced3238f2",
+    "final-project/core/src/com/smashprofs/game/network/client/UnarmedControls.java": "7aa5235fc7b0b37285d7b731bdbf04c5a2ca28067ff0643356e390b78d6dea83",
+    "final-project/server/src/com/smashprofs/server/game/FighterEngine.java": "73ca9766ac53320ed2dcbee55df728f9d6093e34e4496c6020209dfde00ed1a1",
+    "final-project/server/src/com/smashprofs/server/game/ItemSystem.java": "c2e25cd73e7b41de74f6d5ddda9ac9e8b19c02eb106968a8f24c3dd87297a5d7",
+    "final-project/server/src/com/smashprofs/server/game/MatchEndEvaluator.java": "c7884042d25b26b589802c35d7342c7bb06b00093f26350d5a9219a5c2333e8d",
+    "final-project/server/src/com/smashprofs/server/game/physics/FighterPhysics.java": "a91c1b5298b7d54a382467c8aed10e9a72c08d9a89d7980f825d0a1d5143157d",
+    "final-project/server/test/com/smashprofs/server/game/FighterEngineTest.java": "e580f80614b2d67400f408fc4e5d277ddd41a5bc88e06cc3a98e915c5d5ea81d",
+    "final-project/server/test/com/smashprofs/server/game/UnarmedComboTraining.java": "718176ebfc2580a084c1a3d9a01f8fbf022344883880ca56f213239002458568",
+    "final-project/server/test/com/smashprofs/server/game/UnarmedGameplayTest.java": "1eb1570fae7cc78d4dfa5c3caab70e64c4d7eabc52f315182ebe91a6e29dc65a",
+    "final-project/tests/src/com/smashprofs/game/network/client/FighterClientTest.java": "b3259de3870b2644fc714f8f71d012f1b17c231182049215c8128877b2fddfe2",
+    "final-project/tests/src/com/smashprofs/server/game/FighterTcpIntegrationTest.java": "cc7c499a1f218fac94525fcc7c0018b19e564fe32f2303d6191488f845c7a59b",
+    "scripts/gameplay/FighterVisualPreview.java": "ea6d2e406902d85e0b0560cc2c3b870f3b9a49ecda4f00501499c080b0a3eedd",
+    "scripts/gameplay/Run-Unarmed-Training.ps1": "ac2430f02d8ca4819890c1c011b19c03e3f6cbd9c3586e8d9b455cd17578ba9d",
+    "scripts/gameplay/Verify-Gameplay.ps1": "ad06392a33d3afd1eaa41df18c11972f183a86faed1ea7fe994dd679c5fc4d66"
+  }
+}

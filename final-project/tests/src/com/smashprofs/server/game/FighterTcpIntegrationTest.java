@@ -12,6 +12,30 @@ import java.util.logging.Logger;
 import static org.junit.Assert.*;
 
 public class FighterTcpIntegrationTest {
+    @Test public void nativePredictionMatchesSprintDashJumpLatchedDashAndTwoAirJumps() {
+        for(String profile:List.of("sprint","dash-jump","reverse-dash","air-jumps")) {
+            var a=new PlayerId("a");var b=new PlayerId("b");
+            var map=new com.smashprofs.server.game.physics.TmxCollisionLoader().loadOriginalMap();
+            var geometry=map.rectangles().stream().map(p->new LocalFighterPrediction.Rect(p.xPixels()/100,p.yPixels()/100,p.widthPixels()/100,p.heightPixels()/100)).toList();
+            try(var r=new MatchRuntime(new MatchSetup("movement","room",List.of(new MatchSetup.Participant(a,0,"Alex"),new MatchSetup.Participant(b,1,"Luca")),new MatchRules(2,0,3,MatchRules.DropRate.NONE,true,true)));
+                var prediction=new LocalFighterPrediction(geometry)) {
+                r.start();r.gameplay().bodies.respawn(a,5.2f,.23f);r.gameplay().bodies.respawn(b,8,.23f);for(int i=0;i<10;i++) { r.tick(); }
+                long sequence=1;
+                if(profile.equals("sprint")) { for(int i=0;i<15;i++) { r.submitInput(new PlayerInput(a,sequence,sequence++,1,false,false,false,false,false));r.tick(); } }
+                var message=com.smashprofs.server.network.GameStateMessageMapper.map(new com.smashprofs.server.network.GameStateDelivery(r.getLatestSnapshot(),"PLAYING",0,()->true));
+                var base=WireGameSnapshot.parse(message.payload());var inputs=new ArrayList<PlayerInput>();
+                for(int i=0;i<10;i++) {
+                    boolean dash=(profile.equals("dash-jump") || profile.equals("reverse-dash")) && i==0;
+                    boolean jump=profile.equals("dash-jump") && i==0 || profile.equals("air-jumps") && (i==0 || i==3 || i==6 || i==9);
+                    float axis=profile.equals("reverse-dash") && i>2?-1:1;
+                    var input=new PlayerInput(a,sequence,sequence++,axis,jump,false,false,false,false,false,false,new FighterInput(false,true,false,false,false,dash,false,false));
+                    inputs.add(input);r.submitInput(input);r.tick();
+                }
+                var shown=prediction.sample(base.player("a"),base.gameplay().fighter().player("a"),inputs,1/60f);var expected=r.gameplay().bodies.getPosition(a);
+                assertEquals(profile,expected.xMeters(),shown.x(),.00001f);assertEquals(profile,expected.yMeters(),shown.y(),.00001f);
+            }
+        }
+    }
     @Test public void nativePredictionMatchesAuthorityThroughLavaReboundAndRecovery() {
         var a=new PlayerId("a");var b=new PlayerId("b");
         var map=new com.smashprofs.server.game.physics.TmxCollisionLoader().loadOriginalMap();
@@ -62,8 +86,8 @@ public class FighterTcpIntegrationTest {
             for(int i=0;i<10;i++) { executor.runCycle(); }
             assertTrue(clients.get(0).recordFrameInput(0,false,false,true,false,false));until(()->r.getPendingInputCount()>0);
             for(int i=0;i<9;i++) { executor.runCycle(); }
-            double damage=r.getLatestSnapshot().gameplay().fighter().player(victim.value()).damagePercent();assertTrue(damage>0);
-            until(()->clients.stream().allMatch(c->c.getMatchSession().getSnapshotBuffer().getLatestSnapshot().gameplay().fighter().player(victim.value()).damagePercent()==damage));
+            float hp=r.gameplay().state.getPlayer(victim).getHp();assertTrue(hp<100);
+            until(()->clients.stream().allMatch(c->c.getMatchSession().getSnapshotBuffer().getLatestSnapshot().player(victim.value()).hp()==hp));
             String oldId=r.getMatchId();
             // Every losing participant exhausts three stocks. Platform invulnerability does not block a blast KO.
             for(int stock=0;stock<3;stock++) {

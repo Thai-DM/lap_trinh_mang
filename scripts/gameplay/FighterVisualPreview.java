@@ -70,6 +70,12 @@ public final class FighterVisualPreview extends Game {
         try { var f=PlayScreen.class.getDeclaredField("onlineScreen");f.setAccessible(true);var screen=f.get(getScreen());var h=screen.getClass().getDeclaredField("hud");h.setAccessible(true);return (OnlineHud)h.get(screen); }
         catch(ReflectiveOperationException error) { throw new IllegalStateException(error); }
     }
+    private void enableCombatDebug() {
+        try {
+            var field=PlayScreen.class.getDeclaredField("onlineScreen");field.setAccessible(true);var screen=field.get(getScreen());
+            var flag=screen.getClass().getDeclaredField("debugCombat");flag.setAccessible(true);flag.setBoolean(screen,true);
+        } catch(ReflectiveOperationException error) { throw new IllegalStateException(error); }
+    }
     private static TextButton find(Group group,String text) {
         for(var actor:group.getChildren()) { if(actor instanceof TextButton b && b.getText().toString().equals(text)) { return b; }if(actor instanceof Group g) { var b=find(g,text);if(b!=null) { return b; } } }return null;
     }
@@ -92,17 +98,16 @@ public final class FighterVisualPreview extends Game {
         } else if(step==2 && getScreen() instanceof PlayScreen && screenFrames>3 && host.getMatchSession().getSnapshotBuffer().getLatestSnapshot()!=null) {
             runtime=room.getMatchRuntime();oldMatch=runtime.getMatchId();owner=host.getSnapshot().localPlayerId();var game=runtime.gameplay();
             for(var p:game.state.playersInSlotOrder()) { game.bodies.respawn(p.getPlayerId(),5.12f+p.getSlotIndex()*.30f,.23f);game.fighter.physics.reset(p.getPlayerId()); }
-            var target=peers.get(0).getSnapshot().localPlayerId();game.fighter.hit(owner,target,"PREVIEW",120,0,0,1,0,false);
-            var position=game.bodies.getPosition(owner);long tick=runtime.getMatchState().getServerTick();
-            game.items.drop("LASER",position.xMeters(),position.yMeters(),tick);game.items.drop("SHIELD",position.xMeters(),position.yMeters(),tick);
-            String[] types={"SHOTGUN","LASER","BAZOOKA","GRENADE","HEALTH","SHIELD"};for(int i=0;i<types.length;i++) { game.items.drop(types[i],4.7f+i*.36f,.45f,tick); }
+            var target=peers.get(0).getSnapshot().localPlayerId();game.fighter.hit(owner,target,"PREVIEW",20,0,0,1,0,false);
             step=3;frames=0;
         } else if(step==3 && frames>4) {
-            var equipment=host.getMatchSession().getSnapshotBuffer().getLatestSnapshot().gameplay().player(owner.value());
-            if(equipment.ammo()==6 && equipment.shield()) { capture("fighter-hud");hud().toggleInventory();step=4; }
-            else { host.recordFrameInput(0,false,false,false,false,false,true,false); }frames=0;
+            var state=host.getMatchSession().getSnapshotBuffer().getLatestSnapshot();
+            if(!state.gameplay().items().isEmpty() || !state.gameplay().shots().isEmpty()) { throw new IllegalStateException("Items leaked into Unarmed mode"); }
+            capture("unarmed-hud");enableCombatDebug();step=4;frames=0;
         } else if(step==4 && frames>4) {
-            capture("inventory");hud().toggleInventory();runtime.gameplay().bodies.respawn(owner,2.5f,1.2f);
+            capture("unarmed-debug");hud().toggleHelp();step=44;frames=0;
+        } else if(step==44 && frames>4) {
+            capture("unarmed-help");hud().toggleHelp();runtime.gameplay().bodies.respawn(owner,2.5f,1.2f);
             runtime.gameplay().fighter.physics.reset(owner);step=41;frames=0;
         } else if(step==41 && frames>2 && runtime.gameplay().bodies.getVelocity(owner).yMetersPerSecond()>0
                 && host.getMatchSession().getSnapshotBuffer().getLatestSnapshot().player(owner.value()).hp()<100) {
@@ -112,9 +117,11 @@ public final class FighterVisualPreview extends Game {
             if(state.gameplay().player(owner.value()).lives()!=3 || state.player(owner.value()).hp()!=90 || state.player(owner.value()).y()<FighterArena.LAVA_CENTER_Y-.001f) { throw new IllegalStateException("Lava did not rebound with 10 HP damage"); }
             capture("lava-bounce");step=42;frames=0;
         } else if(step==42 && runtime.gameplay().fighter.fighters.get(owner).hitstun==0) {
-            host.recordFrameInput(1,false,false,false,false,false,false,false,new FighterInput(false,false,false,false,false,true,false,false));step=5;frames=0;
+            host.recordFrameInput(0,false,false,false,false,false,false,false,new FighterInput(false,false,false,false,false,true,false,false));step=5;frames=0;
         } else if(step==5 && frames>4 && host.getMatchSession().getSnapshotBuffer().getLatestSnapshot().gameplay().fighter().player(owner.value()).action().equals("DODGE")) {
-            capture("dodge");runtime.gameplay().state.getPlayer(owner).applyDamage(80);runtime.gameplay().fighter.fighters.get(owner).nextLavaDamage=0;
+            capture("spot-dodge");host.recordFrameInput(0,false,false,true,false,false);step=51;frames=0;
+        } else if(step==51 && frames>4 && host.getMatchSession().getSnapshotBuffer().getLatestSnapshot().gameplay().fighter().player(owner.value()).detail().gravityCancelled()) {
+            capture("gravity-cancel");runtime.gameplay().state.getPlayer(owner).applyDamage(80);runtime.gameplay().fighter.fighters.get(owner).nextLavaDamage=0;
             runtime.gameplay().bodies.respawn(owner,2.5f,.2f);runtime.gameplay().fighter.physics.reset(owner);step=6;frames=0;
         } else if(step==6 && frames>4 && host.getMatchSession().getSnapshotBuffer().getLatestSnapshot().gameplay().player(owner.value()).status().equals("RESPAWNING")) {
             capture("ko-stock");for(int i=0;i<90;i++) { executor.runCycle(); }step=7;frames=0;

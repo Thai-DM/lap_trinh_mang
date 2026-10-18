@@ -32,6 +32,8 @@ final class OnlinePlayScreen implements Screen {
     private final float mapWidth,mapHeight;
     private boolean disposed;
     private float animationTime;
+    private boolean debugCombat;
+    private UnarmedControls.Preset controls=Gdx.app.getPreferences("unarmed-controls").getString("preset","B").equals("A")?UnarmedControls.Preset.A:UnarmedControls.Preset.B;
     private final OnlineCameraController framing=new OnlineCameraController();
     private final Map<String,String> cameraLifeStates=new HashMap<>();
     private WireMatchResult pendingResult;private float finishTime;
@@ -70,7 +72,7 @@ final class OnlinePlayScreen implements Screen {
         for (var member : session.getRoster().players()) {
             players.put(member.playerId().value(), assets.player(member.characterId()));
         }
-        hud = new OnlineHud(batch, session.getRoster(), session.getLocalPlayerId().value());
+        hud = new OnlineHud(batch, session.getRoster(), session.getLocalPlayerId().value(),session.isFighter());
         identityFont.getData().setScale(0.008f);
     }
     @Override public void show() { Gdx.input.setInputProcessor(null); }
@@ -85,10 +87,20 @@ final class OnlinePlayScreen implements Screen {
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) { game.leaveOnlineLobby();game.setScreen(new OnlineLobbyScreen(game));return; }
         if (Gdx.input.isKeyJustPressed(Input.Keys.F9)) { game.getLobbyClient().close(); }
-        if (Gdx.input.isKeyJustPressed(Input.Keys.TAB)) { hud.toggleInventory(); }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.TAB) && !session.isFighter()) { hud.toggleInventory(); }
+        if(Gdx.input.isKeyJustPressed(Input.Keys.F2)) { debugCombat=!debugCombat; }
+        if(Gdx.input.isKeyJustPressed(Input.Keys.F6) && session.isFighter()) {
+            controls=controls==UnarmedControls.Preset.B?UnarmedControls.Preset.A:UnarmedControls.Preset.B;
+            Gdx.app.getPreferences("unarmed-controls").putString("preset",controls.name()).flush();
+        }
+        hud.controls(controls,debugCombat);
         if (Gdx.input.isKeyJustPressed(Input.Keys.H)) { hud.toggleHelp(); }
         if (game.getLobbyClient().getMatchSession() == session) {
             boolean fighter=session.isFighter();
+            if(fighter) {
+                var command=UnarmedControls.sample(controls,Gdx.input::isKeyPressed,Gdx.input::isKeyJustPressed);
+                game.getLobbyClient().recordFrameInput(command.horizontal(),command.jumpPressed(),false,command.lightPressed(),false,false,false,false,command.fighter());
+            } else {
             float axis = (Gdx.input.isKeyPressed(Input.Keys.D) ? 1 : 0) - (Gdx.input.isKeyPressed(Input.Keys.A) ? 1 : 0);
             game.getLobbyClient().recordFrameInput(axis, Gdx.input.isKeyJustPressed(Input.Keys.W),
                     Gdx.input.isKeyJustPressed(Input.Keys.S), Gdx.input.isKeyJustPressed(Input.Keys.V)
@@ -100,6 +112,7 @@ final class OnlinePlayScreen implements Screen {
                             Gdx.input.isKeyPressed(Input.Keys.F)||Gdx.input.isKeyPressed(Input.Keys.J),
                             Gdx.input.isKeyJustPressed(Input.Keys.SHIFT_LEFT)||Gdx.input.isKeyJustPressed(Input.Keys.CONTROL_LEFT),
                             Gdx.input.isKeyJustPressed(Input.Keys.Q),Gdx.input.isKeyJustPressed(Input.Keys.C)):com.smashprofs.common.model.FighterInput.NONE);
+            }
         }
         animationTime += Math.min(Math.max(delta, 0), 0.1f)*(pendingResult==null?1:.2f);
         updatePrediction(delta);
@@ -117,8 +130,8 @@ final class OnlinePlayScreen implements Screen {
         }
         if(gameplay!=null && gameplay.fighter()!=null) {
             for(var p:gameplay.fighter().players()) {
-                Double previous=lastDamage.put(p.playerId(),p.damagePercent());
-                if(previous!=null && p.damagePercent()>previous) { flashes.put(p.playerId(),animationTime+.08f);if(Game.soundEffects) { hitSound.play(.35f); } }
+                double hp=authoritative.player(p.playerId()).hp();Double previous=lastDamage.put(p.playerId(),hp);
+                if(previous!=null && hp<previous) { flashes.put(p.playerId(),animationTime+.08f);if(Game.soundEffects) { hitSound.play(.35f); } }
                 Integer stocks=lastStocks.put(p.playerId(),gameplay.player(p.playerId()).lives());
                 if(stocks!=null && stocks>gameplay.player(p.playerId()).lives()) { koFlash=.18f;if(Game.soundEffects) { koSound.play(.5f); } }
             }
@@ -132,7 +145,7 @@ final class OnlinePlayScreen implements Screen {
                 if(f.fastFalling()) { shapes.setColor(Color.WHITE);for(int i=0;i<3;i++) { shapes.rect(p.x()-.06f+i*.06f,p.y()+.12f,.012f,.22f); } }
                 if(f.action().equals("ATTACK")) {
                     var move=com.smashprofs.common.model.FighterMoves.get(f.attack());
-                    if(move.activeAt(f.attackFrame())) { shapes.setColor(move.heavy()?Color.GOLD:Color.WHITE);shapes.rectLine(p.x(),p.y()+.1f,p.x()+(p.facingRight()?1:-1)*move.x()*2,p.y()+move.y(),.018f); }
+                    if(move.activeAt(f.attackFrame())) { shapes.setColor(move.heavy()?Color.GOLD:Color.WHITE);shapes.rectLine(p.x(),p.y()+.1f,p.x()+f.detail().attackDirection()*move.x()*2,p.y()+move.y(),.018f); }
                 }
             }
             shapes.end();
@@ -164,7 +177,7 @@ final class OnlinePlayScreen implements Screen {
             var p = view.state(); var sprite = players.get(p.playerId());
             if(gameplay!=null && !gameplay.player(p.playerId()).status().equals("ACTIVE")) { continue; }
             var fighter=gameplay==null || gameplay.fighter()==null?null:gameplay.fighter().player(p.playerId());
-            sprite.setRegion(assets.frame(p, animationTime,fighter)); sprite.setFlip(p.facingRight(), false);
+            sprite.setRegion(assets.frame(p, animationTime,fighter)); sprite.setFlip(fighter!=null && !fighter.attack().equals("NONE")?fighter.detail().attackDirection()>0:p.facingRight(), false);
             sprite.setColor(p.dead() ? new Color(0.5f, 0.5f, 0.5f, 0.4f) : p.blocking() ? Color.CYAN : Color.WHITE);
             sprite.setRotation(0);
             if(fighter!=null) {
@@ -213,6 +226,7 @@ final class OnlinePlayScreen implements Screen {
             sprite.draw(batch);
         }
         batch.end();
+        if(debugCombat && gameplay!=null && gameplay.fighter()!=null) { drawCombatDebug(gameplay); }
         if(!bursts.isEmpty()) {
             shapes.setProjectionMatrix(camera.combined);shapes.begin(com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType.Line);
             float left=camera.position.x-viewport.getWorldWidth()/2+.2f,right=camera.position.x+viewport.getWorldWidth()/2-.2f;
@@ -254,6 +268,21 @@ final class OnlinePlayScreen implements Screen {
             return new OnlineMatchPresentation.PlayerView(new WireGameSnapshot.Player(p.playerId(),p.slotIndex(),p.characterId(),position.x(),position.y(),
                     p.velocityX(),p.velocityY(),p.hp(),p.grounded(),p.blocking(),p.dead(),p.facingRight()),true);
         }).toList();
+    }
+    private void drawCombatDebug(com.smashprofs.common.model.GameplaySnapshot gameplay) {
+        shapes.setProjectionMatrix(camera.combined);shapes.begin(com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType.Line);
+        for(var view:renderedPlayers) {
+            var p=view.state();if(p.dead()) { continue; }var f=gameplay.fighter().player(p.playerId());
+            float high=com.smashprofs.common.model.FighterMoves.hurtboxHigh(f.attack(),f.attackFrame());
+            shapes.setColor(Color.CYAN);shapes.rect(p.x()-.085f,p.y()-.095f,.17f,high+.18f);
+            shapes.circle(p.x(),p.y()-.01f,.085f,16);shapes.circle(p.x(),p.y()+high,.085f,16);
+            if(!f.attack().equals("NONE") && f.detail().phase().equals("ACTIVE")) {
+                var m=com.smashprofs.common.model.FighterMoves.get(f.attack());shapes.setColor(Color.RED);
+                int direction=f.detail().attackDirection();
+                shapes.rect(p.x()+direction*m.x()-m.halfWidth(),p.y()+m.y()-m.halfHeight(),m.halfWidth()*2,m.halfHeight()*2);
+            }
+        }
+        shapes.end();
     }
     private void updateCamera(float delta) {
         float minX=Float.POSITIVE_INFINITY,maxX=Float.NEGATIVE_INFINITY,minY=Float.POSITIVE_INFINITY,maxY=Float.NEGATIVE_INFINITY;

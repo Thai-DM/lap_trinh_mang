@@ -160,7 +160,7 @@ public final class OnlineResultScreen implements Screen {
         actionChips.add(playAgainBtn).height(34).padRight(12);
 
         var reason = switch (result.finishReason()) {
-            case "TIME_LIMIT" -> result.gameplay()!=null && result.gameplay().fighter()!=null?"Hết giờ · Xét mạng, rồi % thấp nhất":"Hết giờ · Xét HP cao nhất";
+            case "TIME_LIMIT" -> result.gameplay()!=null && result.gameplay().fighter()!=null?"Hết giờ · Xét mạng, rồi HP cao nhất":"Hết giờ · Xét HP cao nhất";
             case "LAST_PLAYER_STANDING" -> "Sống sót cuối cùng";
             default -> "Đấu trường sinh tử";
         };
@@ -278,7 +278,7 @@ public final class OnlineResultScreen implements Screen {
             statsBox.add(createStatRow("FALLS", Integer.toString(deaths), Color.valueOf("FF7A85"))).padTop(3).row();
             statsBox.add(createStatRow("DMG DONE", String.format(Locale.ROOT, "%.0f", dmgDone), Color.valueOf("FFE066"))).padTop(3).row();
             boolean fighter=result.gameplay()!=null && result.gameplay().fighter()!=null;
-            statsBox.add(createStatRow(fighter?"FINAL %":"FINAL HP",fighter?com.smashprofs.game.network.client.FighterViewModel.damageText(result.gameplay().fighter().player(p.playerId()).damagePercent()):Math.round(p.finalHp())+" HP",Color.valueOf("E0F2FE"))).padTop(3).row();
+            statsBox.add(createStatRow("FINAL HP",Math.round(p.finalHp())+" HP",Color.valueOf("E0F2FE"))).padTop(3).row();
 
             card.add(statsBox).growX().padTop(2);
 

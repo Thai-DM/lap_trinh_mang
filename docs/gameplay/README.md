@@ -1,5 +1,7 @@
 # Super Smash Profs — Platform Fighter
 
+**Lướt ngắn (19/10):** Dash/Backdash còn 0,1 giây, khoảng nửa quãng cũ. Một lần bấm chỉ một nhịp; giữ nút né/lướt rồi đổi hướng không tự lướt thêm. Né đứng yên trên đất cũng dừng trượt sau 6 tick, vẫn giữ thời gian bảo vệ. [Chi tiết](13-UNARMED-MVP.md) · [Kiểm chứng](runs/20261019-short-dash/verification.json).
+
 **Bản mới nhất:** [Combat và trang bị](13-UNARMED-MVP.md). Dùng **HP thống nhất**, giữ cả đánh tay không và hệ thống vũ khí/vật phẩm sẵn có. J/K/L (hoặc preset mũi tên + C/X/Z), hai Air Jumps, Recovery kiệt sức, Dodge/Dash riêng, Gravity Cancel, Chase Dodge, input buffer và F2 Show Stun. E nhặt, G thả, Q ném, Tab túi đồ; phòng mới mặc định rơi đồ mỗi 15 giây, chủ phòng có thể đổi. F6 đổi/lưu preset. Camera tiếp tục bám; dung nham bật lên, -10 HP; hết HP mất mạng/hồi sinh.
 
 [Kiểm chứng bản khôi phục trang bị](runs/20261018-equipment-restored/verification.json) · [Túi đồ ở 960×540](runs/20261018-equipment-restored/four-players-small/weapon-inventory.png). Phải mở lại cả server và client sau khi cập nhật; phòng mới mặc định rơi đồ, phòng đã chọn Tắt cần chủ phòng đổi lại trước trận.

@@ -128,12 +128,15 @@ final class FighterEngine implements AutoCloseable {
                     if(input.meleePressed() || input.fighter().heavyPressed()) { startAttack(id,f,input,grounded || gc,gc); }
                 }
             }
-        } else if(f.dodgeKind.equals("CHASE") && dodging && f.chaseCharges>0 && tick<=f.chaseUntil && input!=null && input.fighter().dodgePressed()) {
+        } else if(f.dodgeKind.equals("CHASE") && dodging && f.chaseCharges>0 && tick<=f.chaseUntil && input!=null && (input.fighter().dodgePressed() || input.fighter().dashPressed())) {
             movementAction(id,f,input,grounded);
         }
         if(dodgeRemaining(f)>0) {
             int age=(int)(tick-f.dodgeStart);boolean spot=f.dodgeKind.endsWith("SPOT");
-            if(spot || age>=UnarmedRules.DODGE_STARTUP && age<UnarmedRules.DODGE_STARTUP+UnarmedRules.invulnerableFrames(f.dodgeKind)) {
+            if(f.dodgeKind.equals("GROUND_SPOT") && age>=FighterMovement.DASH_TICKS) {
+                // Ground dodge keeps its protection/recovery, but must not slide throughout all those phases.
+                physics.velocity(id,0,0);
+            } else if(spot || age>=UnarmedRules.DODGE_STARTUP && age<UnarmedRules.DODGE_STARTUP+UnarmedRules.invulnerableFrames(f.dodgeKind)) {
                 physics.velocity(id,f.dodgeX,f.dodgeY);
             } else { gravity(id,false); }
             return;
@@ -219,11 +222,11 @@ final class FighterEngine implements AutoCloseable {
             f.chaseCharges--;f.dodgeKind="CHASE";f.dodgeStart=tick;f.gcUntil=0;
             f.dodgeX=(float)(x/length*UnarmedRules.CHASE_SPEED);f.dodgeY=(float)(y/length*UnarmedRules.CHASE_SPEED);return true;
         }
-        if(grounded && input.fighter().dashPressed() && !input.fighter().dodgePressed()) {
+        if(grounded && input.fighter().dashPressed()) {
             if(tick<f.nextDash) { return false; }
             int direction=x!=0?(x<0?-1:1):game.state.getPlayer(id).isFacingRight()?1:-1;
             f.backdash=direction!=(game.state.getPlayer(id).isFacingRight()?1:-1);f.dashX=direction*FighterMovement.DASH_SPEED;
-            f.dashUntil=tick+12;f.nextDash=tick+24;return false;
+            f.dashUntil=tick+FighterMovement.DASH_TICKS;f.nextDash=tick+FighterMovement.DASH_COOLDOWN_TICKS;return false;
         }
         if(tick<f.nextDodge || !grounded && f.airDodgeUsed) { return false; }
         f.dodgeKind=grounded?"GROUND_SPOT":length==0?"AIR_SPOT":"AIR_DIRECTION";f.dodgeStart=tick;

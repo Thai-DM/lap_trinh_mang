@@ -3,6 +3,7 @@ package com.smashprofs.common.model;
 /** The same fixed-step free movement is used by authority and local presentation prediction. */
 public final class FighterMovement {
     public static final float DASH_SPEED=2.6f;
+    public static final int DASH_TICKS=6, DASH_COOLDOWN_TICKS=24;
     public static final float DODGE_SPEED=2.6f;
     private static final float BASE_RUN_SPEED=1.6f;
     private static final float GROUND_ACCELERATION=12;

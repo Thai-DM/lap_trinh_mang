@@ -10,17 +10,51 @@ import java.util.*;
 import static org.junit.Assert.*;
 
 public class FighterClientTest {
-    @Test public void bothControlPresetsResolveMultiKeyInputWithoutMixingAimAndJump() {
+    @Test public void customBindingsResolveMultiKeyInputWithoutMixingAimAndJump() {
+        var config=com.smashprofs.game.Helper.KeyBindingConfig.getInstance();
+        var saved=new EnumMap<com.smashprofs.game.Helper.KeyBindingConfig.Action,Integer>(com.smashprofs.game.Helper.KeyBindingConfig.Action.class);
+        for(var action:com.smashprofs.game.Helper.KeyBindingConfig.Action.values()) { saved.put(action,config.getKey(action));config.setKey(action,action.defaultKey); }
+        try {
         var held=new HashSet<Integer>();var pressed=new HashSet<Integer>();
-        held.add(com.badlogic.gdx.Input.Keys.A);held.add(com.badlogic.gdx.Input.Keys.W);held.add(com.badlogic.gdx.Input.Keys.J);
-        pressed.add(com.badlogic.gdx.Input.Keys.W);pressed.add(com.badlogic.gdx.Input.Keys.J);
+        held.add(com.badlogic.gdx.Input.Keys.A);held.add(com.badlogic.gdx.Input.Keys.W);held.add(com.badlogic.gdx.Input.Keys.J);held.add(com.badlogic.gdx.Input.Keys.SPACE);
+        pressed.add(com.badlogic.gdx.Input.Keys.SPACE);pressed.add(com.badlogic.gdx.Input.Keys.J);
         var command=UnarmedControls.sample(UnarmedControls.Preset.B,held::contains,pressed::contains);
-        assertEquals(-1,command.horizontal(),0);assertTrue(command.jumpPressed());assertTrue(command.lightPressed());assertFalse(command.fighter().upHeld());assertFalse(command.fighter().heavyPressed());
+        assertEquals(-1,command.horizontal(),0);assertTrue(command.jumpPressed());assertTrue(command.lightPressed());assertTrue(command.fighter().upHeld());assertFalse(command.fighter().heavyPressed());
+        config.setKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.LEFT,com.badlogic.gdx.Input.Keys.LEFT);
+        config.setKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.RIGHT,com.badlogic.gdx.Input.Keys.RIGHT);
+        config.setKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.DOWN,com.badlogic.gdx.Input.Keys.DOWN);
+        config.setKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.HEAVY,com.badlogic.gdx.Input.Keys.X);
+        config.setKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.DODGE,com.badlogic.gdx.Input.Keys.Z);
         held.clear();pressed.clear();held.add(com.badlogic.gdx.Input.Keys.RIGHT);held.add(com.badlogic.gdx.Input.Keys.DOWN);held.add(com.badlogic.gdx.Input.Keys.X);held.add(com.badlogic.gdx.Input.Keys.I);
         pressed.add(com.badlogic.gdx.Input.Keys.X);pressed.add(com.badlogic.gdx.Input.Keys.Z);
         command=UnarmedControls.sample(UnarmedControls.Preset.A,held::contains,pressed::contains);
-        assertEquals(1,command.horizontal(),0);assertFalse(command.jumpPressed());assertTrue(command.fighter().upHeld());assertTrue(command.fighter().downHeld());assertTrue(command.fighter().heavyPressed());assertTrue(command.fighter().dodgePressed());
+        assertEquals(1,command.horizontal(),0);assertFalse(command.jumpPressed());assertTrue(command.fighter().upHeld());assertTrue(command.fighter().downHeld());assertTrue(command.fighter().heavyPressed());assertFalse(command.fighter().dodgePressed());assertTrue(command.fighter().dashPressed());
         held.add(com.badlogic.gdx.Input.Keys.LEFT);assertEquals(0,UnarmedControls.sample(UnarmedControls.Preset.A,held::contains,pressed::contains).horizontal(),0);
+        } finally { saved.forEach(config::setKey); }
+    }
+    @Test public void holdingTheDashKeyAndChangingDirectionCannotTriggerASecondAction() {
+        var config=com.smashprofs.game.Helper.KeyBindingConfig.getInstance();
+        int key=config.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.DODGE);
+        int right=config.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.RIGHT),left=config.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.LEFT);
+        var held=new HashSet<>(Set.of(key,right));var pressed=new HashSet<>(Set.of(key));
+        var first=UnarmedControls.sample(UnarmedControls.Preset.B,held::contains,pressed::contains);
+        assertTrue(first.fighter().dashPressed());assertFalse(first.fighter().dodgePressed());
+        for(int frame=0;frame<60;frame++) {
+            held.remove(right);held.remove(left);int direction=frame%2==0?left:right;held.add(direction);pressed.clear();pressed.add(direction);
+            var next=UnarmedControls.sample(UnarmedControls.Preset.B,held::contains,pressed::contains);
+            assertFalse(next.fighter().dashPressed());assertFalse(next.fighter().dodgePressed());
+        }
+        pressed.clear();pressed.add(key);var again=UnarmedControls.sample(UnarmedControls.Preset.B,held::contains,pressed::contains);
+        assertTrue(again.fighter().dashPressed());assertFalse(again.fighter().dodgePressed());
+    }
+    @Test public void aNeutralOrOpposingDirectionPressSendsOnlyDodge() {
+        var config=com.smashprofs.game.Helper.KeyBindingConfig.getInstance();
+        int key=config.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.DODGE);
+        int right=config.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.RIGHT),left=config.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.LEFT);
+        for(var held:List.of(Set.of(key),Set.of(key,left,right))) {
+            var command=UnarmedControls.sample(UnarmedControls.Preset.B,held::contains,k->k==key);
+            assertEquals(0,command.horizontal(),0);assertTrue(command.fighter().dodgePressed());assertFalse(command.fighter().dashPressed());
+        }
     }
     @Test public void unarmedDetailRoundTripsAndRejectsInvalidResourceCounters() {
         try(var r=runtime()) {

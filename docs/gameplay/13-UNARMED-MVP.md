@@ -49,6 +49,10 @@ Khi lấy source sang máy khác, chạy `Verify-Gameplay.ps1` để biên dịc
 
 Đọc đồng thời mọi phím; trái+phải cho axis=0. Jump và aim-up tách riêng. Hướng đòn chọn **Down > aim-up Neutral > Side > Neutral**; hướng mặt và hướng đòn lưu riêng. Trên đất, ngang+Dodge là Dash/Backdash không bất tử; đứng yên+Dodge là Ground Spot. Trên không, không hướng là Air Spot, có hướng là Directional Air Dodge. Dash Jump giữ đà burst. Sprint sau 18 tick chạy liên tục: tốc cơ sở 1,6 m/s theo stats, sprint x1,12; dash/dodge 2,6 m/s.
 
+**Điều chỉnh lướt 19/10:** Dash/Backdash trên đất kéo dài 6 tick (0,1 giây), giảm từ 12 tick; đoạn tăng tốc đi khoảng 0,26 m thay vì 0,52 m. Cooldown vẫn 24 tick. Một lần nhấn nút né/lướt chỉ gửi một hành động; giữ nút rồi bấm/đổi hướng không tự kích hoạt lượt thứ hai. Client và server dùng chung thời lượng; prediction kiểm tra cả trước, trong và sau khi nhận ACK để không thêm một nhịp lướt. Air Dodge và Chase Dodge giữ luật riêng.
+
+Né khi đứng yên trên đất cũng chỉ trượt 6 tick rồi dừng; không tiếp tục trượt suốt startup/miễn sát thương/recovery như trước. Vẫn giữ nguyên thời gian bảo vệ và cooldown của né.
+
 ## Attack và tài nguyên
 
 `UnarmedInputResolver` phân giải hướng; `FighterMoves` định nghĩa đòn; `FighterEngine` quản lý phase và phản ứng. Bộ đòn gồm **NLight/SLight/DLight, NHeavy/SHeavy/DHeavy, NAir/SAir/DAir, Recovery/Ground Pound**. Không có aerial Side Heavy thứ ba. NSig/SSig/DSig chỉ còn alias đọc dữ liệu cũ, engine không chọn các tên đó.

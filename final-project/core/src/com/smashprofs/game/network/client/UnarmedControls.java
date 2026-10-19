@@ -23,13 +23,13 @@ public final class UnarmedControls {
         int interact=cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.INTERACT);
         int drop=cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.DROP);
         int throwKey=cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.THROW);
-        boolean dodgePressed=pressed.test(dodge),dodgeHeld=held.test(dodge);
+        boolean dodgePressed=pressed.test(dodge);
         boolean leftHeld=held.test(left),rightHeld=held.test(right);
         boolean leftPressed=pressed.test(left),rightPressed=pressed.test(right);
-        boolean movingHoriz=leftHeld || rightHeld || leftPressed || rightPressed;
-        boolean dashIntent=(dodgePressed && movingHoriz) || (dodgeHeld && (leftPressed || rightPressed));
-        boolean dodgeEdge=dodgePressed || dashIntent;
         float h=(rightHeld || rightPressed?1:0)-(leftHeld || leftPressed?1:0);
+        // One physical press selects one action. Changing direction while holding dodge must not retrigger it.
+        boolean dashIntent=dodgePressed && h!=0;
+        boolean dodgeEdge=dodgePressed && !dashIntent;
         boolean downPressed=pressed.test(down);
         long now=System.currentTimeMillis();
         boolean doubleTapDown=downPressed && (now-lastDownPressTime<=350);

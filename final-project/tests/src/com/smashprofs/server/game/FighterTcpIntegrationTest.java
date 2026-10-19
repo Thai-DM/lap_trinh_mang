@@ -3,6 +3,8 @@ package com.smashprofs.server.game;
 import com.smashprofs.common.model.*;
 import com.smashprofs.game.network.client.*;
 import com.smashprofs.server.network.GameServer;
+import com.smashprofs.server.network.GameStateDelivery;
+import com.smashprofs.server.network.GameStateMessageMapper;
 import com.smashprofs.server.game.physics.HeadlessPhysicsWorld;
 import org.junit.Test;
 import java.util.*;
@@ -33,6 +35,27 @@ public class FighterTcpIntegrationTest {
                 }
                 var shown=prediction.sample(base.player("a"),base.gameplay().fighter().player("a"),inputs,1/60f);var expected=r.gameplay().bodies.getPosition(a);
                 assertEquals(profile,expected.xMeters(),shown.x(),.00001f);assertEquals(profile,expected.yMeters(),shown.y(),.00001f);
+            }
+        }
+    }
+    @Test public void shortDashPredictionMatchesAuthorityAcrossAcknowledgementsWithoutASecondBurst() {
+        for(int acknowledged:new int[]{0,1,3,5,6,8}) {
+            var a=new PlayerId("a");var b=new PlayerId("b");var map=new com.smashprofs.server.game.physics.TmxCollisionLoader().loadOriginalMap();
+            var geometry=map.rectangles().stream().map(p->new LocalFighterPrediction.Rect(p.xPixels()/100,p.yPixels()/100,p.widthPixels()/100,p.heightPixels()/100)).toList();
+            try(var r=new MatchRuntime(new MatchSetup("short-dash","room",List.of(new MatchSetup.Participant(a,0,"Alex"),new MatchSetup.Participant(b,1,"Luca")),new MatchRules(2,0,3,MatchRules.DropRate.NONE,true,true)));
+                var prediction=new LocalFighterPrediction(geometry)) {
+                r.start();r.gameplay().bodies.respawn(a,5.2f,.23f);r.gameplay().bodies.respawn(b,8,.23f);for(int i=0;i<10;i++) { r.tick(); }
+                var inputs=new ArrayList<PlayerInput>();
+                for(int i=1;i<=14;i++) { inputs.add(new PlayerInput(a,i,i,i==1?1:0,false,false,false,false,false,false,false,new FighterInput(false,false,false,false,false,false,false,i==1))); }
+                for(int i=0;i<acknowledged;i++) { r.submitInput(inputs.get(i));r.tick(); }
+                var base=WireGameSnapshot.parse(GameStateMessageMapper.map(new GameStateDelivery(r.getLatestSnapshot(),"PLAYING",0,()->true)).payload());
+                for(int i=acknowledged;i<inputs.size();i++) { r.submitInput(inputs.get(i));r.tick(); }
+                var pending=inputs.subList(acknowledged,inputs.size());var expected=r.gameplay().bodies.getPosition(a);
+                for(int frame=0;frame<12;frame++) {
+                    var shown=prediction.sample(base.player("a"),base.gameplay().fighter().player("a"),pending,1/120f);
+                    assertEquals("ack="+acknowledged,expected.xMeters(),shown.x(),.00001f);assertEquals(expected.yMeters(),shown.y(),.00001f);
+                }
+                assertTrue(expected.xMeters()-5.2f<.32f);
             }
         }
     }

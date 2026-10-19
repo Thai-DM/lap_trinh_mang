@@ -8,13 +8,52 @@ import java.util.function.IntPredicate;
 public final class UnarmedControls {
     public enum Preset { B, A }
     public record Frame(float horizontal,boolean jumpPressed,boolean lightPressed,boolean interactPressed,boolean dropPressed,FighterInput fighter) { }
+    private static long lastDownPressTime;
     private UnarmedControls() { }
     public static Frame sample(Preset preset,IntPredicate held,IntPredicate pressed) {
-        int left=preset==Preset.B?Input.Keys.A:Input.Keys.LEFT,right=preset==Preset.B?Input.Keys.D:Input.Keys.RIGHT;
-        int jump=preset==Preset.B?Input.Keys.W:Input.Keys.UP,down=preset==Preset.B?Input.Keys.S:Input.Keys.DOWN;
-        int light=preset==Preset.B?Input.Keys.J:Input.Keys.C,heavy=preset==Preset.B?Input.Keys.K:Input.Keys.X,dodge=preset==Preset.B?Input.Keys.L:Input.Keys.Z;
-        return new Frame((held.test(right)?1:0)-(held.test(left)?1:0),pressed.test(jump),pressed.test(light),pressed.test(Input.Keys.E),pressed.test(Input.Keys.G),
-                new FighterInput(held.test(down),held.test(jump),held.test(Input.Keys.I),pressed.test(heavy),held.test(heavy),pressed.test(dodge),pressed.test(Input.Keys.Q),false));
+        var cfg=com.smashprofs.game.Helper.KeyBindingConfig.getInstance();
+        int left=cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.LEFT);
+        int right=cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.RIGHT);
+        int up=cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.UP);
+        int down=cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.DOWN);
+        int jump=cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.JUMP);
+        int light=cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.LIGHT);
+        int heavy=cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.HEAVY);
+        int dodge=cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.DODGE);
+        int interact=cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.INTERACT);
+        int drop=cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.DROP);
+        int throwKey=cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.THROW);
+        boolean dodgePressed=pressed.test(dodge),dodgeHeld=held.test(dodge);
+        boolean leftHeld=held.test(left),rightHeld=held.test(right);
+        boolean leftPressed=pressed.test(left),rightPressed=pressed.test(right);
+        boolean movingHoriz=leftHeld || rightHeld || leftPressed || rightPressed;
+        boolean dashIntent=(dodgePressed && movingHoriz) || (dodgeHeld && (leftPressed || rightPressed));
+        boolean dodgeEdge=dodgePressed || dashIntent;
+        float h=(rightHeld || rightPressed?1:0)-(leftHeld || leftPressed?1:0);
+        boolean downPressed=pressed.test(down);
+        long now=System.currentTimeMillis();
+        boolean doubleTapDown=downPressed && (now-lastDownPressTime<=350);
+        if(downPressed) { lastDownPressTime=now; }
+        boolean dropPressed=pressed.test(drop) || doubleTapDown;
+        boolean jumpPressed=pressed.test(jump);
+        boolean jumpHeld=held.test(jump);
+        boolean upHeld=held.test(up) || pressed.test(up) || held.test(Input.Keys.I);
+        boolean downHeld=held.test(down) || pressed.test(down);
+        return new Frame(h,jumpPressed,pressed.test(light),pressed.test(interact),dropPressed,
+                new FighterInput(downHeld,jumpHeld,upHeld,pressed.test(heavy),held.test(heavy),dodgeEdge,pressed.test(throwKey),dashIntent));
     }
-    public static String hint(Preset preset) { return preset==Preset.B?"A/D · W nhảy · S xuống · J nhẹ · K mạnh · L né/lướt":"←/→ · ↑ nhảy · ↓ xuống · C nhẹ · X mạnh · Z né/lướt"; }
+    public static String hint() {
+        var cfg=com.smashprofs.game.Helper.KeyBindingConfig.getInstance();
+        String u=com.smashprofs.game.Helper.KeyBindingConfig.keyName(cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.UP));
+        String l=com.smashprofs.game.Helper.KeyBindingConfig.keyName(cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.LEFT));
+        String d=com.smashprofs.game.Helper.KeyBindingConfig.keyName(cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.DOWN));
+        String r=com.smashprofs.game.Helper.KeyBindingConfig.keyName(cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.RIGHT));
+        String jm=com.smashprofs.game.Helper.KeyBindingConfig.keyName(cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.JUMP));
+        String lt=com.smashprofs.game.Helper.KeyBindingConfig.keyName(cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.LIGHT));
+        String hv=com.smashprofs.game.Helper.KeyBindingConfig.keyName(cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.HEAVY));
+        String dg=com.smashprofs.game.Helper.KeyBindingConfig.keyName(cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.DODGE));
+        String ab=com.smashprofs.game.Helper.KeyBindingConfig.keyName(cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.ABILITY));
+        return u+"/"+l+"/"+d+"/"+r+" ngắm 8 hướng (2 phím góc 45°) · "+jm+" nhảy · "+d+" 2 lần xuống sàn · "+lt+" nhẹ · "+hv+" mạnh · "+dg+" né · "+ab+" kỹ năng";
+    }
+    public static String hint(Preset preset) { return hint(); }
 }

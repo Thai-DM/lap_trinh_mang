@@ -171,18 +171,36 @@ final class ItemSystem implements AutoCloseable {
         }
     }
     boolean attack(PlayerId id,long tick) {
+        return attack(id, 0, 0, tick);
+    }
+    boolean attack(PlayerId id,float aimX,float aimY,long tick) {
         var p=game.progress.get(id);
         if(!game.active(id) || p.weapon.equals("NONE")) { return false; }
         // An equipped weapon consumes the melee edge even during its fire cooldown.
         if(tick<p.nextShot) { return true; }
         int count=p.weapon.equals("SHOTGUN")?3:1;
         if(shots.size()+count>MAX_SHOTS) { return true; }
-        var pos=game.bodies.getPosition(id);float direction=game.state.getPlayer(id).isFacingRight()?1:-1;
+        var pos=game.bodies.getPosition(id);
+        float facing=game.state.getPlayer(id).isFacingRight()?1f:-1f;
+        boolean hasAim=aimX!=0 || aimY!=0;
+        float dirX=hasAim?aimX:facing,dirY=hasAim?aimY:0;
+        double length=Math.hypot(dirX,dirY);
+        float ux=(float)(dirX/length),uy=(float)(dirY/length);
+        float baseAngle=(float)Math.atan2(uy,ux);
         float speed=p.weapon.equals("LASER")?40:p.weapon.equals("GRENADE")?1.8f:p.weapon.equals("BAZOOKA")?2:4;
         for(int i=0;i<count;i++) {
-            float angle=count==3?(i-1)*.20f:0;
-            var shot=new Shot(nextId++,p.weapon,id,tick,pos.xMeters(),pos.yMeters(),
-                    direction*speed*(float)Math.cos(angle),p.weapon.equals("GRENADE")?2.2f:speed*(float)Math.sin(angle),0);
+            float vx, vy;
+            if(!hasAim) {
+                float angle=count==3?(i-1)*.20f:0;
+                vx=facing*speed*(float)Math.cos(angle);
+                vy=p.weapon.equals("GRENADE")?2.2f:speed*(float)Math.sin(angle);
+            } else {
+                float angle=count==3?baseAngle+(i-1)*.20f:baseAngle;
+                vx=speed*(float)Math.cos(angle);
+                vy=speed*(float)Math.sin(angle);
+                if(p.weapon.equals("GRENADE") && aimY==0) { vy+=1.5f; }
+            }
+            var shot=new Shot(nextId++,p.weapon,id,tick,pos.xMeters(),pos.yMeters(),vx,vy,0);
             shots.add(shot);
         }
         p.nextShot=tick+24;if(--p.ammo==0) { p.weapon="NONE"; }

@@ -59,7 +59,7 @@ final class GameplayMatch implements AutoCloseable {
         }
     }
     boolean active(PlayerId id) { var p=progress.get(id);return p!=null && p.lives>0 && p.respawnAt==0 && !state.getPlayer(id).isDead(); }
-    private SpawnProvider.SpawnPosition safeRandomRespawn(PlayerId id) {
+    SpawnProvider.SpawnPosition safeRandomRespawn(PlayerId id) {
         var scores=new double[respawnCandidates.size()];double best=-1;
         for(int i=0;i<scores.length;i++) {
             var candidate=respawnCandidates.get(i);double distance=Double.POSITIVE_INFINITY;

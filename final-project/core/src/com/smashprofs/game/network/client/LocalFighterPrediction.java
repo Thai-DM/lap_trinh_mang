@@ -15,6 +15,7 @@ public final class LocalFighterPrediction implements AutoCloseable {
     private final Body body;
     private final List<Rect> geometry;
     private int dropTicks;
+    private Rect droppedPlatform;
     private Position shown;
     private String lastAction;
     public LocalFighterPrediction(List<Rect> geometry) {
@@ -33,12 +34,12 @@ public final class LocalFighterPrediction implements AutoCloseable {
             public void preSolve(Contact c,Manifold old) {
                 var a=c.getFixtureA();var b=c.getFixtureB();var floor=a.getBody()==body?b:a;
                 if(floor.getUserData() instanceof Rect r && r.oneWay()
-                        && (dropTicks>0 || body.getLinearVelocity().y>0 || body.getPosition().y-.05f<r.y+r.height-.025f)) { c.setEnabled(false); }
+                        && ((dropTicks>0 && r==droppedPlatform) || body.getLinearVelocity().y>0 || body.getPosition().y-.05f<r.y+r.height-.025f)) { c.setEnabled(false); }
             }
         });
     }
     public Position sample(WireGameSnapshot.Player authoritative,FighterSnapshot.Player fighter,List<PlayerInput> inputs,float delta) {
-        body.setTransform(authoritative.x(),authoritative.y(),0);body.setLinearVelocity(authoritative.velocityX(),authoritative.velocityY());dropTicks=0;
+        body.setTransform(authoritative.x(),authoritative.y(),0);body.setLinearVelocity(authoritative.velocityX(),authoritative.velocityY());dropTicks=0;droppedPlatform=null;
         boolean grounded=authoritative.grounded(),jumping=body.getLinearVelocity().y>1.8f;
         var air=new AirActionBudget(fighter.airJumps(),fighter.detail().recoveries(),fighter.detail().aerialActionsUsed());
         int wallJumps=fighter.wallJumps(),wall=0,wallLock=fighter.detail().wallLockTicks(),dashTicks=fighter.detail().dashTicks(),lavaStun=0;
@@ -60,7 +61,7 @@ public final class LocalFighterPrediction implements AutoCloseable {
         long previousTick=fighter.acknowledgedClientTick();int simulated=0;
         replay: for(var input:groups.values()) {
             // Attacks/air dodges stay authoritative. Never replay later movement past an unknown combat transition.
-            if(input.meleePressed() || input.fighter().heavyPressed() || input.fighter().dodgePressed() && !(grounded && input.moveAxis()!=0)) { break replay; }
+            if(input.meleePressed() || input.fighter().heavyPressed() || input.fighter().dodgePressed()) { break replay; }
             int steps=(int)Math.min(15,Math.max(1,input.clientTick()>=previousTick?input.clientTick()-previousTick:1));previousTick=input.clientTick();
             for(int step=0;step<steps && simulated<15;step++,simulated++) {
                 if(dropTicks>0) { dropTicks--; }if(wallLock>0) { wallLock--; }if(dashTicks>0) { dashTicks--; }
@@ -72,16 +73,16 @@ public final class LocalFighterPrediction implements AutoCloseable {
                 if(grounded) { air.reset();wallJumps=3;wallActions=0; }
                 else if(wall!=0 && previousWall==0 && wallActions<UnarmedRules.WALL_SLIP) { air.reset(); }
                 previousWall=wall;
-                if(jump) {
-                    boolean dropping=false;
-                    if(grounded && input.fighter().downHeld()) {
-                        for(var r:geometry) { if(r.oneWay() && body.getPosition().x>=r.x && body.getPosition().x<=r.x+r.width && Math.abs(body.getPosition().y-.05f-r.y-r.height)<.04f) { dropping=true;break; } }
-                    }
-                    if(dropping) { dropTicks=15;body.setLinearVelocity(v.x,-1);grounded=false;jumping=false; }
-                    else if(!grounded && wall!=0 && wallLock==0 && wallActions<UnarmedRules.WALL_SLIP) { body.setLinearVelocity(wall*.6f,4.2f);air.reset();wallLock=12;jumping=true;wallActions++; }
+                boolean dropping=false;
+                if(grounded && (input.dropPressed() || (jump && input.fighter().downHeld()))) {
+                    for(var r:geometry) { if(r.oneWay() && body.getPosition().x>=r.x && body.getPosition().x<=r.x+r.width && Math.abs(body.getPosition().y-.05f-r.y-r.height)<.04f) { dropping=true;droppedPlatform=r;break; } }
+                }
+                if(dropping) { dropTicks=12;body.setLinearVelocity(v.x,-1);grounded=false;jumping=false; }
+                else if(jump) {
+                    if(!grounded && wall!=0 && wallLock==0 && wallActions<UnarmedRules.WALL_SLIP) { body.setLinearVelocity(wall*.6f,4.2f);air.reset();wallLock=12;jumping=true;wallActions++; }
                     else if(grounded || air.jump()) { body.setLinearVelocity(v.x,4.2f);if(!grounded) { wallActions++; }jumping=true;grounded=false; }
                 }
-                if(step==0 && (input.fighter().dashPressed() || input.fighter().dodgePressed() && input.moveAxis()!=0) && wasGrounded && dashCooldown==0) {
+                if(step==0 && input.fighter().dashPressed() && wasGrounded && dashCooldown==0) {
                     dashTicks=12;dashCooldown=24;dashVelocity=(input.moveAxis()!=0?Math.signum(input.moveAxis()):authoritative.facingRight()?1:-1)*FighterMovement.DASH_SPEED;
                 }
                 runTicks=grounded && input.moveAxis()!=0?Math.min(18,runTicks+1):0;

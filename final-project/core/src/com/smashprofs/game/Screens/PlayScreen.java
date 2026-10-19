@@ -134,13 +134,13 @@ public class PlayScreen implements Screen {
             game.setScreen(new MainMenuScreen(game));
         }
 
-        // Phím tắt F9: Giả lập ngắt kết nối server đột ngột để kiểm thử Graceful Disconnect (Giai đoạn 7)
-        if (Gdx.input.isKeyJustPressed(Input.Keys.F9)) {
+        // Phím tắt BACKSPACE: Giả lập ngắt kết nối server đột ngột để kiểm thử Graceful Disconnect (Giai đoạn 7)
+        if (Gdx.input.isKeyJustPressed(Input.Keys.BACKSPACE)) {
             if (game.getMockServer() != null && game.getMockServer().isRunning()) {
-                log.warn("[TEST] Người dùng ấn F9: Dừng MockServer đột ngột để kiểm tra xử lý ngắt kết nối an toàn...");
+                log.warn("[TEST] Người dùng ấn BACKSPACE: Dừng MockServer đột ngột để kiểm tra xử lý ngắt kết nối an toàn...");
                 game.getMockServer().stop();
             } else if (networkClient != null && networkClient.isConnected()) {
-                log.warn("[TEST] Người dùng ấn F9: Ngắt kết nối NetworkClient đột ngột...");
+                log.warn("[TEST] Người dùng ấn BACKSPACE: Ngắt kết nối NetworkClient đột ngột...");
                 networkClient.disconnect();
             }
         }
@@ -162,14 +162,15 @@ public class PlayScreen implements Screen {
 
         if (networkActive && networkClient != null && networkClient.isConnected()) {
             // 1. Capture local Player 1 keyboard input and enqueue into OutboundInputQueue
+            var cfg = com.smashprofs.game.Helper.KeyBindingConfig.getInstance();
             float moveAxis = 0.0f;
-            if (Gdx.input.isKeyPressed(Input.Keys.A)) moveAxis -= 1.0f;
-            if (Gdx.input.isKeyPressed(Input.Keys.D)) moveAxis += 1.0f;
-            boolean jump = Gdx.input.isKeyJustPressed(Input.Keys.W);
-            boolean stomp = Gdx.input.isKeyJustPressed(Input.Keys.S);
-            boolean melee = Gdx.input.isKeyJustPressed(Input.Keys.V) || Gdx.input.isKeyJustPressed(Input.Keys.SPACE);
-            boolean ability = Gdx.input.isKeyJustPressed(Input.Keys.F);
-            boolean block = Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT);
+            if (Gdx.input.isKeyPressed(cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.LEFT))) moveAxis -= 1.0f;
+            if (Gdx.input.isKeyPressed(cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.RIGHT))) moveAxis += 1.0f;
+            boolean jump = Gdx.input.isKeyJustPressed(cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.JUMP));
+            boolean stomp = Gdx.input.isKeyJustPressed(cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.DOWN));
+            boolean melee = Gdx.input.isKeyJustPressed(cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.LIGHT)) || Gdx.input.isKeyJustPressed(Input.Keys.V);
+            boolean ability = Gdx.input.isKeyJustPressed(cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.ABILITY));
+            boolean block = Gdx.input.isKeyPressed(cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.DODGE)) || Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT);
 
             outboundInputQueue.recordFrameInput(moveAxis, jump, stomp, melee, block, ability);
             PlayerInput input = outboundInputQueue.pollNextInputToSend(clientInputTick++);

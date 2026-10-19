@@ -82,6 +82,9 @@ public final class ProjectileManager implements ContactListener, AutoCloseable {
 
     /** Runtime chỉ gọi từ ability edge đã qua queue. Không có target/position/damage do client cung cấp. */
     public boolean spawnProjectile(PlayerId ownerId, long serverTick) {
+        return spawnProjectile(ownerId, 0, 0, serverTick);
+    }
+    public boolean spawnProjectile(PlayerId ownerId, float aimX, float aimY, long serverTick) {
         World world = requireWorld();
         if (serverTick < 0) { throw new IllegalArgumentException("serverTick không được âm"); }
         ServerPlayer owner = ownerId == null ? null : state.getPlayer(ownerId);
@@ -95,38 +98,70 @@ public final class ProjectileManager implements ContactListener, AutoCloseable {
         PlayerId rocketTarget = type == ProjectileType.ROCKET ? selectRocketTarget(ownerId) : null;
         // Không có đối thủ sống: không spawn, không tiêu cooldown, không fallback sang skill khác.
         if (type == ProjectileType.ROCKET && rocketTarget == null) { return false; }
+
+        boolean hasAim = aimX != 0 || aimY != 0;
+        float facing = owner.isFacingRight() ? 1.0f : -1.0f;
+        float dirX = hasAim ? aimX : facing, dirY = hasAim ? aimY : 0;
+        double len = Math.hypot(dirX, dirY);
+        float ux = (float)(dirX / len), uy = (float)(dirY / len);
+        float aimAngle = (float)Math.atan2(uy, ux);
+
         List<ServerProjectile> created = new ArrayList<>(type == ProjectileType.STAR ? 4 : 1);
         try {
             switch (type) {
                 case IBM -> {
-                    float direction = owner.isFacingRight() ? 1.0f : -1.0f;
-                    created.add(createProjectile(world, type, ownerId, serverTick,
-                            origin.xMeters() + direction * IBM_SPAWN_OFFSET_METERS, origin.yMeters(),
-                            direction * IBM_SPEED, 0));
+                    if (!hasAim) {
+                        created.add(createProjectile(world, type, ownerId, serverTick,
+                                origin.xMeters() + facing * IBM_SPAWN_OFFSET_METERS, origin.yMeters(),
+                                facing * IBM_SPEED, 0));
+                    } else {
+                        created.add(createProjectile(world, type, ownerId, serverTick,
+                                origin.xMeters() + ux * IBM_SPAWN_OFFSET_METERS, origin.yMeters() + uy * IBM_SPAWN_OFFSET_METERS,
+                                ux * IBM_SPEED, uy * IBM_SPEED));
+                    }
                 }
                 case STAR -> {
-                    // Đúng thứ tự CombatManager gốc: phải, trái, trên, dưới; không phụ thuộc facing.
                     float x = origin.xMeters();
                     float y = origin.yMeters();
-                    created.add(createProjectile(world, type, ownerId, serverTick,
-                            x + STAR_SPAWN_OFFSET_METERS, y, STAR_SPEED, 0));
-                    created.add(createProjectile(world, type, ownerId, serverTick,
-                            x - STAR_SPAWN_OFFSET_METERS, y, -STAR_SPEED, 0));
-                    created.add(createProjectile(world, type, ownerId, serverTick,
-                            x, y + STAR_SPAWN_OFFSET_METERS, 0, STAR_SPEED));
-                    created.add(createProjectile(world, type, ownerId, serverTick,
-                            x, y - STAR_SPAWN_OFFSET_METERS, 0, -STAR_SPEED));
+                    if (!hasAim) {
+                        created.add(createProjectile(world, type, ownerId, serverTick,
+                                x + STAR_SPAWN_OFFSET_METERS, y, STAR_SPEED, 0));
+                        created.add(createProjectile(world, type, ownerId, serverTick,
+                                x - STAR_SPAWN_OFFSET_METERS, y, -STAR_SPEED, 0));
+                        created.add(createProjectile(world, type, ownerId, serverTick,
+                                x, y + STAR_SPAWN_OFFSET_METERS, 0, STAR_SPEED));
+                        created.add(createProjectile(world, type, ownerId, serverTick,
+                                x, y - STAR_SPAWN_OFFSET_METERS, 0, -STAR_SPEED));
+                    } else {
+                        for(int i = 0; i < 4; i++) {
+                            float a = aimAngle + i * (float)(Math.PI / 2);
+                            float sx = STAR_SPEED * (float)Math.cos(a), sy = STAR_SPEED * (float)Math.sin(a);
+                            created.add(createProjectile(world, type, ownerId, serverTick,
+                                    x + (float)Math.cos(a) * STAR_SPAWN_OFFSET_METERS, y + (float)Math.sin(a) * STAR_SPAWN_OFFSET_METERS,
+                                    sx, sy));
+                        }
+                    }
                 }
                 case MINE -> {
-                    float direction = owner.isFacingRight() ? 1.0f : -1.0f;
-                    created.add(createProjectile(world, type, ownerId, serverTick,
-                            origin.xMeters() + direction * MINE_SPAWN_OFFSET_METERS, origin.yMeters(), 0, 0));
+                    if (!hasAim) {
+                        created.add(createProjectile(world, type, ownerId, serverTick,
+                                origin.xMeters() + facing * MINE_SPAWN_OFFSET_METERS, origin.yMeters(), 0, 0));
+                    } else {
+                        created.add(createProjectile(world, type, ownerId, serverTick,
+                                origin.xMeters() + ux * MINE_SPAWN_OFFSET_METERS, origin.yMeters() + uy * MINE_SPAWN_OFFSET_METERS,
+                                ux * 2.0f, Math.max(0, uy * 3.0f)));
+                    }
                 }
                 case ROCKET -> {
-                    float direction = owner.isFacingRight() ? 1.0f : -1.0f;
-                    created.add(createProjectile(world, type, ownerId, serverTick,
-                            origin.xMeters() + direction * ROCKET_SPAWN_OFFSET_METERS, origin.yMeters(),
-                            0, 0, rocketTarget));
+                    if (!hasAim) {
+                        created.add(createProjectile(world, type, ownerId, serverTick,
+                                origin.xMeters() + facing * ROCKET_SPAWN_OFFSET_METERS, origin.yMeters(),
+                                0, 0, rocketTarget));
+                    } else {
+                        created.add(createProjectile(world, type, ownerId, serverTick,
+                                origin.xMeters() + ux * ROCKET_SPAWN_OFFSET_METERS, origin.yMeters() + uy * ROCKET_SPAWN_OFFSET_METERS,
+                                ux * 2.0f, uy * 2.0f, rocketTarget));
+                    }
                 }
             }
         } catch (RuntimeException | Error failure) {

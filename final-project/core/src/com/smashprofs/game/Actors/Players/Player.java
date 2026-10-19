@@ -324,13 +324,18 @@ public abstract class Player extends GameObject implements PlayerView {
 
                 }
             } else {
-                leftRightInput = Util.adAxis();
-                upDownInput = Util.wsAxis();
-                jumpInput = Gdx.input.isKeyJustPressed(Input.Keys.W);
-                standardAttackInput = Gdx.input.isKeyJustPressed(Input.Keys.V) || Gdx.input.isKeyJustPressed(Input.Keys.SPACE);
-                isBlocking = Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT);
-                stompInput = Gdx.input.isKeyJustPressed(Input.Keys.S);
-                isShooting = Gdx.input.isKeyJustPressed(Input.Keys.F);
+                var cfg = com.smashprofs.game.Helper.KeyBindingConfig.getInstance();
+                leftRightInput = (Gdx.input.isKeyPressed(cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.RIGHT)) ? 1 : 0)
+                               - (Gdx.input.isKeyPressed(cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.LEFT)) ? 1 : 0);
+                upDownInput = (Gdx.input.isKeyPressed(cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.UP)) ? 1 : 0)
+                            - (Gdx.input.isKeyPressed(cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.DOWN)) ? 1 : 0);
+                jumpInput = Gdx.input.isKeyJustPressed(cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.JUMP));
+                standardAttackInput = Gdx.input.isKeyJustPressed(cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.LIGHT))
+                                   || Gdx.input.isKeyJustPressed(Input.Keys.V);
+                isBlocking = Gdx.input.isKeyPressed(cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.DODGE))
+                          || Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT);
+                stompInput = Gdx.input.isKeyJustPressed(cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.DOWN));
+                isShooting = Gdx.input.isKeyJustPressed(cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.ABILITY));
 
             }
             if(standardAttackInput) {

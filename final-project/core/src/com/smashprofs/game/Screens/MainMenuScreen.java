@@ -12,11 +12,16 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.InputListener;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.smashprofs.game.Helper.KeyBindingConfig;
 import com.smashprofs.game.Helper.Keys;
 import com.smashprofs.game.Helper.SoundManager;
 import com.smashprofs.game.Helper.gamePropertiesManager;
@@ -25,6 +30,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.Map;
 
 /**
  * Main menu screen redesigned to match the Brawlhalla comic format of
@@ -44,6 +51,11 @@ public class MainMenuScreen implements Screen {
     private final Texture bgTexture;
     private final Texture logoTexture;
     private final Table logoContainer;
+
+    private Table settingsOverlay;
+    private KeyBindingConfig.Action currentlyRebinding = null;
+    private final Map<KeyBindingConfig.Action, TextButton> actionButtons = new EnumMap<>(KeyBindingConfig.Action.class);
+    private Label waitingActionLabel;
 
     private float timer = 0f;
     private boolean disposed;
@@ -123,15 +135,15 @@ public class MainMenuScreen implements Screen {
         alexTablet.add(ui.heading("ALEX", Color.WHITE)).center().padTop(2);
         leftPedestal.add(alexTablet).growX().bottom();
 
-        centerRow.add(leftPedestal).width(230).height(350).padRight(24);
+        centerRow.add(leftPedestal).width(230).height(400).padRight(24);
 
         // 2. Center Action Menu Card
         var menuCard = new Table();
         menuCard.setBackground(ui.comicBox(Color.valueOf("09182E"), OnlineUi.BRAWL_BORDER, 4f, 6, 8));
-        menuCard.pad(18, 32, 18, 32);
+        menuCard.pad(16, 32, 16, 32);
 
         var menuTitle = ui.comicHeading("CHỌN CHẾ ĐỘ CHƠI", Color.WHITE);
-        menuCard.add(menuTitle).center().padBottom(16);
+        menuCard.add(menuTitle).center().padBottom(14);
         menuCard.row();
 
         // Button 1: Chơi Local
@@ -139,10 +151,10 @@ public class MainMenuScreen implements Screen {
             playSound();
             openLocal();
         });
-        menuCard.add(localBtn).size(420, 52);
+        menuCard.add(localBtn).size(420, 48);
         menuCard.row();
         var localHint = ui.small("2 người chơi đối kháng trên cùng một bàn phím", Color.valueOf("FFE8A3"));
-        menuCard.add(localHint).center().padTop(4).padBottom(14);
+        menuCard.add(localHint).center().padTop(3).padBottom(10);
         menuCard.row();
 
         // Button 2: Chơi Online
@@ -150,20 +162,31 @@ public class MainMenuScreen implements Screen {
             playSound();
             openOnline();
         });
-        menuCard.add(onlineBtn).size(420, 52);
+        menuCard.add(onlineBtn).size(420, 48);
         menuCard.row();
         var onlineHint = ui.small("Sảnh đấu trực tuyến qua mạng LAN / Internet (2-4 người)", Color.valueOf("94FFE5"));
-        menuCard.add(onlineHint).center().padTop(4).padBottom(14);
+        menuCard.add(onlineHint).center().padTop(3).padBottom(10);
         menuCard.row();
 
-        // Button 3: Thoát
+        // Button 3: Cài đặt phím
+        var settingsBtn = ui.comicButton("CÀI ĐẶT PHÍM  [C]", "comic-white", () -> {
+            playSound();
+            openSettings();
+        });
+        menuCard.add(settingsBtn).size(420, 48);
+        menuCard.row();
+        var settingsHint = ui.small("Tùy chỉnh phím điều khiển (di chuyển, nhảy, đánh, né...)", Color.valueOf("CFE2FE"));
+        menuCard.add(settingsHint).center().padTop(3).padBottom(10);
+        menuCard.row();
+
+        // Button 4: Thoát
         var exitBtn = ui.comicButton("THOÁT GAME  [ESC]", "comic-white", () -> {
             playSound();
             Gdx.app.exit();
         });
-        menuCard.add(exitBtn).size(420, 46).padBottom(4);
+        menuCard.add(exitBtn).size(420, 42).padBottom(2);
 
-        centerRow.add(menuCard).width(484).height(350);
+        centerRow.add(menuCard).width(484).height(400);
 
         // 3. Right Pedestal: LEO
         var rightPedestal = new Table();
@@ -190,9 +213,9 @@ public class MainMenuScreen implements Screen {
         leoTablet.add(ui.heading("LEO", Color.WHITE)).center().padTop(2);
         rightPedestal.add(leoTablet).growX().bottom();
 
-        centerRow.add(rightPedestal).width(230).height(350).padLeft(24);
+        centerRow.add(rightPedestal).width(230).height(400).padLeft(24);
 
-        root.add(centerRow).growX().center().padTop(10);
+        root.add(centerRow).growX().center().padTop(8);
         root.row();
 
         // ================= BOTTOM STATISTICS & DEV CREDITS TABLET =================
@@ -213,10 +236,172 @@ public class MainMenuScreen implements Screen {
         statsTablet.add(ui.small("DEV TEAM: ", OnlineUi.MUTED));
         statsTablet.add(ui.small("Leo · Maurice · Alex · Luca", OnlineUi.BRAWL_CYAN));
 
-        root.add(statsTablet).center().padTop(12);
+        root.add(statsTablet).center().padTop(10);
 
         stage.addActor(root);
-        log.info("Initialized MainMenuScreen in Brawlhalla comic format");
+
+        // Settings modal dialog
+        settingsOverlay = createSettingsModal();
+        stage.addActor(settingsOverlay);
+
+        // Input listener for key rebinding
+        stage.addListener(new InputListener() {
+            @Override
+            public boolean keyDown(InputEvent event, int keycode) {
+                if (settingsOverlay != null && settingsOverlay.isVisible() && currentlyRebinding != null) {
+                    if (keycode == Input.Keys.ESCAPE) {
+                        currentlyRebinding = null;
+                        refreshKeyButtons();
+                        if (waitingActionLabel != null) waitingActionLabel.setText("");
+                        return true;
+                    }
+                    KeyBindingConfig.getInstance().setKey(currentlyRebinding, keycode);
+                    KeyBindingConfig.getInstance().save();
+                    playSound();
+                    currentlyRebinding = null;
+                    refreshKeyButtons();
+                    if (waitingActionLabel != null) {
+                        waitingActionLabel.setText("Đã gán phím thành công!");
+                    }
+                    return true;
+                }
+                return false;
+            }
+        });
+
+        log.info("Initialized MainMenuScreen in Brawlhalla comic format with customizable keybindings");
+    }
+
+    private void openSettings() {
+        if (settingsOverlay != null) {
+            currentlyRebinding = null;
+            refreshKeyButtons();
+            if (waitingActionLabel != null) waitingActionLabel.setText("");
+            settingsOverlay.setVisible(true);
+        }
+    }
+
+    private void closeSettings() {
+        if (settingsOverlay != null) {
+            currentlyRebinding = null;
+            KeyBindingConfig.getInstance().save();
+            settingsOverlay.setVisible(false);
+        }
+    }
+
+    private void refreshKeyButtons() {
+        var cfg = KeyBindingConfig.getInstance();
+        for (var entry : actionButtons.entrySet()) {
+            var action = entry.getKey();
+            var btn = entry.getValue();
+            if (currentlyRebinding == action) {
+                btn.setText("[ BẤM PHÍM... ]");
+            } else {
+                btn.setText("[ " + KeyBindingConfig.keyName(cfg.getKey(action)) + " ]");
+            }
+        }
+    }
+
+    private Table createSettingsModal() {
+        var overlay = new Table();
+        overlay.setFillParent(true);
+        overlay.setBackground(ui.skin.newDrawable("pixel", new Color(0, 0, 0, 0.85f)));
+        overlay.setVisible(false);
+
+        var dialog = new Table();
+        dialog.setBackground(ui.comicBox(Color.valueOf("09182E"), OnlineUi.BRAWL_CYAN, 4.5f, 8, 10));
+        dialog.pad(16, 24, 16, 24);
+
+        // Header: Title + Close button
+        var dlgHeader = new Table();
+        var dlgTitle = ui.comicHeading("CÀI ĐẶT PHÍM ĐIỀU KHIỂN", Color.WHITE);
+        var closeBtn = ui.comicButton("X", "comic-white", () -> {
+            playSound();
+            closeSettings();
+        });
+        dlgHeader.add(dlgTitle).expandX().left();
+        dlgHeader.add(closeBtn).size(40, 40).right();
+        dialog.add(dlgHeader).growX().padBottom(8);
+        dialog.row();
+
+        var instruction = ui.small("Bấm vào ô phím muốn đổi, sau đó ấn phím bất kỳ trên bàn phím để gán", OnlineUi.BRAWL_GOLD);
+        dialog.add(instruction).center().padBottom(6);
+        dialog.row();
+
+        waitingActionLabel = ui.small("", OnlineUi.BRAWL_CYAN);
+        dialog.add(waitingActionLabel).center().height(18).padBottom(8);
+        dialog.row();
+
+        // 2-column actions grid
+        var grid = new Table();
+        var actions = KeyBindingConfig.Action.values();
+        int half = (actions.length + 1) / 2;
+
+        for (int i = 0; i < half; i++) {
+            // Col 1 (left)
+            final var actionLeft = actions[i];
+            grid.add(ui.small(actionLeft.label, Color.WHITE)).left().width(155).padRight(8);
+            var btnLeft = ui.comicButton("", "comic-white", () -> {
+                playSound();
+                currentlyRebinding = actionLeft;
+                if (waitingActionLabel != null) {
+                    waitingActionLabel.setText("Đang chờ phím cho: " + actionLeft.label.toUpperCase() + " (Ấn ESC để hủy)");
+                }
+                refreshKeyButtons();
+            });
+            actionButtons.put(actionLeft, btnLeft);
+            grid.add(btnLeft).width(125).height(38).padRight(28);
+
+            // Col 2 (right)
+            if (i + half < actions.length) {
+                final var actionRight = actions[i + half];
+                grid.add(ui.small(actionRight.label, Color.WHITE)).left().width(155).padRight(8);
+                var btnRight = ui.comicButton("", "comic-white", () -> {
+                    playSound();
+                    currentlyRebinding = actionRight;
+                    if (waitingActionLabel != null) {
+                        waitingActionLabel.setText("Đang chờ phím cho: " + actionRight.label.toUpperCase() + " (Ấn ESC để hủy)");
+                    }
+                    refreshKeyButtons();
+                });
+                actionButtons.put(actionRight, btnRight);
+                grid.add(btnRight).width(125).height(38);
+            }
+            grid.row().padTop(6);
+        }
+
+        refreshKeyButtons();
+        dialog.add(grid).padBottom(12);
+        dialog.row();
+
+        // Bottom presets and close buttons
+        var footer = new Table();
+        var wasdBtn = ui.comicButton("MẶC ĐỊNH (WASD)", "comic-white", () -> {
+            playSound();
+            KeyBindingConfig.getInstance().resetDefaults();
+            currentlyRebinding = null;
+            if (waitingActionLabel != null) waitingActionLabel.setText("Đã khôi phục cài đặt WASD mặc định!");
+            refreshKeyButtons();
+        });
+        var arrowsBtn = ui.comicButton("MẪU MŨI TÊN", "comic-white", () -> {
+            playSound();
+            KeyBindingConfig.getInstance().applyPreset(KeyBindingConfig.Preset.ARROWS);
+            currentlyRebinding = null;
+            if (waitingActionLabel != null) waitingActionLabel.setText("Đã áp dụng mẫu phím Mũi tên!");
+            refreshKeyButtons();
+        });
+        var saveBtn = ui.comicButton("LƯU & ĐÓNG  [ESC]", "comic-primary", () -> {
+            playSound();
+            closeSettings();
+        });
+
+        footer.add(wasdBtn).width(180).height(42).padRight(12);
+        footer.add(arrowsBtn).width(160).height(42).padRight(12);
+        footer.add(saveBtn).width(180).height(42);
+        dialog.add(footer).center().padTop(4);
+
+        overlay.add(dialog).center();
+        return overlay;
     }
 
     private void playSound() {
@@ -246,21 +431,33 @@ public class MainMenuScreen implements Screen {
     public void render(float delta) {
         if (disposed) { return; }
 
-        // Keyboard shortcuts
-        if (Gdx.input.isKeyJustPressed(Input.Keys.O)) {
-            playSound();
-            openOnline();
-            return;
-        }
-        if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE) || Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
-            playSound();
-            openLocal();
-            return;
-        }
-        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-            playSound();
-            Gdx.app.exit();
-            return;
+        if (settingsOverlay != null && settingsOverlay.isVisible()) {
+            if (currentlyRebinding == null && (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE) || Gdx.input.isKeyJustPressed(Input.Keys.C))) {
+                playSound();
+                closeSettings();
+            }
+        } else {
+            // Keyboard shortcuts
+            if (Gdx.input.isKeyJustPressed(Input.Keys.C) || Gdx.input.isKeyJustPressed(Input.Keys.S)) {
+                playSound();
+                openSettings();
+                return;
+            }
+            if (Gdx.input.isKeyJustPressed(Input.Keys.O)) {
+                playSound();
+                openOnline();
+                return;
+            }
+            if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE) || Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
+                playSound();
+                openLocal();
+                return;
+            }
+            if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
+                playSound();
+                Gdx.app.exit();
+                return;
+            }
         }
 
         // Easter egg toggle: '6' + '9'

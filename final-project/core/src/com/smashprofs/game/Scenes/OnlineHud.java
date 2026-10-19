@@ -109,10 +109,10 @@ public final class OnlineHud implements AutoCloseable {
         if(frame!=null) {
             var latest=frame.authoritative();var gameplay=latest.gameplay();
             boolean fighter=gameplay!=null && gameplay.fighter()!=null;
-            if(fighter) { unarmedHint.setText((controlPreset==UnarmedControls.Preset.B?"J đánh/bắn · K mạnh · L né/lướt":"C đánh/bắn · X mạnh · Z né/lướt")+" · F6 đổi phím"); }
+            if(fighter) { unarmedHint.setText(UnarmedControls.hint()); }
             bagHint.setText(fighter?"E nhặt · G thả · Q ném khi đang tự do. Đổi súng giữ đạn của súng cũ. Bình hồi phục: hồi 30 HP. Khiên chặn một đòn.":
                     "Đến gần, bấm E để nhặt; G để thả súng. Đổi súng giữ đạn của súng cũ. Bình máu dùng ngay khi nhặt.");
-            helpText.setText(fighter?UnarmedControls.hint(controlPreset)+"\nCó súng: chỉ bắn · Hết đạn hoặc bỏ súng: đánh tay không\nE nhặt · G thả · Q ném (I lên / xuống để ngắm) · Tab túi\nI hướng lên: ưu tiên Neutral, không tiêu nhảy\nXuống + nhảy: xuyên sàn mềm · Giữ xuống: rơi nhanh\nNé tại chỗ trên không rồi đánh tay không: Gravity Cancel\nSau đánh trúng: hướng đuổi + né để Chase Dodge\n2 lượt nhảy trên không · Recovery tay không dùng chung ngân sách\nHết HP hoặc vượt biên: mất mạng · Dung nham -10 HP\nF2 hitbox / Show Stun · F6 đổi preset A/B":
+            helpText.setText(fighter?UnarmedControls.hint()+"\nF chiêu đặc trưng · Có súng: chỉ bắn · Hết đạn hoặc bỏ súng: đánh tay không\nE nhặt · G thả · Q ném (I lên / xuống để ngắm) · Tab túi\nI hướng lên: ưu tiên Neutral, không tiêu nhảy\nXuống + nhảy: xuyên sàn mềm · Giữ xuống: rơi nhanh\nNé tại chỗ trên không rồi đánh tay không: Gravity Cancel\nSau đánh trúng: hướng đuổi + né để Chase Dodge\n2 lượt nhảy trên không · Recovery tay không dùng chung ngân sách\nHết HP hoặc vượt biên: mất mạng · Dung nham -10 HP\nU hitbox / Show Stun · O đổi preset A/B":
                     "A/D di chuyển · W nhảy · S dậm\nV/Space bắn hoặc đánh · F tuyệt chiêu\nE nhặt gần nhất · G thả súng\nCtrl đỡ · Tab túi đồ · Esc rời trận\nDung nham: -10 HP và bật lên");
             for(var p:latest.players()) {
                 var card=players.get(p.playerId());card.bar.setValue(p.hp());card.hp.setText(Math.round(p.hp())+" HP");
@@ -150,20 +150,21 @@ public final class OnlineHud implements AutoCloseable {
                 }
                 if(!displayedWeapon.equals(local.weapon())) { displayedWeapon=local.weapon();weaponIcon.setDrawable(icons.drawable(displayedWeapon));bagIcon.setDrawable(icons.drawable(displayedWeapon)); }
                 weaponName.setText(CombatIcons.name(local.weapon()));String ammunition=local.ammo()<0?"—":Integer.toString(local.ammo());
-                String attackKey=fighter?(controlPreset==UnarmedControls.Preset.B?"J":"C"):"V / Space";
+                var cfg=com.smashprofs.game.Helper.KeyBindingConfig.getInstance();
+                String attackKey=fighter?com.smashprofs.game.Helper.KeyBindingConfig.keyName(cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.LIGHT)):"V / Space";
                 ammo.setText(local.weapon().equals("NONE")?attackKey+": đánh":attackKey+": bắn · "+ammunition+" viên");
                 bagWeapon.setText(CombatIcons.name(local.weapon())+(local.weapon().equals("NONE")?"\nChưa nhặt vũ khí":"\nCòn "+ammunition+" viên · "+attackKey+" để dùng"));
                 bagShield.setText(local.shield()?"Khiên · Chặn 1 đòn":"Chưa có khiên");shieldIcon.setColor(1,1,1,local.shield()?1:.25f);
-                ability.setText(!local.status().equals("ACTIVE")?"F · Tạm khóa":local.ultimateTicks()==0?"F · SẴN SÀNG":"F · "+((local.ultimateTicks()+59)/60)+" giây");
+                String abilityKey=com.smashprofs.game.Helper.KeyBindingConfig.keyName(cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.ABILITY));
+                ability.setText(!local.status().equals("ACTIVE")?abilityKey+" · Tạm khóa":local.ultimateTicks()==0?abilityKey+" · SẴN SÀNG":abilityKey+" · "+((local.ultimateTicks()+59)/60)+" giây");
                 ability.setColor(local.ultimateTicks()==0 && local.status().equals("ACTIVE")?OnlineUi.ACCENT:OnlineUi.MUTED);
                 if(fighter) {
                     var value=gameplay.fighter().player(localId);
                     if(!local.weapon().equals("NONE")) {
-                        unarmedHint.setText((controlPreset==UnarmedControls.Preset.B?"J/K chỉ bắn · L né/lướt":"C/X chỉ bắn · Z né/lướt")+" · F6 đổi phím");
+                        String dodgeKey=com.smashprofs.game.Helper.KeyBindingConfig.keyName(cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.DODGE));
+                        unarmedHint.setText(attackKey+" chỉ bắn · "+dodgeKey+" né/lướt · O đổi phím");
                     }
-                    ability.setText(value.dodgeCooldownTicks()==0?"NÉ SẴN SÀNG":"Né · "+String.format(Locale.ROOT,"%.1fs",value.dodgeCooldownTicks()/60f));
-                    ability.setColor(value.dodgeCooldownTicks()==0?OnlineUi.ACCENT:OnlineUi.MUTED);
-                    airBudget.setText("Nhảy "+value.airJumps()+"/2 · GC "+value.detail().gravityCancelTicks()+" · CD "+value.detail().chaseCharges()+" · Tường "+value.detail().wallActions());
+                    airBudget.setText("Né "+(value.dodgeCooldownTicks()==0?"sẵn sàng":String.format(Locale.ROOT,"%.1fs",value.dodgeCooldownTicks()/60f))+" · Nhảy "+value.airJumps()+"/1 · GC "+value.detail().gravityCancelTicks()+" · CD "+value.detail().chaseCharges()+" · Tường "+value.detail().wallActions());
                     airBudget.setColor(value.detail().wallActions()>=com.smashprofs.common.model.UnarmedRules.WALL_DANGER?OnlineUi.DANGER:value.detail().wallActions()>=com.smashprofs.common.model.UnarmedRules.WALL_WARNING?OnlineUi.GOLD:OnlineUi.TEXT);
                     var lines=new StringBuilder();if(showStun) { for(var player:gameplay.fighter().players()) {
                         var d=player.detail();lines.append("P").append(slots.get(player.playerId())+1).append(" ").append(d.state()).append("/").append(d.phase())

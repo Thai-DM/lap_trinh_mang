@@ -16,11 +16,12 @@ final class FighterEngine implements AutoCloseable {
     private long tick,nextAttackId=1,hitSerial;
     FighterEngine(GameplayMatch game,World world,MapCollisionDefinition geometry) {
         this.game=game;physics=new FighterPhysics(world,game.bodies,game.jumps,geometry);
-        spawnY=geometry.mapHeightPixels()/100-.55f;
+        spawnY=1.35f;
         for(var p:game.setup.participants()) { fighters.put(p.playerId(),new Fighter(FighterStats.forCharacter(p.characterId()))); }
     }
     SpawnProvider.SpawnPosition respawnPosition(PlayerId id) {
-        return new SpawnProvider.SpawnPosition(6+(game.state.getPlayer(id).getSlotIndex()-1.5f)*.22f,spawnY);
+        var safe=game.safeRandomRespawn(id);
+        return new SpawnProvider.SpawnPosition(safe.xMeters(),Math.max(spawnY,safe.yMeters()+.35f));
     }
     void respawn(PlayerId id,long tick) {
         var f=fighters.get(id);f.damage=0;f.attack=null;f.pending=null;f.hitstun=f.hitstop=0;f.frozen=false;
@@ -28,6 +29,7 @@ final class FighterEngine implements AutoCloseable {
         f.gcUntil=f.chaseUntil=0;f.chaseCharges=0;f.dodgeKind="NONE";f.air.reset();f.wallJumps=3;f.lastWall=f.wallActions=f.runTicks=0;
         f.airDodgeUsed=f.fastFall=f.jumping=f.wallSliding=f.wasGrounded=false;f.recovery=true;f.airJumps=UnarmedRules.AIR_JUMPS;
         f.combo="UNVERIFIED";f.dodgeFrames=-1;f.lastComboAttacker=null;f.hitSerial=0;
+        f.lightComboStep=0;f.lastLightAttackTick=-1000;f.nextLightAttackTick=0;f.lastDownPressTick=-1000;f.wasDownHeld=false;
         f.axis=0;f.held=FighterInput.NONE;physics.reset(id);game.progress.get(id).invulnerableUntil=0;
     }
     void update(long tick,List<PlayerInput> inputs) {
@@ -47,12 +49,15 @@ final class FighterEngine implements AutoCloseable {
             var f=fighters.get(id);var attack=f.attack;
             if(!game.active(id) || f.hitstun>0 || f.hitstop>0 || attack==null || attack.charging || !attack.move.activeAt(attack.frame)) { continue; }
             var p=game.bodies.getPosition(id);var m=attack.move;
-            var targets=physics.targets(p.xMeters()+attack.direction*m.x()-m.halfWidth(),p.yMeters()+m.y()-m.halfHeight(),
-                    p.xMeters()+attack.direction*m.x()+m.halfWidth(),p.yMeters()+m.y()+m.halfHeight());
+            float rad=(float)Math.toRadians(attack.aimAngle);
+            float offsetX=attack.direction*(m.x()*(float)Math.abs(Math.cos(rad)));
+            float offsetY=m.y()+(m.x()*(float)Math.sin(rad));
+            var targets=physics.targets(p.xMeters()+offsetX-m.halfWidth(),p.yMeters()+offsetY-m.halfHeight(),
+                    p.xMeters()+offsetX+m.halfWidth(),p.yMeters()+offsetY+m.halfHeight());
             for(var victim:fighters.keySet()) {
                 if(victim.equals(id) || !targets.contains(victim) || attack.hit.contains(victim)) { continue; }
                 if(hit(id,victim,m.name(),m.damage()*(.75f+f.stats.attack()*.05f)*(1+attack.charge/90f),m.base(),m.scaling(),
-                        attack.direction*(float)Math.cos(Math.toRadians(m.angle())),(float)Math.sin(Math.toRadians(m.angle())),m.heavy())) { attack.hit.add(victim); }
+                        attack.direction*(float)Math.cos(rad),(float)Math.sin(rad),m.heavy())) { attack.hit.add(victim); }
             }
         }
         for(var id:fighters.keySet()) {
@@ -67,7 +72,7 @@ final class FighterEngine implements AutoCloseable {
         if(tick>f.chaseUntil) { f.chaseCharges=0; }
         if(tick-f.lastInput>=15) { f.axis=0;f.held=FighterInput.NONE; }
         if(f.platformUntil>0) {
-            boolean leave=tick>=f.platformUntil || input!=null && (input.moveAxis()!=0 || UnarmedInputResolver.hasAction(input) || input.interactPressed() || input.dropPressed() || !input.fighter().equals(FighterInput.NONE));
+            boolean leave=tick>=f.platformUntil || input!=null && (input.moveAxis()!=0 || UnarmedInputResolver.hasAction(input) || input.abilityPressed() || input.interactPressed() || input.dropPressed() || !input.fighter().equals(FighterInput.NONE));
             if(!leave) { physics.velocity(id,0,0);return; }
             f.platformUntil=0;f.pending=null;game.progress.get(id).invulnerableUntil=tick+120;
         }
@@ -81,7 +86,7 @@ final class FighterEngine implements AutoCloseable {
         f.wasGrounded=grounded;f.lastWall=wall;
         if(f.hitstun>0) { f.hitstun--;f.attack=null;f.pending=null;gravity(id,false);return; }
         game.state.getPlayer(id).setBlocking(false);
-        boolean attackEdge=input!=null && (input.meleePressed() || input.fighter().heavyPressed() || input.abilityPressed());
+        boolean attackEdge=input!=null && (input.meleePressed() || input.fighter().heavyPressed());
         boolean dodging=dodgeRemaining(f)>0;
         boolean gc=attackEdge && !grounded && f.dodgeKind.equals("AIR_SPOT") && tick<=f.gcUntil && dodging;
         boolean chaseCancel=attackEdge && f.dodgeKind.equals("CHASE") && dodging;
@@ -97,7 +102,18 @@ final class FighterEngine implements AutoCloseable {
                 usedDodge=movementAction(id,f,input,grounded);
             }
             if(!usedDodge && input!=null) {
-                if(input.jumpPressed()) {
+                boolean downNow=f.held.downHeld();boolean doubleTapDown=false;
+                if(downNow) {
+                    if(!f.wasDownHeld) {
+                        if(tick-f.lastDownPressTick<=22) { doubleTapDown=true; }
+                        f.lastDownPressTick=tick;
+                    }
+                    f.wasDownHeld=true;
+                } else { f.wasDownHeld=false; }
+                boolean dropIntent=input.dropPressed() || doubleTapDown;
+                if(grounded && dropIntent && physics.dropThrough(id)) {
+                    grounded=false;f.jumping=false;
+                } else if(input.jumpPressed()) {
                     var v=game.bodies.getVelocity(id);
                     if(grounded && f.held.downHeld() && physics.dropThrough(id)) { grounded=false;f.jumping=false; }
                     else if(!grounded && wall!=0 && f.wallActions<UnarmedRules.WALL_SLIP && tick>=f.nextWallJump) {
@@ -109,7 +125,7 @@ final class FighterEngine implements AutoCloseable {
                 if(input.fighter().throwPressed()) { game.items.throwWeapon(id,input.moveAxis(),f.held.upHeld()?1:f.held.downHeld()?-1:0,tick); }
                 else {
                     game.items.interact(input,tick);
-                    if(input.meleePressed() || input.fighter().heavyPressed() || input.abilityPressed()) { startAttack(id,f,input,grounded || gc,gc); }
+                    if(input.meleePressed() || input.fighter().heavyPressed()) { startAttack(id,f,input,grounded || gc,gc); }
                 }
             }
         } else if(f.dodgeKind.equals("CHASE") && dodging && f.chaseCharges>0 && tick<=f.chaseUntil && input!=null && input.fighter().dodgePressed()) {
@@ -150,18 +166,47 @@ final class FighterEngine implements AutoCloseable {
     private void startAttack(PlayerId id,Fighter f,PlayerInput input,boolean grounded,boolean gc) {
         // Decide from equipment BEFORE consuming ammo: the last shot must never also become a punch.
         if(!game.progress.get(id).weapon.equals("NONE")) {
-            game.state.getPlayer(id).updateFacing(input.moveAxis());
-            game.items.attack(id,tick);f.pending=null;return;
+            float aimX=input.moveAxis();
+            float aimY=(input.fighter().upHeld()?1f:0f)-(input.fighter().downHeld()?1f:0f);
+            if(aimX!=0) { game.state.getPlayer(id).updateFacing(aimX); }
+            game.items.attack(id,aimX,aimY,tick);f.pending=null;return;
         }
-        boolean heavy=input.fighter().heavyPressed() || input.abilityPressed();
-        var direction=UnarmedInputResolver.direction(input.moveAxis(),input.fighter().downHeld(),input.fighter().upHeld(),true);
+        boolean heavy=input.fighter().heavyPressed();
+        boolean up=input.fighter().upHeld();
+        boolean down=input.fighter().downHeld();
+        float h=input.moveAxis();
+        var direction=UnarmedInputResolver.direction(h,down,up,true);
         String name=UnarmedInputResolver.move(grounded,heavy,direction);float recoverySpeed=0;
+        if(grounded && !heavy && !gc && name.equals("NLIGHT")) {
+            if(tick<f.nextLightAttackTick) { return; }
+            if(f.lightComboStep==1 && tick>f.lastLightAttackTick && tick-f.lastLightAttackTick<=45) {
+                f.lightComboStep=2;name="NLIGHT2";
+            } else if(f.lightComboStep==2 && tick>f.lastLightAttackTick && tick-f.lastLightAttackTick<=45) {
+                f.lightComboStep=0;name="NLIGHT3";f.nextLightAttackTick=tick+10;
+            } else {
+                f.lightComboStep=1;name="NLIGHT";
+            }
+            f.lastLightAttackTick=tick;
+        } else {
+            f.lightComboStep=0;
+        }
         if(name.equals("RECOVERY")) { recoverySpeed=f.air.recover();if(recoverySpeed==0) { return; }f.wallActions=Math.min(99,f.wallActions+1); }
         int facing=game.state.getPlayer(id).isFacingRight()?1:-1;
         int attackDirection=direction==UnarmedInputResolver.Direction.SIDE?(input.moveAxis()<0?-1:1):facing;
-        var move=FighterMoves.get(name);f.attack=new Attack(nextAttackId++,move,attackDirection,move.chargeable(),gc);f.pending=null;
+        var move=FighterMoves.get(name);
+        float aimAngle;
+        if(up && h!=0) { aimAngle=45f; }
+        else if(down && h!=0) { aimAngle=-45f; }
+        else if(up) { aimAngle=85f; }
+        else if(down) { aimAngle=-85f; }
+        else { aimAngle=move.angle(); }
+        f.attack=new Attack(nextAttackId++,move,attackDirection,move.chargeable(),gc,aimAngle);f.pending=null;
         if(recoverySpeed>0) { physics.velocity(id,game.bodies.getVelocity(id).xMetersPerSecond(),recoverySpeed);f.jumping=false; }
         if(gc) { physics.velocity(id,0,0); }
+        else if(grounded && (name.startsWith("NLIGHT") || name.equals("SLIGHT"))) {
+            float stepSpeed=name.equals("NLIGHT3")?1.15f:0.90f;
+            physics.velocity(id,attackDirection*stepSpeed,game.bodies.getVelocity(id).yMetersPerSecond());
+        }
     }
     private boolean movementAction(PlayerId id,Fighter f,PlayerInput input,boolean grounded) {
         float y=input.fighter().upHeld()?1:input.fighter().downHeld()?-1:0,x=input.moveAxis();double length=Math.hypot(x,y);
@@ -174,7 +219,7 @@ final class FighterEngine implements AutoCloseable {
             f.chaseCharges--;f.dodgeKind="CHASE";f.dodgeStart=tick;f.gcUntil=0;
             f.dodgeX=(float)(x/length*UnarmedRules.CHASE_SPEED);f.dodgeY=(float)(y/length*UnarmedRules.CHASE_SPEED);return true;
         }
-        if(grounded && (x!=0 || input.fighter().dashPressed())) {
+        if(grounded && input.fighter().dashPressed() && !input.fighter().dodgePressed()) {
             if(tick<f.nextDash) { return false; }
             int direction=x!=0?(x<0?-1:1):game.state.getPlayer(id).isFacingRight()?1:-1;
             f.backdash=direction!=(game.state.getPlayer(id).isFacingRight()?1:-1);f.dashX=direction*FighterMovement.DASH_SPEED;
@@ -184,7 +229,16 @@ final class FighterEngine implements AutoCloseable {
         f.dodgeKind=grounded?"GROUND_SPOT":length==0?"AIR_SPOT":"AIR_DIRECTION";f.dodgeStart=tick;
         f.nextDodge=tick+(grounded?UnarmedRules.GROUND_COOLDOWN:UnarmedRules.AIR_COOLDOWN);f.airDodgeUsed|=!grounded;
         f.gcUntil=f.dodgeKind.equals("AIR_SPOT")?tick+UnarmedRules.GC_WINDOW:0;
-        f.dodgeX=length==0?0:(float)(x/length*FighterMovement.DODGE_SPEED);f.dodgeY=length==0?0:(float)(y/length*FighterMovement.DODGE_SPEED);return true;
+        if(grounded) {
+            int facing=game.state.getPlayer(id).isFacingRight()?1:-1;
+            int direction=x!=0?(x<0?-1:1):facing;
+            f.dodgeX=direction*FighterMovement.DODGE_SPEED;
+            f.dodgeY=0;
+        } else {
+            f.dodgeX=length==0?0:(float)(x/length*FighterMovement.DODGE_SPEED);
+            f.dodgeY=length==0?0:(float)(y/length*FighterMovement.DODGE_SPEED);
+        }
+        return true;
     }
     private int dodgeRemaining(Fighter f) { return (int)Math.max(0,UnarmedRules.totalDodgeFrames(f.dodgeKind)-(tick-f.dodgeStart)); }
     private void gravity(PlayerId id,boolean ignored) { var v=game.bodies.getVelocity(id);physics.velocity(id,v.xMetersPerSecond(),v.yMetersPerSecond()-9.8f/60); }
@@ -209,7 +263,20 @@ final class FighterEngine implements AutoCloseable {
         f.lastDodgeUnavailable=f.airDodgeUsed && !game.jumps.getJumpState(victim).grounded() || f.nextDodge>tick+stun+1;
         // Count opportunities to INPUT a dodge, not only frames where its startup has finished.
         f.lastDodgeReadyTick=tick+Math.min(45,stun)+1+(heavy?UnarmedRules.HEAVY_HITSTOP:0);f.lastHitTick=tick;f.lastComboAttacker=attacker;f.hitSerial=++hitSerial;
-        physics.velocity(victim,vx,vy);f.hitstun=Math.min(45,stun);f.tumble=strength>6;f.attack=null;f.pending=null;f.dodgeStart=-1000;f.gcUntil=0;f.dashUntil=0;f.wallActions=0;
+        boolean isLightHold=attacker!=null && (moveName.startsWith("NLIGHT") && !moveName.equals("NLIGHT3") || moveName.equals("SLIGHT"));
+        if(isLightHold) {
+            float attackerX=game.bodies.getPosition(attacker).xMeters();
+            float facing=game.state.getPlayer(attacker).isFacingRight()?1f:-1f;
+            float targetX=attackerX+facing*0.15f;
+            float currentVictimX=game.bodies.getPosition(victim).xMeters();
+            float pullVx=(targetX-currentVictimX)*6.0f;
+            physics.velocity(victim,Math.max(-1.5f,Math.min(1.5f,pullVx)),0);
+            f.tumble=false;
+        } else {
+            physics.velocity(victim,vx,vy);f.tumble=moveName.equals("NLIGHT3") || heavy || strength>6;
+        }
+        f.hitstun=Math.min(45,stun);
+        f.attack=null;f.pending=null;f.dodgeStart=-1000;f.gcUntil=0;f.dashUntil=0;f.wallActions=0;
         if(player.isDead()) { progress.koCause="HP_ZERO"; }
         if(attacker!=null && !attacker.equals(victim)) {
             game.progress.get(attacker).damage+=before-player.getHp();progress.lastAttacker=attacker;progress.lastHitTick=tick;progress.lastWeapon=moveName;
@@ -262,15 +329,20 @@ final class FighterEngine implements AutoCloseable {
         final FighterStats stats;final AirActionBudget air=new AirActionBudget();double damage;float axis,dodgeX,dodgeY,dashX,frozenX,frozenY;
         FighterInput held=FighterInput.NONE;long lastInput,nextDodge,dodgeStart=-1000,nextDash,dashUntil,platformUntil,nextWallJump,nextLavaDamage,gcUntil,chaseUntil;
         long acknowledgedSequence,acknowledgedClientTick,lastHitTick,lastDodgeReadyTick,hitSerial;
-        int airJumps=UnarmedRules.AIR_JUMPS,wallJumps=3,lastWall,wallActions,hitstun,hitstop,runTicks,chaseCharges,dodgeFrames=-1;
+        int airJumps=UnarmedRules.AIR_JUMPS,wallJumps=3,lastWall,wallActions,hitstun,hitstop,runTicks,chaseCharges,dodgeFrames=-1,lightComboStep;
         boolean recovery=true,airDodgeUsed,fastFall,wallSliding,jumping,tumble,frozen,wasGrounded,backdash,lastDodgeUnavailable;
+        long lastLightAttackTick=-1000,nextLightAttackTick,lastDownPressTick=-1000;
+        boolean wasDownHeld;
         String dodgeKind="NONE",combo="UNVERIFIED";PlayerId chaseTarget,lastComboAttacker;Pending pending;
         Attack attack;Fighter(FighterStats stats) { this.stats=stats; }
     }
     private record Pending(PlayerInput input,long expires) { }
     static final class Attack {
         final long id;final FighterMoves.Move move;final int direction;final Set<PlayerId> hit=new HashSet<>();final boolean gravityCancelled;
+        final float aimAngle;
         int frame=-1,charge;boolean charging;
-        Attack(long id,FighterMoves.Move move,int direction,boolean charging,boolean gc) { this.id=id;this.move=move;this.direction=direction;this.charging=charging;this.gravityCancelled=gc; }
+        Attack(long id,FighterMoves.Move move,int direction,boolean charging,boolean gc,float aimAngle) {
+            this.id=id;this.move=move;this.direction=direction;this.charging=charging;this.gravityCancelled=gc;this.aimAngle=aimAngle;
+        }
     }
 }

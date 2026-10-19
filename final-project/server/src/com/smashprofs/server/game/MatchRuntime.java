@@ -356,9 +356,11 @@ public final class MatchRuntime implements AutoCloseable {
         for (var participant : participantsInSlotOrder()) {
             PlayerInput input = inputByPlayer.get(participant.playerId());
             if (input != null && input.abilityPressed()) {
+                float aimX = input.moveAxis();
+                float aimY = (input.fighter().upHeld() ? 1f : 0f) - (input.fighter().downHeld() ? 1f : 0f);
                 if(gameplay==null) { projectileManager.spawnProjectile(participant.playerId(), serverTick); }
                 else if(gameplay.ultimateReady(participant.playerId())) {
-                    boolean activated=participant.characterId().equals("Luca")?gameplay.items.orbit(participant.playerId(),upcomingTick):projectileManager.spawnProjectile(participant.playerId(),upcomingTick);
+                    boolean activated=participant.characterId().equals("Luca")?gameplay.items.orbit(participant.playerId(),upcomingTick):projectileManager.spawnProjectile(participant.playerId(),aimX,aimY,upcomingTick);
                     if(activated) { gameplay.ultimateUsed(participant.playerId()); }
                 }
             }
@@ -409,10 +411,35 @@ public final class MatchRuntime implements AutoCloseable {
     }
 
     private List<PlayerInput> tickFighter(long tick,List<PlayerInput> inputs) {
+        projectileManager.updateProjectiles();
+        if(gameplay!=null) { projectileManager.expireGameplayProjectiles(tick); }
         gameplay.fighter.update(tick,inputs);
         gameplay.items.update(tick);
+        Map<PlayerId, PlayerInput> inputByPlayer = new HashMap<>();
+        for (PlayerInput in : inputs) { inputByPlayer.put(in.playerId(), in); }
+        for (var participant : participantsInSlotOrder()) {
+            PlayerInput input = inputByPlayer.get(participant.playerId());
+            if (input != null && input.abilityPressed()) {
+                if (gameplay.ultimateReady(participant.playerId())) {
+                    float aimX = input.moveAxis();
+                    float aimY = (input.fighter().upHeld() ? 1f : 0f) - (input.fighter().downHeld() ? 1f : 0f);
+                    boolean activated = participant.characterId().equals("Luca")
+                            ? gameplay.items.orbit(participant.playerId(), tick)
+                            : projectileManager.spawnProjectile(participant.playerId(), aimX, aimY, tick);
+                    if (activated) { gameplay.ultimateUsed(participant.playerId()); }
+                }
+            }
+        }
+        for (var hit : projectileManager.resolveHits()) {
+            ServerPlayer target = matchState.getPlayer(hit.targetId());
+            if (!target.isDead()) {
+                gameplay.damage(hit.ownerId(), hit.targetId(), "ULTIMATE", hit.damage(), hit.knockbackX(), hit.knockbackY());
+            }
+        }
         try { physicsStepper.step(physicsWorld.getWorld(),PHYSICS_TIME_STEP,VELOCITY_ITERATIONS,POSITION_ITERATIONS); }
         catch(RuntimeException | LinkageError error) { throw new IllegalStateException("Fighter physics step failed",error); }
+        projectileManager.collectHitsAfterStep();
+        projectileManager.cleanupDestroyed();
         gameplay.fighter.applyLavaContacts();jumpController.synchronizeAfterStep();
         matchState.advanceTick();gameplay.fighter.checkBlastZones();gameplay.afterTick();
         var base=GameSnapshotBuilder.build(matchState,playerBodies,jumpController,projectileManager);

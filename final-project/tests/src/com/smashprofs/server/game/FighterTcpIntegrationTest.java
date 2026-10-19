@@ -28,7 +28,7 @@ public class FighterTcpIntegrationTest {
                     boolean dash=(profile.equals("dash-jump") || profile.equals("reverse-dash")) && i==0;
                     boolean jump=profile.equals("dash-jump") && i==0 || profile.equals("air-jumps") && (i==0 || i==3 || i==6 || i==9);
                     float axis=profile.equals("reverse-dash") && i>2?-1:1;
-                    var input=new PlayerInput(a,sequence,sequence++,axis,jump,false,false,false,false,false,false,new FighterInput(false,true,false,false,false,dash,false,false));
+                    var input=new PlayerInput(a,sequence,sequence++,axis,jump,false,false,false,false,false,false,new FighterInput(false,true,false,false,false,false,false,dash));
                     inputs.add(input);r.submitInput(input);r.tick();
                 }
                 var shown=prediction.sample(base.player("a"),base.gameplay().fighter().player("a"),inputs,1/60f);var expected=r.gameplay().bodies.getPosition(a);

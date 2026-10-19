@@ -86,10 +86,10 @@ final class OnlinePlayScreen implements Screen {
             return; // setScreen hides/disposes this screen on the render thread.
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) { game.leaveOnlineLobby();game.setScreen(new OnlineLobbyScreen(game));return; }
-        if (Gdx.input.isKeyJustPressed(Input.Keys.F9)) { game.getLobbyClient().close(); }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.BACKSPACE)) { game.getLobbyClient().close(); }
         if (Gdx.input.isKeyJustPressed(Input.Keys.TAB)) { hud.toggleInventory(); }
-        if(Gdx.input.isKeyJustPressed(Input.Keys.F2)) { debugCombat=!debugCombat; }
-        if(Gdx.input.isKeyJustPressed(Input.Keys.F6) && session.isFighter()) {
+        if(Gdx.input.isKeyJustPressed(Input.Keys.U) || Gdx.input.isKeyJustPressed(Input.Keys.GRAVE)) { debugCombat=!debugCombat; }
+        if(Gdx.input.isKeyJustPressed(Input.Keys.O) && session.isFighter()) {
             controls=controls==UnarmedControls.Preset.B?UnarmedControls.Preset.A:UnarmedControls.Preset.B;
             Gdx.app.getPreferences("unarmed-controls").putString("preset",controls.name()).flush();
         }
@@ -99,17 +99,19 @@ final class OnlinePlayScreen implements Screen {
             boolean fighter=session.isFighter();
             if(fighter) {
                 var command=UnarmedControls.sample(controls,Gdx.input::isKeyPressed,Gdx.input::isKeyJustPressed);
-                game.getLobbyClient().recordFrameInput(command.horizontal(),command.jumpPressed(),false,command.lightPressed(),false,false,command.interactPressed(),command.dropPressed(),command.fighter());
+                int abilityKey=com.smashprofs.game.Helper.KeyBindingConfig.getInstance().getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.ABILITY);
+                boolean ability=Gdx.input.isKeyJustPressed(abilityKey) || Gdx.input.isKeyJustPressed(Input.Keys.F) || Gdx.input.isKeyJustPressed(Input.Keys.P);
+                game.getLobbyClient().recordFrameInput(command.horizontal(),command.jumpPressed(),false,command.lightPressed(),false,ability,command.interactPressed(),command.dropPressed(),command.fighter());
             } else {
             float axis = (Gdx.input.isKeyPressed(Input.Keys.D) ? 1 : 0) - (Gdx.input.isKeyPressed(Input.Keys.A) ? 1 : 0);
             game.getLobbyClient().recordFrameInput(axis, Gdx.input.isKeyJustPressed(Input.Keys.W),
                     Gdx.input.isKeyJustPressed(Input.Keys.S), Gdx.input.isKeyJustPressed(Input.Keys.V)
                             || Gdx.input.isKeyJustPressed(Input.Keys.SPACE), Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT),
-                    !fighter && Gdx.input.isKeyJustPressed(Input.Keys.F),Gdx.input.isKeyJustPressed(Input.Keys.E),Gdx.input.isKeyJustPressed(Input.Keys.G),
+                    (Gdx.input.isKeyJustPressed(Input.Keys.F) || Gdx.input.isKeyJustPressed(Input.Keys.P)),Gdx.input.isKeyJustPressed(Input.Keys.E),Gdx.input.isKeyJustPressed(Input.Keys.G),
                     fighter?new com.smashprofs.common.model.FighterInput(Gdx.input.isKeyPressed(Input.Keys.S)||Gdx.input.isKeyPressed(Input.Keys.DOWN),
                             Gdx.input.isKeyPressed(Input.Keys.W),Gdx.input.isKeyPressed(Input.Keys.UP)||Gdx.input.isKeyPressed(Input.Keys.W),
-                            Gdx.input.isKeyJustPressed(Input.Keys.F)||Gdx.input.isKeyJustPressed(Input.Keys.J),
-                            Gdx.input.isKeyPressed(Input.Keys.F)||Gdx.input.isKeyPressed(Input.Keys.J),
+                            Gdx.input.isKeyJustPressed(Input.Keys.J)||Gdx.input.isKeyJustPressed(Input.Keys.K),
+                            Gdx.input.isKeyPressed(Input.Keys.J)||Gdx.input.isKeyPressed(Input.Keys.K),
                             Gdx.input.isKeyJustPressed(Input.Keys.SHIFT_LEFT)||Gdx.input.isKeyJustPressed(Input.Keys.CONTROL_LEFT),
                             Gdx.input.isKeyJustPressed(Input.Keys.Q),Gdx.input.isKeyJustPressed(Input.Keys.C)):com.smashprofs.common.model.FighterInput.NONE);
             }
@@ -145,7 +147,43 @@ final class OnlinePlayScreen implements Screen {
                 if(f.fastFalling()) { shapes.setColor(Color.WHITE);for(int i=0;i<3;i++) { shapes.rect(p.x()-.06f+i*.06f,p.y()+.12f,.012f,.22f); } }
                 if(f.action().equals("ATTACK")) {
                     var move=com.smashprofs.common.model.FighterMoves.get(f.attack());
-                    if(move.activeAt(f.attackFrame())) { shapes.setColor(move.heavy()?Color.GOLD:Color.WHITE);shapes.rectLine(p.x(),p.y()+.1f,p.x()+f.detail().attackDirection()*move.x()*2,p.y()+move.y(),.018f); }
+                    if(move.activeAt(f.attackFrame())) {
+                        int dir=f.detail().attackDirection();
+                        shapes.setColor(move.heavy()?Color.GOLD:Color.WHITE);
+                        float lineW=move.heavy()?.018f:.010f;
+                        float len=move.heavy()?.070f:.042f;
+                        float aimAngleDeg;
+                        boolean isLocal=p.playerId().equals(session.getLocalPlayerId().value());
+                        if(isLocal) {
+                            var cfg=com.smashprofs.game.Helper.KeyBindingConfig.getInstance();
+                            boolean up=com.badlogic.gdx.Gdx.input.isKeyPressed(cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.UP)) || com.badlogic.gdx.Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.UP);
+                            boolean down=com.badlogic.gdx.Gdx.input.isKeyPressed(cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.DOWN)) || com.badlogic.gdx.Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.DOWN);
+                            boolean left=com.badlogic.gdx.Gdx.input.isKeyPressed(cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.LEFT)) || com.badlogic.gdx.Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.LEFT);
+                            boolean right=com.badlogic.gdx.Gdx.input.isKeyPressed(cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.RIGHT)) || com.badlogic.gdx.Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.RIGHT);
+                            boolean h=left || right;
+                            if(up && h) { aimAngleDeg=45f; }
+                            else if(down && h) { aimAngleDeg=-45f; }
+                            else if(up) { aimAngleDeg=90f; }
+                            else if(down) { aimAngleDeg=-90f; }
+                            else { aimAngleDeg=0f; }
+                        } else {
+                            aimAngleDeg=Math.abs(move.x())<.03f?(move.y()>=0?90f:-90f):move.angle();
+                        }
+                        if(Math.abs(aimAngleDeg-90f)<5f) {
+                            shapes.rectLine(p.x(),p.y()+.10f,p.x(),p.y()+.10f+len,lineW);
+                        } else if(Math.abs(aimAngleDeg-(-90f))<5f) {
+                            shapes.rectLine(p.x(),p.y()+.08f,p.x(),p.y()+.08f-len,lineW);
+                        } else {
+                            float rad=(float)Math.toRadians(Math.abs(aimAngleDeg));
+                            float cos=(float)Math.cos(rad);
+                            float sin=(aimAngleDeg>=0?1f:-1f)*(float)Math.sin(rad);
+                            float startX=p.x()+dir*.035f;
+                            float startY=p.y()+.10f;
+                            float endX=startX+dir*len*cos;
+                            float endY=startY+len*sin;
+                            shapes.rectLine(startX,startY,endX,endY,lineW);
+                        }
+                    }
                 }
             }
             shapes.end();
@@ -270,16 +308,47 @@ final class OnlinePlayScreen implements Screen {
         }).toList();
     }
     private void drawCombatDebug(com.smashprofs.common.model.GameplaySnapshot gameplay) {
-        shapes.setProjectionMatrix(camera.combined);shapes.begin(com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType.Line);
+        Gdx.gl.glEnable(com.badlogic.gdx.graphics.GL20.GL_BLEND);
+        Gdx.gl.glBlendFunc(com.badlogic.gdx.graphics.GL20.GL_SRC_ALPHA, com.badlogic.gdx.graphics.GL20.GL_ONE_MINUS_SRC_ALPHA);
+        shapes.setProjectionMatrix(camera.combined);
+        // Filled pass for transparent hitbox areas
+        shapes.begin(com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType.Filled);
+        for(var view:renderedPlayers) {
+            var p=view.state();if(p.dead()) { continue; }var f=gameplay.fighter().player(p.playerId());
+            if(!f.attack().equals("NONE")) {
+                var m=com.smashprofs.common.model.FighterMoves.get(f.attack());
+                int direction=f.detail().attackDirection();
+                float boxX=p.x()+direction*m.x()-m.halfWidth(), boxY=p.y()+m.y()-m.halfHeight(), w=m.halfWidth()*2, h=m.halfHeight()*2;
+                String phase=f.detail().phase();
+                if(phase.equals("ACTIVE")) {
+                    shapes.setColor(1f, 0.1f, 0.1f, 0.45f);
+                    shapes.rect(boxX, boxY, w, h);
+                } else if(phase.equals("STARTUP") || f.action().equals("CHARGE")) {
+                    shapes.setColor(1f, 0.85f, 0.1f, 0.30f);
+                    shapes.rect(boxX, boxY, w, h);
+                }
+            }
+        }
+        shapes.end();
+        // Line pass for hurtbox and hitbox outlines
+        shapes.begin(com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType.Line);
         for(var view:renderedPlayers) {
             var p=view.state();if(p.dead()) { continue; }var f=gameplay.fighter().player(p.playerId());
             float high=com.smashprofs.common.model.FighterMoves.hurtboxHigh(f.attack(),f.attackFrame());
             shapes.setColor(Color.CYAN);shapes.rect(p.x()-.085f,p.y()-.095f,.17f,high+.18f);
             shapes.circle(p.x(),p.y()-.01f,.085f,16);shapes.circle(p.x(),p.y()+high,.085f,16);
-            if(!f.attack().equals("NONE") && f.detail().phase().equals("ACTIVE")) {
-                var m=com.smashprofs.common.model.FighterMoves.get(f.attack());shapes.setColor(Color.RED);
+            if(!f.attack().equals("NONE")) {
+                var m=com.smashprofs.common.model.FighterMoves.get(f.attack());
                 int direction=f.detail().attackDirection();
-                shapes.rect(p.x()+direction*m.x()-m.halfWidth(),p.y()+m.y()-m.halfHeight(),m.halfWidth()*2,m.halfHeight()*2);
+                float boxX=p.x()+direction*m.x()-m.halfWidth(), boxY=p.y()+m.y()-m.halfHeight(), w=m.halfWidth()*2, h=m.halfHeight()*2;
+                String phase=f.detail().phase();
+                if(phase.equals("ACTIVE")) {
+                    shapes.setColor(Color.RED);
+                    shapes.rect(boxX, boxY, w, h);
+                } else if(phase.equals("STARTUP") || f.action().equals("CHARGE")) {
+                    shapes.setColor(Color.GOLD);
+                    shapes.rect(boxX, boxY, w, h);
+                }
             }
         }
         shapes.end();

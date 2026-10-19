@@ -38,22 +38,22 @@ public class UnarmedGameplayTest {
     }
     @Test public void jumpAndLightInTheSameFrameChooseAnAirAttack() {
         floor(false);input(1,true,true,false,false,false,false,false);assertEquals("SAIR",state().attack());
-        assertEquals(2,state().airJumps());assertEquals(0,state().detail().aerialActionsUsed());assertTrue(game.bodies.getVelocity(a).yMetersPerSecond()>4);
+        assertEquals(1,state().airJumps());assertEquals(0,state().detail().aerialActionsUsed());assertTrue(game.bodies.getVelocity(a).yMetersPerSecond()>4);
     }
     @Test public void aimingUpWithSideMovementChoosesNeutralWithoutSpendingAJump() {
-        floor(false);attack(true,false,1,false,true);assertEquals("NLIGHT",state().attack());assertEquals(2,state().airJumps());
+        floor(false);attack(true,false,1,false,true);assertEquals("NLIGHT",state().attack());assertEquals(1,state().airJumps());
         assertTrue(game.jumps.getJumpState(a).grounded());
     }
-    @Test public void allThreeAirActionCombinationsExhaustTheSameBudget() {
-        for(int jumps=0;jumps<=2;jumps++) {
+    @Test public void allAirActionCombinationsExhaustTheSameBudget() {
+        for(int jumps=0;jumps<=1;jumps++) {
             var budget=new AirActionBudget();for(int i=0;i<jumps;i++) { assertTrue(budget.jump()); }
-            for(int i=0;i<3-jumps;i++) { assertEquals(i==0?4.8f:UnarmedRules.EXHAUSTED_RECOVERY_SPEED,budget.recover(),.0001f); }
-            assertEquals(3,budget.used());assertFalse(budget.jump());assertFalse(budget.canRecover());assertEquals(0,budget.recover(),0);
-            budget.reset();assertEquals(2,budget.jumps());assertEquals(0,budget.used());
+            for(int i=0;i<2-jumps;i++) { assertEquals(i==0?4.8f:UnarmedRules.EXHAUSTED_RECOVERY_SPEED,budget.recover(),.0001f); }
+            assertEquals(2,budget.used());assertFalse(budget.jump());assertFalse(budget.canRecover());assertEquals(0,budget.recover(),0);
+            budget.reset();assertEquals(1,budget.jumps());assertEquals(0,budget.used());
         }
     }
-    @Test public void threeRecoveriesUseWeakerExhaustedLaunchAndThenRefuseAFourth() {
-        air();for(int i=0;i<3;i++) {
+    @Test public void recoveriesUseWeakerExhaustedLaunchAndThenRefuseAFurtherOne() {
+        air();for(int i=0;i<2;i++) {
             fighter().attack=null;game.bodies.respawn(a,6,3);game.fighter.physics.reset(a);runtime.tick();
             attack(false,true,0,false,false);assertEquals("RECOVERY",state().attack());
             assertTrue(game.bodies.getVelocity(a).yMetersPerSecond()>(i==0?4.5f:2.9f));
@@ -62,21 +62,22 @@ public class UnarmedGameplayTest {
         fighter().attack=null;attack(false,true,0,false,false);assertEquals("NONE",state().attack());assertFalse(state().recoveryAvailable());
     }
     @Test public void landingResetsAllAirResources() {
-        air();fighter().air.jump();fighter().air.recover();fighter().air.recover();assertEquals(3,fighter().air.used());
-        floor(false);assertEquals(2,state().airJumps());assertEquals(0,state().detail().recoveries());assertEquals(0,state().detail().aerialActionsUsed());
+        air();fighter().air.jump();fighter().air.recover();assertEquals(2,fighter().air.used());
+        floor(false);assertEquals(1,state().airJumps());assertEquals(0,state().detail().recoveries());assertEquals(0,state().detail().aerialActionsUsed());
     }
     @Test public void wallTouchResetsAirBudgetUntilWallSlipThreshold() {
         var wall=new TmxCollisionLoader().loadOriginalMap().rectangles().stream().filter(r->r.heightPixels()>45 && r.yPixels()+r.heightPixels()>40).findFirst().orElseThrow();
         for(boolean slipping:new boolean[]{false,true}) {
-            fighter().air.reset();fighter().air.jump();fighter().air.recover();fighter().air.recover();fighter().wallActions=slipping?UnarmedRules.WALL_SLIP:0;fighter().lastWall=0;
+            fighter().air.reset();fighter().air.jump();fighter().air.recover();fighter().wallActions=slipping?UnarmedRules.WALL_SLIP:0;fighter().lastWall=0;
             game.bodies.respawn(a,wall.xPixels()/100-.055f,(wall.yPixels()+wall.heightPixels()*.7f)/100);game.fighter.physics.reset(a);
             input(1,false,false,false,false,false,false,false);input(1,false,false,false,false,false,false,false);
-            assertTrue(game.jumps.wallDirection(a)!=0);assertEquals(slipping?3:0,state().detail().aerialActionsUsed());
+            assertTrue(game.jumps.wallDirection(a)!=0);assertEquals(slipping?2:0,state().detail().aerialActionsUsed());
         }
     }
-    @Test public void directionalGroundDodgeIsDashWithoutInvulnerability() {
-        floor(false);input(1,false,false,false,false,false,true,false);assertEquals("DASH",state().detail().state());assertEquals(0,state().dodgeTicks());
-        assertTrue(game.fighter.hit(b,a,"NLIGHT",1,.8f,.2f,1,0,false));
+    @Test public void directionalGroundDodgeHasInvulnerabilityAndCooldown() {
+        floor(false);input(1,false,false,false,false,false,true,false);assertEquals("DODGE",state().action());assertTrue(state().dodgeTicks()>0);
+        assertTrue(state().dodgeCooldownTicks()>0);
+        runtime.tick();runtime.tick();assertFalse(game.fighter.hit(b,a,"NLIGHT",1,.8f,.2f,1,0,false));
     }
     @Test public void wallJumpUsesTheSharedFatigueThresholdInsteadOfAnOldThreeJumpCap() {
         var wall=new TmxCollisionLoader().loadOriginalMap().rectangles().stream().filter(r->r.heightPixels()>45 && r.yPixels()+r.heightPixels()>40).findFirst().orElseThrow();
@@ -88,7 +89,7 @@ public class UnarmedGameplayTest {
     }
     @Test public void backdashPreservesFacingAndDashJumpKeepsBurstVelocity() {
         floor(false);assertTrue(game.state.getPlayer(a).isFacingRight());
-        input(-1,true,false,false,false,false,true,false);assertEquals("BACKDASH",state().detail().state());
+        runtime.submitInput(new PlayerInput(a,sequence++,sequence,-1,true,false,false,false,false,false,false,new FighterInput(false,true,false,false,false,false,false,true)));runtime.tick();assertEquals("BACKDASH",state().detail().state());
         assertTrue(game.state.getPlayer(a).isFacingRight());assertTrue(game.bodies.getVelocity(a).yMetersPerSecond()>4);
         assertEquals(-FighterMovement.DASH_SPEED,game.bodies.getVelocity(a).xMetersPerSecond(),.04f);
     }
@@ -173,5 +174,19 @@ public class UnarmedGameplayTest {
         int stun=game.snapshot().fighter().player("b").hitstunTicks();ticks(stun+1);
         game.fighter.hit(a,b,"NLIGHT",1,.8f,.2f,1,0,false);var detail=game.snapshot().fighter().player("b").detail();
         assertEquals(1,detail.dodgeFrames());assertEquals("STRING",detail.combo());
+    }
+    @Test public void neutralLightPerformsThreeHitJabComboWithVacuumAndGentleFinisher() {
+        floor(true);
+        // Hit 1: NLIGHT
+        attack(true,false,0,false,false);assertEquals("NLIGHT",state().attack());
+        ticks(FighterMoves.get("NLIGHT").total(true)+1);
+        // Hit 2: NLIGHT2 connects
+        attack(true,false,0,false,false);assertEquals("NLIGHT2",state().attack());
+        ticks(FighterMoves.get("NLIGHT2").total(true)+1);
+        // Hit 3: NLIGHT3 finisher
+        attack(true,false,0,false,false);assertEquals("NLIGHT3",state().attack());
+        ticks(FighterMoves.get("NLIGHT3").total(true)+1);
+        // Combo resets back to NLIGHT
+        attack(true,false,0,false,false);assertEquals("NLIGHT",state().attack());
     }
 }

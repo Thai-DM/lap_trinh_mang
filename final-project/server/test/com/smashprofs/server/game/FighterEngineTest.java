@@ -73,7 +73,7 @@ public class FighterEngineTest {
         game.bodies.respawn(a,2.5f,.4f);game.fighter.physics.velocity(a,0,-50);game.fighter.fighters.get(a).hitstun=20;
         runtime.tick();assertEquals(FighterArena.LAVA_CENTER_Y,game.bodies.getPosition(a).yMeters(),.001f);
         assertEquals(FighterArena.LAVA_BOUNCE_SPEED,game.bodies.getVelocity(a).yMetersPerSecond(),.001f);
-        assertEquals(2,state().airJumps());assertTrue(state().recoveryAvailable());assertEquals(3,game.snapshot().player("a").lives());
+        assertEquals(1,state().airJumps());assertTrue(state().recoveryAvailable());assertEquals(3,game.snapshot().player("a").lives());
     }
     @Test public void lavaDamageIsTenHitPointsAtMostOncePerSecondAndInvulnerabilityStillRebounds() {
         for(int i=0;i<40;i++) {
@@ -144,8 +144,7 @@ public class FighterEngineTest {
         floor();frame(0,true,false,false,false,true,false);assertTrue(game.bodies.getVelocity(a).yMetersPerSecond()>4);
         frame(0,false,false,false,false,false,false);assertTrue(game.bodies.getVelocity(a).yMetersPerSecond()<1.8f);
         game.fighter.physics.velocity(a,0,-4);frame(0,true,false,false,false,true,false);
-        assertEquals(1,state().airJumps());assertTrue(game.bodies.getVelocity(a).yMetersPerSecond()>4);
-        frame(0,true,false,false,false,true,false);assertEquals(0,state().airJumps());assertTrue(game.bodies.getVelocity(a).yMetersPerSecond()>4);
+        assertEquals(0,state().airJumps());assertTrue(game.bodies.getVelocity(a).yMetersPerSecond()>4);
         frame(0,true,false,false,false,true,false);assertEquals(0,state().airJumps());assertTrue(game.bodies.getVelocity(a).yMetersPerSecond()<4);
         game.fighter.physics.velocity(a,0,-1);frame(0,false,false,false,true,false,false);
         assertTrue(state().fastFalling());assertEquals(-9.6f,game.bodies.getVelocity(a).yMetersPerSecond(),.001f);
@@ -248,5 +247,70 @@ public class FighterEngineTest {
         game.bodies.respawn(a,landed.x(),landed.y());runtime.tick();assertEquals(1,game.items.itemViews().size());
         runtime.submitInput(new PlayerInput(a,1,0,0,false,false,false,false,false,true,false));runtime.tick();
         assertTrue(game.items.itemViews().isEmpty());assertEquals(1,game.progress.get(a).pickups);
+    }
+    @Test public void alexCanFireHomingMissileInFighterModeAndDamagesTarget() {
+        floor();game.bodies.respawn(b,6.5f,.23f);runtime.tick();
+        assertEquals(InputQueue.OfferResult.ACCEPTED,runtime.submitInput(new PlayerInput(a,sequence++,0,0,false,false,false,false,true,false,false,FighterInput.NONE)));
+        runtime.tick();
+        assertEquals(1,runtime.getActiveProjectileCount());
+        var projectiles=runtime.getProjectiles();
+        assertEquals(1,projectiles.size());
+        assertEquals("ROCKET",projectiles.get(0).projectileType());
+        for(int i=0;i<180 && game.state.getPlayer(b).getHp()==100;i++) { runtime.tick(); }
+        assertTrue("Alex rocket should damage opponent in fighter mode",game.state.getPlayer(b).getHp()<100);
+    }
+    @Test public void lucaCanActivateOrbitStarsInFighterMode() {
+        floor();
+        assertEquals(InputQueue.OfferResult.ACCEPTED,runtime.submitInput(new PlayerInput(b,sequence++,0,0,false,false,false,false,true,false,false,FighterInput.NONE)));
+        runtime.tick();
+        var shots=game.snapshot().shots().stream().filter(s->"ORBIT".equals(s.type())).toList();
+        assertEquals(2,shots.size());
+        assertTrue(game.snapshot().player("b").ultimateTicks()>0);
+    }
+    @Test public void allCharacterAbilitiesSpawnInFighterMode() {
+        PlayerId p1=new PlayerId("p1"),p2=new PlayerId("p2"),p3=new PlayerId("p3");
+        try (MatchRuntime r=new MatchRuntime(new MatchSetup("all-abilities","room",List.of(
+                new MatchSetup.Participant(p1,0,"Maurice"),
+                new MatchSetup.Participant(p2,1,"Leo"),
+                new MatchSetup.Participant(p3,2,"Viktor")),
+                new MatchRules(3,0,3,MatchRules.DropRate.NONE,true,true)))) {
+            r.start();
+            r.submitInput(new PlayerInput(p1,1,0,0,false,false,false,false,true,false,false,FighterInput.NONE));
+            r.tick();
+            assertEquals(4,r.getActiveProjectileCount());
+            assertEquals(4,r.getProjectiles().stream().filter(p->"STAR".equals(p.projectileType())).count());
+
+            r.submitInput(new PlayerInput(p2,1,0,0,false,false,false,false,true,false,false,FighterInput.NONE));
+            r.tick();
+            assertEquals(5,r.getActiveProjectileCount());
+            assertEquals(1,r.getProjectiles().stream().filter(p->"MINE".equals(p.projectileType())).count());
+
+            r.submitInput(new PlayerInput(p3,1,0,0,false,false,false,false,true,false,false,FighterInput.NONE));
+            r.tick();
+            assertEquals(6,r.getActiveProjectileCount());
+            assertEquals(1,r.getProjectiles().stream().filter(p->"IBM".equals(p.projectileType())).count());
+        }
+    }
+    @Test public void lightAndHeavyAttacksHaveDramaticallyDifferentKnockback() {
+        floor();
+        // Hit 1 of Light attack J (NLIGHT) -> target is held in place: vy = 0, no tumble, minimal pull velocity
+        game.fighter.hit(a,b,"NLIGHT",7,FighterMoves.get("NLIGHT").base(),FighterMoves.get("NLIGHT").scaling(),1,0,false);
+        assertFalse(game.fighter.fighters.get(b).tumble);
+        assertEquals(0,game.bodies.getVelocity(b).yMetersPerSecond(),.001f);
+        assertTrue(Math.abs(game.bodies.getVelocity(b).xMetersPerSecond())<=1.5f);
+
+        // Hit 3 of Light attack J (NLIGHT3) -> gentle launch
+        floor();
+        game.fighter.hit(a,b,"NLIGHT3",8,FighterMoves.get("NLIGHT3").base(),FighterMoves.get("NLIGHT3").scaling(),(float)Math.cos(Math.toRadians(30)),(float)Math.sin(Math.toRadians(30)),false);
+        assertTrue(game.fighter.fighters.get(b).tumble);
+        float lightSpeed=game.bodies.getVelocity(b).xMetersPerSecond();
+
+        // Heavy attack K (SHEAVY) -> strong launch (at least 2x light speed)
+        floor();
+        game.fighter.hit(a,b,"SHEAVY",18,1.7f,.32f,(float)Math.cos(Math.toRadians(25)),(float)Math.sin(Math.toRadians(25)),true);
+        assertTrue(game.fighter.fighters.get(b).tumble);
+        float heavySpeed=game.bodies.getVelocity(b).xMetersPerSecond();
+        assertTrue("Heavy attack should launch much further than light attack: heavy="+heavySpeed+", light="+lightSpeed,
+                heavySpeed>=lightSpeed*1.8f);
     }
 }

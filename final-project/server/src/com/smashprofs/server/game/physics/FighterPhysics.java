@@ -11,6 +11,7 @@ public final class FighterPhysics implements AutoCloseable {
     private final PlayerPhysicsFactory.PlayerPhysicsBodies players;
     private final PlayerJumpController jumps;
     private final Map<PlayerId,Integer> dropTicks=new HashMap<>();
+    private final Map<PlayerId,MapCollisionDefinition.CollisionRectangle> droppedPlatform=new HashMap<>();
     private final Map<PlayerId,Float> hurtboxHigh=new HashMap<>();
     private final List<MapCollisionDefinition.CollisionRectangle> platforms;
     public record Hurtbox(PlayerId id) { }
@@ -39,15 +40,16 @@ public final class FighterPhysics implements AutoCloseable {
     private void filter(Contact contact,PlayerId id,Fixture floor) {
         if(!(floor.getUserData() instanceof MapCollisionDefinition.CollisionRectangle r) || !oneWay(r)) { return; }
         var body=players.getBody(id);float top=(r.yPixels()+r.heightPixels())/100;
-        if(dropTicks.getOrDefault(id,0)>0 || body.getLinearVelocity().y>0 || body.getPosition().y-.05f<top-.025f) { contact.setEnabled(false); }
+        boolean droppingThis=dropTicks.getOrDefault(id,0)>0 && r.equals(droppedPlatform.get(id));
+        if(droppingThis || body.getLinearVelocity().y>0 || body.getPosition().y-.05f<top-.025f) { contact.setEnabled(false); }
     }
-    public void tick() { dropTicks.replaceAll((id,ticks)->Math.max(0,ticks-1)); }
+    public void tick() { dropTicks.replaceAll((id,ticks)->{ int next=Math.max(0,ticks-1); if(next==0) { droppedPlatform.remove(id); } return next; }); }
     public boolean dropThrough(PlayerId id) {
         var pos=players.getPosition(id);
         for(var p:platforms) {
             float top=(p.yPixels()+p.heightPixels())/100;
             if(pos.xMeters()>=p.xPixels()/100 && pos.xMeters()<=(p.xPixels()+p.widthPixels())/100 && Math.abs(pos.yMeters()-.05f-top)<.04f) {
-                dropTicks.put(id,15);jumps.resetAfterRespawn(id);velocity(id,players.getVelocity(id).xMetersPerSecond(),-1);return true;
+                dropTicks.put(id,12);droppedPlatform.put(id,p);jumps.resetAfterRespawn(id);velocity(id,players.getVelocity(id).xMetersPerSecond(),-1);return true;
             }
         }
         return false;
@@ -70,12 +72,12 @@ public final class FighterPhysics implements AutoCloseable {
         },left,bottom,right,top);
         return result;
     }
-    public void reset(PlayerId id) { dropTicks.remove(id);jumps.resetAfterRespawn(id); }
+    public void reset(PlayerId id) { dropTicks.remove(id);droppedPlatform.remove(id);jumps.resetAfterRespawn(id); }
     public void hurtbox(PlayerId id,String move,int frame) { hurtboxHigh.put(id,com.smashprofs.common.model.FighterMoves.hurtboxHigh(move,frame)); }
     public void bounceFromLava(PlayerId id) {
         var body=players.getBody(id);float vx=body.getLinearVelocity().x;
         body.setTransform(body.getPosition().x,com.smashprofs.common.model.FighterArena.LAVA_CENTER_Y,0);
         body.setLinearVelocity(vx,com.smashprofs.common.model.FighterArena.LAVA_BOUNCE_SPEED);reset(id);
     }
-    @Override public void close() { dropTicks.clear();hurtboxHigh.clear();jumps.setContactPolicy(null); }
+    @Override public void close() { dropTicks.clear();droppedPlatform.clear();hurtboxHigh.clear();jumps.setContactPolicy(null); }
 }

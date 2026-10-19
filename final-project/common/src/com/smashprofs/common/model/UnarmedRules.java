@@ -2,7 +2,7 @@ package com.smashprofs.common.model;
 
 /** Prototype balance, not official Brawlhalla frame data. All durations use the 60 Hz simulation. */
 public final class UnarmedRules {
-    public static final int AIR_JUMPS=2, AIR_ACTIONS=3;
+    public static final int AIR_JUMPS=1, AIR_ACTIONS=2;
     public static final int INPUT_BUFFER=5, GC_WINDOW=18, DODGE_STARTUP=2, DODGE_RECOVERY=4;
     public static final int GROUND_IFRAMES=16, AIR_SPOT_IFRAMES=20, AIR_DIRECTION_IFRAMES=12;
     public static final int GROUND_COOLDOWN=60, AIR_COOLDOWN=163;

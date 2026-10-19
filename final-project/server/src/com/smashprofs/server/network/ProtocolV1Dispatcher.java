@@ -61,8 +61,9 @@ final class ProtocolV1Dispatcher {
         if (message.type() == MessageType.CONNECT) {
             if (admission == null) { ProtocolV1.fields(payload, requestId,"gameplay"); }
             if(payload.has("gameplay")) {
-                if(com.smashprofs.common.protocol.FighterProtocol.CAPABILITY.equals(payload.path("gameplay").asText())) { session.enableFighter(); }
-                else if(GameplayProtocol.CAPABILITY.equals(payload.path("gameplay").asText())) { session.enableGameplay(); }
+                String cap = payload.path("gameplay").asText();
+                if(com.smashprofs.common.protocol.FighterProtocol.CAPABILITY.equals(cap) || "fighter-v1".equals(cap)) { session.enableFighter(); }
+                else if(GameplayProtocol.CAPABILITY.equals(cap)) { session.enableGameplay(); }
                 else { throw ProtocolV1.invalid(requestId); }
             }
             // CONNECT lặp giữ nguyên ID; không lấy PlayerId/IP/port từ client.

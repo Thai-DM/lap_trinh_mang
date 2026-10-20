@@ -106,4 +106,101 @@ public class FighterEquipmentTest {
         for(int tick=1;tick<=1800;tick++) { game.items.update(tick); }
         assertTrue(game.items.itemViews().isEmpty());pickup("BAZOOKA");assertEquals("BAZOOKA",game.progress.get(a).weapon);
     }
+    @Test public void shootingWithDirectionalKeysAimsWithoutMovingOrJumping() {
+        pickup("SHOTGUN");
+        float initialX = game.bodies.getPosition(a).xMeters();
+        send(new PlayerInput(a,sequence++,sequence,-1,false,false,true,false,false));
+        assertFalse(game.state.getPlayer(a).isFacingRight());
+        assertEquals(initialX, game.bodies.getPosition(a).xMeters(), 0.01f);
+        for(var shot : game.items.shotViews()) { assertTrue(shot.vx() < 0); }
+
+        ticks(25);
+        pickup("SHOTGUN");
+        send(new PlayerInput(a,sequence++,sequence,0,true,false,true,false,false,false,false,
+                new FighterInput(false,false,true,false,false,false,false,false)));
+        assertTrue("Character should not jump when aiming weapon upwards", game.bodies.getVelocity(a).yMetersPerSecond() <= 0.05f);
+        assertTrue(game.items.shotViews().stream().anyMatch(s -> s.vy() > 0));
+
+        ticks(25);
+        pickup("BAZOOKA");
+        initialX = game.bodies.getPosition(a).xMeters();
+        send(new PlayerInput(a,sequence++,sequence,1,false,false,true,false,false,false,false,
+                new FighterInput(false,false,true,false,false,false,false,false)));
+        assertTrue(game.state.getPlayer(a).isFacingRight());
+        assertEquals(initialX, game.bodies.getPosition(a).xMeters(), 0.01f);
+        assertTrue(game.items.shotViews().stream().anyMatch(s -> s.type().equals("BAZOOKA") && s.vx() > 0 && s.vy() > 0));
+    }
+
+    @Test public void meleeWeaponsDealExpectedDamageAndEffects() {
+        // Sword: 18 damage, 6 ammo
+        pickup("SWORD");
+        assertEquals(6, game.progress.get(a).ammo);
+        float hpB = game.state.getPlayer(b).getHp();
+        send(input(true, false, false, false));
+        assertEquals(5, game.progress.get(a).ammo);
+        ticks(2);
+        assertEquals(hpB - 18f, game.state.getPlayer(b).getHp(), 0.001f);
+        assertTrue(game.snapshot().fighter().player("b").hitstunTicks() > 0);
+
+        // Warhammer: 32 damage, breaks shield
+        ticks(30);
+        game.progress.get(b).shield = true;
+        pickup("WARHAMMER");
+        assertEquals(4, game.progress.get(a).ammo);
+        hpB = game.state.getPlayer(b).getHp();
+        send(input(true, false, false, false));
+        assertEquals(3, game.progress.get(a).ammo);
+        ticks(2);
+        assertFalse("Warhammer should break shield", game.progress.get(b).shield);
+        assertEquals(hpB - 32f, game.state.getPlayer(b).getHp(), 0.001f);
+
+        // Spear: 24 damage if tipper or 14 if body
+        ticks(30);
+        pickup("SPEAR");
+        assertEquals(6, game.progress.get(a).ammo);
+        hpB = game.state.getPlayer(b).getHp();
+        send(input(true, false, false, false));
+        assertEquals(5, game.progress.get(a).ammo);
+        ticks(2);
+        assertTrue(game.state.getPlayer(b).getHp() < hpB);
+
+        // Dual daggers: 10 damage per strike
+        ticks(30);
+        pickup("DUAL_DAGGERS");
+        assertEquals(8, game.progress.get(a).ammo);
+        hpB = game.state.getPlayer(b).getHp();
+        send(input(true, false, false, false));
+        assertEquals(7, game.progress.get(a).ammo);
+        ticks(2);
+        assertEquals(hpB - 10f, game.state.getPlayer(b).getHp(), 0.001f);
+    }
+
+    @Test public void thrownWeaponStunsTargetForOneSecond() {
+        pickup("SWORD");
+        game.bodies.respawn(a, 5.0f, 0.23f);
+        game.bodies.respawn(b, 5.35f, 0.23f);
+        send(input(false, false, false, true)); // throw key
+        ticks(6); // thrown weapon travels and hits opponent
+        assertEquals("Hitstun should be 1 second (60 ticks)", 60, game.snapshot().fighter().player("b").hitstunTicks());
+        assertEquals("TUMBLE", game.snapshot().fighter().player("b").action());
+    }
+
+    @Test public void keepWeaponOnThrowRuleRetainsWeapon() {
+        runtime.close();
+        runtime = new MatchRuntime(new MatchSetup("keep-throw", "room",
+                List.of(new MatchSetup.Participant(a, 0, "Alex"), new MatchSetup.Participant(b, 1, "Luca")),
+                new MatchRules(2, 0, 3, MatchRules.DropRate.NONE, true, true, true)));
+        runtime.start();
+        game = runtime.gameplay();
+        game.bodies.respawn(a, 5.45f, .23f);
+        game.bodies.respawn(b, 5.72f, .23f);
+        ticks(10);
+
+        pickup("SWORD");
+        assertEquals("SWORD", game.progress.get(a).weapon);
+        assertEquals(6, game.progress.get(a).ammo);
+        send(input(false, false, false, true)); // throw weapon
+        assertEquals("Weapon should be retained with keepWeaponOnThrow=true", "SWORD", game.progress.get(a).weapon);
+        assertEquals(6, game.progress.get(a).ammo);
+    }
 }

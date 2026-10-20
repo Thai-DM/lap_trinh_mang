@@ -62,4 +62,13 @@ public class LavaReboundTest {
         float apex=.12f;for(int i=0;i<20;i++) { runtime.tick();apex=Math.max(apex,g.bodies.getPosition(a).yMeters()); }
         assertTrue("Lava rebound should stay near the bottom platforms",apex<.4f);
     }
+    @Test public void fallingOntoLowestCentralPlatformNeverTriggersLavaDamage() {
+        var g=runtime.gameplay();
+        g.bodies.respawn(a,5.5f,.18f);
+        g.beforeTick(1);g.applyLavaContacts();
+        assertEquals(100,g.state.getPlayer(a).getHp(),0);
+        assertFalse(FighterArena.touchesLava(5.5f,.18f,-1.5f));
+        assertFalse(FighterArena.touchesLava(5.05f,.16f,-0.5f));
+        assertFalse(FighterArena.touchesLava(6.30f,.16f,-0.5f));
+    }
 }

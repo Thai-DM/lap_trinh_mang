@@ -13,17 +13,22 @@ public final class GameplayProtocol {
     public static ObjectNode rules(MatchRules rules) {
         var node=ProtocolV1.object().put("maxPlayers",rules.maxPlayers()).put("matchSeconds",rules.matchSeconds())
                 .put("lives",rules.lives()).put("dropRate",rules.dropRate().name());
-        if(rules.fighter()) { node.put("fighter",true); }return node;
+        if(rules.fighter()) { node.put("fighter",true); }
+        if(rules.keepWeaponOnThrow()) { node.put("keepWeaponOnThrow",true); }
+        return node;
     }
     public static MatchRules rules(JsonNode node) {
-        if(node==null || !node.isObject() || node.size()!=(node.has("fighter")?5:4) || node.has("fighter") && !node.path("fighter").isBoolean() || !node.path("maxPlayers").isIntegralNumber()
+        int expectedSize=4+(node.has("fighter")?1:0)+(node.has("keepWeaponOnThrow")?1:0);
+        if(node==null || !node.isObject() || node.size()!=expectedSize || node.has("fighter") && !node.path("fighter").isBoolean()
+                || node.has("keepWeaponOnThrow") && !node.path("keepWeaponOnThrow").isBoolean() || !node.path("maxPlayers").isIntegralNumber()
                 || !node.path("maxPlayers").canConvertToInt() || !node.path("matchSeconds").isIntegralNumber()
                 || !node.path("matchSeconds").canConvertToInt() || !node.path("lives").isIntegralNumber()
                 || !node.path("lives").canConvertToInt() || !node.path("dropRate").isTextual()) {
             throw new IllegalArgumentException("Invalid rule fields");
         }
         return new MatchRules(node.path("maxPlayers").intValue(),node.path("matchSeconds").intValue(),
-                node.path("lives").intValue(),MatchRules.DropRate.valueOf(node.path("dropRate").textValue()),true,node.path("fighter").asBoolean(false));
+                node.path("lives").intValue(),MatchRules.DropRate.valueOf(node.path("dropRate").textValue()),
+                true,node.path("fighter").asBoolean(false),node.path("keepWeaponOnThrow").asBoolean(false));
     }
     public static ObjectNode snapshot(GameplaySnapshot state) {
         var node=ProtocolV1.object().put("durationTicks",state.durationTicks());node.set("rules",rules(state.rules()));

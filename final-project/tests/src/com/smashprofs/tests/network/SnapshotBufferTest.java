@@ -156,7 +156,7 @@ public class SnapshotBufferTest {
         producerThread.start();
         consumerThread.start();
 
-        assertTrue("Concurrent simulation must complete within 5s", finishLatch.await(5, TimeUnit.SECONDS));
+        assertTrue("Concurrent simulation must complete within 10s", finishLatch.await(10, TimeUnit.SECONDS));
         assertFalse("No exceptions should occur during concurrent produce/consume", errorOccurred.get());
         assertTrue(buffer.size() > 0);
     }

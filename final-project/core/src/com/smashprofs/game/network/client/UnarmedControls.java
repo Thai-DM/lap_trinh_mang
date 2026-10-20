@@ -7,7 +7,11 @@ import java.util.function.IntPredicate;
 /** Both presets produce the same logical input. Jump and upward aim are separate bindings. */
 public final class UnarmedControls {
     public enum Preset { B, A }
-    public record Frame(float horizontal,boolean jumpPressed,boolean lightPressed,boolean interactPressed,boolean dropPressed,FighterInput fighter) { }
+    public record Frame(float horizontal,boolean jumpPressed,boolean lightPressed,boolean lightHeld,boolean interactPressed,boolean dropPressed,FighterInput fighter) {
+        public Frame(float horizontal,boolean jumpPressed,boolean lightPressed,boolean interactPressed,boolean dropPressed,FighterInput fighter) {
+            this(horizontal,jumpPressed,lightPressed,false,interactPressed,dropPressed,fighter);
+        }
+    }
     private static long lastDownPressTime;
     private UnarmedControls() { }
     public static Frame sample(Preset preset,IntPredicate held,IntPredicate pressed) {
@@ -39,7 +43,7 @@ public final class UnarmedControls {
         boolean jumpHeld=held.test(jump);
         boolean upHeld=held.test(up) || pressed.test(up) || held.test(Input.Keys.I);
         boolean downHeld=held.test(down) || pressed.test(down);
-        return new Frame(h,jumpPressed,pressed.test(light),pressed.test(interact),dropPressed,
+        return new Frame(h,jumpPressed,pressed.test(light),held.test(light),pressed.test(interact),dropPressed,
                 new FighterInput(downHeld,jumpHeld,upHeld,pressed.test(heavy),held.test(heavy),dodgeEdge,pressed.test(throwKey),dashIntent));
     }
     public static String hint() {

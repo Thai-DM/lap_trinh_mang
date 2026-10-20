@@ -7,7 +7,16 @@ import java.util.*;
 /** Bounded simulation-time item/projectile system. Ballistic grenades use fixed-step gravity and swept collisions. */
 final class ItemSystem implements AutoCloseable {
     static final int MAX_ITEMS=16,MAX_SHOTS=64;
-    private static final String[] TYPES={"SHOTGUN","LASER","BAZOOKA","GRENADE","HEALTH","SHIELD"};
+    private static final String[] TYPES={"SHOTGUN","LASER","BAZOOKA","GRENADE","SWORD","WARHAMMER","DUAL_DAGGERS","SPEAR","HEALTH","SHIELD"};
+    static int ammoFor(String type) {
+        return switch(type) {
+            case "GRENADE"->1;
+            case "WARHAMMER"->4;
+            case "SWORD","SPEAR"->6;
+            case "DUAL_DAGGERS"->8;
+            default->6;
+        };
+    }
     private final GameplayMatch game;
     private final Random random;
     private final List<Platform> platforms;
@@ -42,7 +51,7 @@ final class ItemSystem implements AutoCloseable {
                         else {
                             float landing=y;
                             for(var block:terrain) { if(block.top>block.bottom && x+.08f>=block.left && x-.08f<=block.right) { landing=Math.max(landing,block.top+.12f); } }
-                            drops.add(new Drop(nextId++,type,x,Math.max(4.2f,landing+.8f),tick,type.equals("GRENADE")?1:6,landing,0));
+                            drops.add(new Drop(nextId++,type,x,Math.max(4.2f,landing+.8f),tick,ammoFor(type),landing,0));
                         }
                         break;
                     }
@@ -59,6 +68,75 @@ final class ItemSystem implements AutoCloseable {
             var shot=iterator.next();
             if(!game.active(shot.owner) || tick-shot.tick>180 || shot.x<0 || shot.x>12 || shot.y<(game.fighter==null?-.5f:-1.5f) || shot.y>(game.fighter==null?5:9)) { iterator.remove();continue; }
             if(shot.type.equals("EXPLOSION")) { if(tick-shot.tick>12) { iterator.remove(); }continue; }
+            if(shot.type.equals("SWORD_SLASH") || shot.type.equals("WARHAMMER_SWING")
+                    || shot.type.equals("DAGGER_SLASH") || shot.type.equals("SPEAR_THRUST")) {
+                int maxTicks = shot.type.equals("WARHAMMER_SWING") ? 10 : shot.type.equals("DAGGER_SLASH") ? 6 : 8;
+                if(tick - shot.tick > maxTicks) { iterator.remove(); continue; }
+                var ownerPos = game.bodies.getPosition(shot.owner);
+                shot.x = ownerPos.xMeters();
+                shot.y = ownerPos.yMeters();
+                float reach = shot.type.equals("SPEAR_THRUST") ? 0.70f : shot.type.equals("WARHAMMER_SWING") ? 0.52f : shot.type.equals("SWORD_SLASH") ? 0.50f : 0.38f;
+                float ux = shot.vx, uy = shot.vy;
+                for(var p:game.state.playersInSlotOrder()) {
+                    var target=p.getPlayerId();if(target.equals(shot.owner) || !game.active(target) || shot.hit.contains(target)) { continue; }
+                    var pos=game.bodies.getPosition(target);
+                    float dx = pos.xMeters() - ownerPos.xMeters();
+                    float dy = pos.yMeters() - ownerPos.yMeters();
+                    float dist = (float)Math.hypot(dx, dy);
+                    float dot = (dx * ux + dy * uy) / Math.max(0.001f, dist);
+                    boolean hitTarget = false;
+                    if(shot.type.equals("SPEAR_THRUST")) {
+                        hitTarget = dist <= reach && dot > 0.45f;
+                    } else if(shot.type.equals("WARHAMMER_SWING")) {
+                        hitTarget = dist <= reach && dot > -0.2f;
+                    } else if(shot.type.equals("SWORD_SLASH")) {
+                        hitTarget = dist <= reach && dot > 0.0f;
+                    } else {
+                        hitTarget = dist <= reach && dot > 0.1f;
+                    }
+                    if(hitTarget) {
+                        shot.hit.add(target);
+                        float damage;
+                        float knockback;
+                        if(shot.type.equals("WARHAMMER_SWING")) {
+                            damage = 32f;
+                            knockback = 2.4f;
+                            if(game.progress.get(target).shield) {
+                                game.progress.get(target).shield = false;
+                            }
+                            if(game.fighter != null) {
+                                game.fighter.stun(target, 24);
+                            }
+                        } else if(shot.type.equals("SWORD_SLASH")) {
+                            damage = 18f;
+                            knockback = 1.8f;
+                            if(game.fighter != null) {
+                                game.fighter.stun(target, 14);
+                            }
+                        } else if(shot.type.equals("SPEAR_THRUST")) {
+                            boolean tipper = dist >= 0.44f;
+                            damage = tipper ? 24f : 14f;
+                            knockback = tipper ? 2.1f : 1.4f;
+                            if(game.fighter != null) {
+                                game.fighter.stun(target, tipper ? 20 : 12);
+                            }
+                        } else {
+                            damage = 10f;
+                            knockback = 1.0f;
+                            if(game.fighter != null) {
+                                game.fighter.stun(target, 12);
+                            }
+                        }
+                        float kx = ux != 0 ? ux : (pos.xMeters() >= ownerPos.xMeters() ? 1f : -1f);
+                        float ky = uy != 0 ? uy : 0.5f;
+                        if(shot.type.equals("WARHAMMER_SWING") && ky <= 0) {
+                            ky = 1.2f;
+                        }
+                        game.damage(shot.owner, target, shot.type, damage, kx * knockback, Math.max(0.8f, ky * knockback));
+                    }
+                }
+                continue;
+            }
             float previousX=shot.x,previousY=shot.y;
             if(shot.type.equals("ORBIT")) {
                 var pos=game.bodies.getPosition(shot.owner);double angle=(tick-shot.tick)*.10+shot.phase;
@@ -93,10 +171,17 @@ final class ItemSystem implements AutoCloseable {
                 }
             }
             if(shot.type.equals("THROWN")) {
-                if(collision) { game.damage(shot.owner,firstTarget,"THROWN",8,shot.vx,Math.max(1,shot.vy)); }
+                if(collision) {
+                    game.damage(shot.owner,firstTarget,"THROWN",8,shot.vx,Math.max(1,shot.vy));
+                    if(game.fighter!=null) {
+                        game.fighter.stun(firstTarget, 60);
+                    }
+                }
                 if(collision || terrain || tick-shot.tick>=90) {
                     var point=dropPositionAt(shot.x,shot.y+.1f);
-                    if(point!=null && drops.size()<MAX_ITEMS) { drops.add(new Drop(nextId++,shot.weaponType,point[0],point[1],tick,shot.weaponAmmo)); }
+                    if(point!=null && drops.size()<MAX_ITEMS && !game.setup.rules().keepWeaponOnThrow()) {
+                        drops.add(new Drop(nextId++,shot.weaponType,point[0],point[1],tick,shot.weaponAmmo));
+                    }
                     iterator.remove();
                 }
             } else if(shot.type.equals("GRENADE")) {
@@ -111,7 +196,7 @@ final class ItemSystem implements AutoCloseable {
     boolean drop(String type,float x,float y,long tick) {
         if(itemSlots()>=MAX_ITEMS) { return false; }
         if(!List.of(TYPES).contains(type) || !Float.isFinite(x) || !Float.isFinite(y)) { throw new IllegalArgumentException("Invalid drop"); }
-        drops.add(new Drop(nextId++,type,x,y,tick,type.equals("GRENADE")?1:6));return true;
+        drops.add(new Drop(nextId++,type,x,y,tick,ammoFor(type)));return true;
     }
     /** One edge per simulation batch. Identity, distance, ammo and capacity are server-owned. */
     void interact(PlayerInput input,long tick) {
@@ -178,14 +263,37 @@ final class ItemSystem implements AutoCloseable {
         if(!game.active(id) || p.weapon.equals("NONE")) { return false; }
         // An equipped weapon consumes the melee edge even during its fire cooldown.
         if(tick<p.nextShot) { return true; }
-        int count=p.weapon.equals("SHOTGUN")?3:1;
-        if(shots.size()+count>MAX_SHOTS) { return true; }
         var pos=game.bodies.getPosition(id);
         float facing=game.state.getPlayer(id).isFacingRight()?1f:-1f;
         boolean hasAim=aimX!=0 || aimY!=0;
         float dirX=hasAim?aimX:facing,dirY=hasAim?aimY:0;
         double length=Math.hypot(dirX,dirY);
         float ux=(float)(dirX/length),uy=(float)(dirY/length);
+
+        boolean isMelee = p.weapon.equals("SWORD") || p.weapon.equals("WARHAMMER")
+                || p.weapon.equals("DUAL_DAGGERS") || p.weapon.equals("SPEAR");
+        if(isMelee) {
+            if(shots.size()+1>MAX_SHOTS) { return true; }
+            String meleeShot = switch(p.weapon) {
+                case "WARHAMMER"->"WARHAMMER_SWING";
+                case "DUAL_DAGGERS"->"DAGGER_SLASH";
+                case "SPEAR"->"SPEAR_THRUST";
+                default->"SWORD_SLASH";
+            };
+            int cooldown = switch(p.weapon) {
+                case "WARHAMMER"->28;
+                case "DUAL_DAGGERS"->12;
+                case "SPEAR"->20;
+                default->18;
+            };
+            shots.add(new Shot(nextId++,meleeShot,id,tick,pos.xMeters(),pos.yMeters(),ux,uy,0));
+            p.nextShot=tick+cooldown;
+            if(--p.ammo==0) { p.weapon="NONE"; }
+            return true;
+        }
+
+        int count=p.weapon.equals("SHOTGUN")?3:1;
+        if(shots.size()+count>MAX_SHOTS) { return true; }
         float baseAngle=(float)Math.atan2(uy,ux);
         float speed=p.weapon.equals("LASER")?40:p.weapon.equals("GRENADE")?1.8f:p.weapon.equals("BAZOOKA")?2:4;
         for(int i=0;i<count;i++) {
@@ -212,7 +320,11 @@ final class ItemSystem implements AutoCloseable {
         if(!game.active(id) || p.weapon.equals("NONE") || itemSlots()>=MAX_ITEMS || shots.size()>=MAX_SHOTS) { return false; }
         var pos=game.bodies.getPosition(id);float direction=axis==0?(game.state.getPlayer(id).isFacingRight()?1:-1):Math.signum(axis);
         var shot=new Shot(nextId++,"THROWN",id,tick,pos.xMeters(),pos.yMeters()+.1f,aimY==0?direction*5:axis==0?0:direction*3,aimY==0?1.5f:aimY*5,0);
-        shot.weaponType=p.weapon;shot.weaponAmmo=p.ammo;shots.add(shot);p.weapon="NONE";p.ammo=0;return true;
+        shot.weaponType=p.weapon;shot.weaponAmmo=p.ammo;shots.add(shot);
+        if(!game.setup.rules().keepWeaponOnThrow()) {
+            p.weapon="NONE";p.ammo=0;
+        }
+        return true;
     }
     boolean orbit(PlayerId id,long tick) {
         if(shots.size()+2>MAX_SHOTS) { return false; }

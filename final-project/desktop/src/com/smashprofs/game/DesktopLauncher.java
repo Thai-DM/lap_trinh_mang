@@ -2,6 +2,7 @@ package com.smashprofs.game;
 
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
+import com.smashprofs.game.network.client.LobbyConfiguration;
 
 // Please note that on macOS your application needs to be started with the -XstartOnFirstThread JVM argument
 public class DesktopLauncher {
@@ -18,6 +19,18 @@ public class DesktopLauncher {
 	}
 
 	public static void main (String[] arg) {
+		LobbyConfiguration lobby;
+		com.smashprofs.game.network.client.LobbyClient clusterLobby = null;
+		try {
+			if (arg != null && java.util.Arrays.stream(arg).anyMatch(a -> a.startsWith("--control-url="))) {
+				clusterLobby = com.smashprofs.game.network.client.ClusterLobbyConnector.fromArguments(arg);
+				lobby = null;
+			} else { lobby = LobbyConfiguration.fromArguments(arg==null?null:java.util.Arrays.stream(arg).filter(a->!a.equals("--gameplay") && !a.equals("--online")).toArray(String[]::new)); }
+		} catch (IllegalArgumentException | java.io.IOException invalid) {
+			System.err.println("[DesktopLauncher] " + invalid.getMessage());
+			System.err.println("Online: --server-host=127.0.0.1 --server-port=PORT --room=ROOM --create-room|--join-room");
+			return;
+		}
 
 		// --Toggle unit test mode--
 		unitTestMode = false;
@@ -56,6 +69,39 @@ public class DesktopLauncher {
 		else if(useOwnResolution) config.setWindowedMode(getWidth(), getHeight());
 		else config.setMaximized(true);
 
-		new Lwjgl3Application(new Game(), config);
+		boolean mockMode = false;
+		if (arg != null) {
+			for (String s : arg) {
+				if ("--mock".equalsIgnoreCase(s)) {
+					mockMode = true;
+					break;
+				}
+			}
+		}
+
+		Game game;
+		if (clusterLobby != null) {
+			game = Game.forLobby(clusterLobby);
+		} else if (lobby != null) {
+			game = new Game(lobby);
+			if(arg!=null && java.util.Arrays.asList(arg).contains("--gameplay")) { game.getLobbyClient().enableGameplay(); }
+		} else if (mockMode) {
+			try {
+				com.smashprofs.game.network.mock.MockServer mockServer = new com.smashprofs.game.network.mock.MockServer();
+				mockServer.start();
+				int port = mockServer.getPort();
+				System.out.println("[DesktopLauncher] Started MockServer on 127.0.0.1:" + port);
+				com.smashprofs.game.network.client.NetworkClient networkClient = com.smashprofs.game.network.client.NetworkClient.forMock("127.0.0.1", port, null);
+				game = new Game(networkClient, mockServer);
+			} catch (Exception e) {
+				System.err.println("[DesktopLauncher] Failed to start MockServer: " + e.getMessage());
+				game = new Game();
+			}
+		} else {
+			game = new Game();
+		}
+
+		game.startOnlineMenu=arg!=null && java.util.Arrays.asList(arg).contains("--online");
+		new Lwjgl3Application(game, config);
 	}
 }

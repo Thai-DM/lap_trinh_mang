@@ -1,0 +1,70 @@
+﻿{
+    "roomStates":  {
+
+                   },
+    "queued":  0,
+    "activeRooms":  0,
+    "workers":  [
+                    {
+                        "workerId":  "worker-1",
+                        "region":  "local",
+                        "health":  "HEALTHY",
+                        "report":  {
+                                       "cycles":  12,
+                                       "tickOverruns":  0,
+                                       "tickMeanMs":  0.13829166666666665,
+                                       "tickP95Ms":  1.1231,
+                                       "tickP99Ms":  1.1231,
+                                       "errors":  0,
+                                       "sentBytesPerSecond":  0.0,
+                                       "snapshotBytesPerSecond":  0.0,
+                                       "messagesPerSecond":  0.0,
+                                       "errorsPerSecond":  0.0,
+                                       "sentBytes":  0,
+                                       "receivedBytes":  0,
+                                       "snapshotBytes":  0,
+                                       "sentMessages":  0,
+                                       "receivedMessages":  0,
+                                       "networkErrors":  0,
+                                       "workerId":  "worker-1",
+                                       "incarnation":  "17130d18-1ded-4404-b685-cfc33ded02e6",
+                                       "region":  "local",
+                                       "pid":  59656,
+                                       "port":  29001,
+                                       "adminPort":  29101,
+                                       "maxRooms":  8,
+                                       "maxConnections":  32,
+                                       "activeConnections":  0,
+                                       "activeRooms":  0,
+                                       "activePlayers":  0,
+                                       "inputQueueDepth":  0,
+                                       "outboundQueueDepth":  0,
+                                       "maxSendMs":  0.0,
+                                       "cpu":  0.24455108175881565,
+                                       "heapBytes":  18874368,
+                                       "heapRatio":  0.140625,
+                                       "gcCollectionMillis":  3,
+                                       "rooms":  {
+
+                                                 },
+                                       "draining":  false,
+                                       "uptimeSeconds":  0.2609444,
+                                       "persistencePending":  0,
+                                       "persistenceTracked":  0,
+                                       "snapshotHz":  20
+                                   },
+                        "reserved":  {
+                                         "id":  "worker-1",
+                                         "rooms":  0,
+                                         "maxRooms":  8,
+                                         "connections":  0,
+                                         "maxConnections":  32,
+                                         "cpu":  0.24455108175881565,
+                                         "tickP99Ms":  1.1231,
+                                         "heapRatio":  0.140625,
+                                         "outboundDepth":  0
+                                     }
+                    }
+                ],
+    "sessions":  0
+}

@@ -1,0 +1,6 @@
+[0.370s][info][jfr,startup] Started recording 1.
+[0.370s][info][jfr,startup] 
+[0.370s][info][jfr,startup] Use jcmd 60696 JFR.dump name=1 to copy recording data to file.
+STANDALONE_READY 39000
+Oct 15, 2026 10:37:21 PM com.smashprofs.server.game.physics.TmxCollisionLoader load
+WARNING: Gi? geometry kích th??c 0 c?a baseline, không b?/thêm ?? dày: 1/Map1New2Remake.tmx, object ID=35

@@ -1,0 +1,15 @@
+﻿{
+    "date":  "2026-10-16T16:20:02.5047074+07:00",
+    "status":  "PASS",
+    "label":  "lava-inventory-hud",
+    "heapMiB":  128,
+    "suites":  [
+                   "com.smashprofs.server.game.LavaReboundTest",
+                   "com.smashprofs.server.game.StockGameplayTest",
+                   "com.smashprofs.server.game.ItemGameplayTest",
+                   "com.smashprofs.server.game.physics.WallMovementTest",
+                   "com.smashprofs.server.network.SharedSnapshotCacheTest",
+                   "com.smashprofs.tests.network.GameplayClientModelTest",
+                   "com.smashprofs.server.game.GameplayTcpIntegrationTest"
+               ]
+}

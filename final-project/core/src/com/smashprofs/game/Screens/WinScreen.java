@@ -20,6 +20,7 @@ import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.FillViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.crashinvaders.vfx.VfxManager;
+import com.smashprofs.common.model.MatchResult;
 import com.smashprofs.game.Actors.Players.PlayerView;
 import com.smashprofs.game.Helper.PostProcessingSettings;
 import com.smashprofs.game.Helper.SoundManager;
@@ -36,6 +37,7 @@ public class WinScreen implements Screen {
     private Table mainTable;
     private Image menuButton, winner;
     private PlayerView playerOne, playerTwo;
+    private MatchResult matchResult;
     private final VfxManager postProcessingManager;
     private SoundManager sound;
 
@@ -75,6 +77,10 @@ public class WinScreen implements Screen {
 
     }
 
+    public void setMatchResult(MatchResult matchResult) {
+        this.matchResult = matchResult;
+    }
+
     /**
      * Gets called when showing the WinScreen.
      * Fills the main table with Content(button, background), creates button with Listeners for Hovering/Clicking.
@@ -94,7 +100,13 @@ public class WinScreen implements Screen {
         menuButton = new Image(menuButtonInactive);
 
         // winner
-        if (playerOne.getHP() >= playerTwo.getHP()) {
+        if (matchResult != null && matchResult.winnerId() != null) {
+            if ("player-1".equals(matchResult.winnerId().value())) {
+                winner = new Image(player1);
+            } else {
+                winner = new Image(player2);
+            }
+        } else if (playerOne.getHP() >= playerTwo.getHP()) {
             winner = new Image(player1);
         } else {
             winner = new Image(player2);

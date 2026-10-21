@@ -1,0 +1,16 @@
+# Transport/envelope vectors: header hex | exact UTF-8 JSON (no newline in frame).
+0000003c|{"version":1,"type":"CONNECT","requestId":"r1","payload":{}}
+0000004f|{"version":1,"type":"CONNECT_ACK","requestId":"r1","payload":{"playerId":"p1"}}
+0000004c|{"version":1,"type":"CREATE_ROOM","requestId":"r2","payload":{"roomId":"r"}}
+0000004d|{"version":1,"type":"ROOM_CREATED","requestId":"r2","payload":{"roomId":"r"}}
+0000004a|{"version":1,"type":"JOIN_ROOM","requestId":"r3","payload":{"roomId":"r"}}
+0000006a|{"version":1,"type":"ROOM_STATE","requestId":"r3","payload":{"roomId":"r","phase":"WAITING","players":[]}}
+0000003f|{"version":1,"type":"LEAVE_ROOM","requestId":"r4","payload":{}}
+00000062|{"version":1,"type":"PLAYER_READY","requestId":"r5","payload":{"characterId":"Alex","ready":true}}
+000000bd|{"version":1,"type":"GAME_START","payload":{"matchId":"m","roomId":"r","players":[{"playerId":"p1","slotIndex":0,"characterId":"Alex"},{"playerId":"p2","slotIndex":1,"characterId":"Leo"}]}}
+000000c0|{"version":1,"type":"PLAYER_INPUT","payload":{"sequence":0,"clientTick":0,"moveAxis":1.0,"jumpPressed":true,"stompPressed":false,"meleePressed":false,"abilityPressed":false,"blockHeld":false}}
+00000278|{"version":1,"type":"GAME_STATE","payload":{"matchId":"m","roomId":"r","serverTick":1,"phase":"PLAYING","remainingTimeMs":120000,"players":[{"playerId":"p1","slotIndex":0,"characterId":"Alex","x":0,"y":0,"velocityX":0,"velocityY":0,"hp":99.5,"grounded":true,"blocking":false,"dead":false,"facingRight":true},{"playerId":"p2","slotIndex":1,"characterId":"Leo","x":0,"y":0,"velocityX":0,"velocityY":0,"hp":91.25,"grounded":true,"blocking":false,"dead":false,"facingRight":true}],"projectiles":[{"projectileId":1,"matchId":"m","ownerPlayerId":"p1","projectileType":"IBM","spawnTick":1,"x":1.25,"y":2.5,"velocityX":3.5,"velocityY":0}]}}
+00000146|{"version":1,"type":"GAME_END","payload":{"matchId":"m","roomId":"r","finishedAtTick":7200,"winnerId":null,"finishReason":"TIME_LIMIT","participants":[{"playerId":"p1","slotIndex":0,"characterId":"Alex","finalHp":99.5,"eliminated":false},{"playerId":"p2","slotIndex":1,"characterId":"Leo","finalHp":99.5,"eliminated":false}]}}
+00000064|{"version":1,"type":"ERROR","requestId":"r6","payload":{"code":"INVALID_PAYLOAD","message":"Lỗi"}}
+00000039|{"version":1,"type":"PING","requestId":"r7","payload":{}}
+00000039|{"version":1,"type":"PONG","requestId":"r7","payload":{}}

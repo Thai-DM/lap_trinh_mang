@@ -1,0 +1,11 @@
+﻿{
+    "date":  "2026-10-16T07:15:27.2692713+07:00",
+    "status":  "PASS",
+    "label":  "phase1",
+    "heapMiB":  128,
+    "suites":  [
+                   "com.smashprofs.server.room.HostRulesTest",
+                   "com.smashprofs.server.room.GameRoomMatchSetupTest",
+                   "com.smashprofs.server.network.TcpProtocolV1Test"
+               ]
+}

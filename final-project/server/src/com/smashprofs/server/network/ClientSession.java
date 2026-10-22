@@ -35,6 +35,8 @@ public final class ClientSession {
     private final Consumer<ClientSession> onClosed;
     private volatile PlayerId playerId;
     private volatile String roomId;
+    private volatile String profileId;
+    private volatile String displayName;
     private volatile boolean connected = true;
 
     public ClientSession(String sessionId, SessionChannel channel) {
@@ -57,6 +59,13 @@ public final class ClientSession {
 
     public PlayerId getPlayerId() {
         return playerId;
+    }
+
+    public String getProfileId() { return profileId; }
+    public String getDisplayName() { return displayName; }
+    public synchronized void setProfile(String profileId, String displayName) {
+        this.profileId = profileId;
+        this.displayName = displayName;
     }
 
     /** Gắn player dưới khóa dùng chung với routing; chỉ metadata, không sửa roster. */

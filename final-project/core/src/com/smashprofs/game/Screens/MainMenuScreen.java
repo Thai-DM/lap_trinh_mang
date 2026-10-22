@@ -10,13 +10,16 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.Touchable;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.ui.TextField;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.ScreenUtils;
@@ -25,6 +28,7 @@ import com.smashprofs.game.Helper.KeyBindingConfig;
 import com.smashprofs.game.Helper.Keys;
 import com.smashprofs.game.Helper.SoundManager;
 import com.smashprofs.game.Helper.gamePropertiesManager;
+import com.smashprofs.game.profile.PlayerProfile;
 import com.smashprofs.game.ui.OnlineUi;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -52,6 +56,23 @@ public class MainMenuScreen implements Screen {
     private final Texture logoTexture;
     private final Table logoContainer;
 
+    private TextureRegion alexRegion;
+    private TextureRegion leoRegion;
+    private TextureRegion lucaRegion;
+
+    // Profile State & UI
+    private Table profileOverlay;
+    private TextField profileNameField;
+    private TextField profileIdField;
+    private String selectedAvatar = "Alex";
+    private Label profileDisplayLabel;
+    private Label profileIdLabel;
+    private Image profileAvatarImage;
+    private Table alexAvatarCard;
+    private Table leoAvatarCard;
+    private Table lucaAvatarCard;
+
+    // Settings State & UI
     private Table settingsOverlay;
     private KeyBindingConfig.Action currentlyRebinding = null;
     private final Map<KeyBindingConfig.Action, TextButton> actionButtons = new EnumMap<>(KeyBindingConfig.Action.class);
@@ -72,27 +93,46 @@ public class MainMenuScreen implements Screen {
         // Character preview textures
         var alexTex = new Texture(Gdx.files.internal("Sprites/Alex/alex_stand.png"));
         var leoTex = new Texture(Gdx.files.internal("Sprites/Leo/leo_stand.png"));
+        var lucaTex = new Texture(Gdx.files.internal("Sprites/Luca/luca_stand.png"));
         alexTex.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
         leoTex.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
+        lucaTex.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
         textures.add(alexTex);
         textures.add(leoTex);
+        textures.add(lucaTex);
 
-        var alexRegion = new TextureRegion(alexTex, 0, 0, 100, 100);
-        var leoRegion = new TextureRegion(leoTex, 0, 0, 100, 100);
+        alexRegion = new TextureRegion(alexTex, 0, 0, 100, 100);
+        leoRegion = new TextureRegion(leoTex, 0, 0, 100, 100);
+        lucaRegion = new TextureRegion(lucaTex, 0, 0, 100, 100);
 
         // --- ROOT LAYOUT ---
         var root = new Table();
         root.setFillParent(true);
-        root.pad(16, 32, 14, 32);
+        root.pad(10, 32, 10, 32);
 
-        // ================= TOP LOGO & TAGLINE =================
+        // ================= TOP STATUS BAR (GAME TAG & PROFILE BADGE) =================
+        var topBar = new Table();
+
+        var tagBadge = new Table();
+        tagBadge.setBackground(ui.comicBox(Color.valueOf("061324"), OnlineUi.BRAWL_BORDER, 2f, 0, 0));
+        tagBadge.pad(3, 14, 3, 14);
+        tagBadge.add(ui.small("SUPER SMASH PROFS  ·  MULTINETWORK EDITION", Color.valueOf("94D2FF")));
+        topBar.add(tagBadge).left().expandX();
+
+        var profileBadge = createProfileBadge();
+        topBar.add(profileBadge).right();
+
+        root.add(topBar).growX().padBottom(6);
+        root.row();
+
+        // ================= LOGO & TAGLINE =================
         var topSection = new Table();
 
         logoContainer = new Table();
         logoContainer.setTransform(true);
         logoContainer.setOrigin(Align.center);
         var logoImage = new Image(logoTexture);
-        logoContainer.add(logoImage).size(780, 66);
+        logoContainer.add(logoImage).size(780, 64);
         topSection.add(logoContainer).center();
         topSection.row();
 
@@ -101,9 +141,9 @@ public class MainMenuScreen implements Screen {
         subtitleBadge.pad(3, 18, 3, 18);
         var subTitle = ui.small("ĐẤU TRƯỜNG ĐỐI KHÁNG ĐỈNH CAO  ·  SUPER SMASH PROFS", Color.valueOf("94D2FF"));
         subtitleBadge.add(subTitle);
-        topSection.add(subtitleBadge).center().padTop(6);
+        topSection.add(subtitleBadge).center().padTop(4);
 
-        root.add(topSection).growX().center();
+        root.add(topSection).growX().center().padBottom(4);
         root.row();
 
         // ================= CENTER ROW (LEFT HERO - MENU CARD - RIGHT HERO) =================
@@ -135,15 +175,15 @@ public class MainMenuScreen implements Screen {
         alexTablet.add(ui.heading("ALEX", Color.WHITE)).center().padTop(2);
         leftPedestal.add(alexTablet).growX().bottom();
 
-        centerRow.add(leftPedestal).width(230).height(400).padRight(24);
+        centerRow.add(leftPedestal).width(230).height(415).padRight(24);
 
         // 2. Center Action Menu Card
         var menuCard = new Table();
         menuCard.setBackground(ui.comicBox(Color.valueOf("09182E"), OnlineUi.BRAWL_BORDER, 4f, 6, 8));
-        menuCard.pad(16, 32, 16, 32);
+        menuCard.pad(10, 32, 10, 32);
 
         var menuTitle = ui.comicHeading("CHỌN CHẾ ĐỘ CHƠI", Color.WHITE);
-        menuCard.add(menuTitle).center().padBottom(14);
+        menuCard.add(menuTitle).center().padBottom(8);
         menuCard.row();
 
         // Button 1: Chơi Local
@@ -151,10 +191,10 @@ public class MainMenuScreen implements Screen {
             playSound();
             openLocal();
         });
-        menuCard.add(localBtn).size(420, 48);
+        menuCard.add(localBtn).size(420, 44);
         menuCard.row();
         var localHint = ui.small("2 người chơi đối kháng trên cùng một bàn phím", Color.valueOf("FFE8A3"));
-        menuCard.add(localHint).center().padTop(3).padBottom(10);
+        menuCard.add(localHint).center().padTop(2).padBottom(6);
         menuCard.row();
 
         // Button 2: Chơi Online
@@ -162,31 +202,39 @@ public class MainMenuScreen implements Screen {
             playSound();
             openOnline();
         });
-        menuCard.add(onlineBtn).size(420, 48);
+        menuCard.add(onlineBtn).size(420, 44);
         menuCard.row();
         var onlineHint = ui.small("Sảnh đấu trực tuyến qua mạng LAN / Internet (2-4 người)", Color.valueOf("94FFE5"));
-        menuCard.add(onlineHint).center().padTop(3).padBottom(10);
+        menuCard.add(onlineHint).center().padTop(2).padBottom(6);
         menuCard.row();
 
-        // Button 3: Cài đặt phím
+        // Button 3: Bảng Xếp Hạng
+        var rankBtn = ui.comicButton("BẢNG XẾP HẠNG  [B]", "comic-gold", () -> {
+            playSound();
+            openLeaderboard();
+        });
+        menuCard.add(rankBtn).size(420, 44);
+        menuCard.row();
+        var rankHint = ui.small("Top cao thủ, điểm Elo và lịch sử tỉ lệ thắng", Color.valueOf("FFE8A3"));
+        menuCard.add(rankHint).center().padTop(2).padBottom(6);
+        menuCard.row();
+
+        // Button 4: Cài đặt phím
         var settingsBtn = ui.comicButton("CÀI ĐẶT PHÍM  [C]", "comic-white", () -> {
             playSound();
             openSettings();
         });
-        menuCard.add(settingsBtn).size(420, 48);
-        menuCard.row();
-        var settingsHint = ui.small("Tùy chỉnh phím điều khiển (di chuyển, nhảy, đánh, né...)", Color.valueOf("CFE2FE"));
-        menuCard.add(settingsHint).center().padTop(3).padBottom(10);
+        menuCard.add(settingsBtn).size(420, 38);
         menuCard.row();
 
-        // Button 4: Thoát
+        // Button 5: Thoát
         var exitBtn = ui.comicButton("THOÁT GAME  [ESC]", "comic-white", () -> {
             playSound();
             Gdx.app.exit();
         });
-        menuCard.add(exitBtn).size(420, 42).padBottom(2);
+        menuCard.add(exitBtn).size(420, 36).padTop(6);
 
-        centerRow.add(menuCard).width(484).height(400);
+        centerRow.add(menuCard).width(484).height(415);
 
         // 3. Right Pedestal: LEO
         var rightPedestal = new Table();
@@ -213,15 +261,15 @@ public class MainMenuScreen implements Screen {
         leoTablet.add(ui.heading("LEO", Color.WHITE)).center().padTop(2);
         rightPedestal.add(leoTablet).growX().bottom();
 
-        centerRow.add(rightPedestal).width(230).height(400).padLeft(24);
+        centerRow.add(rightPedestal).width(230).height(415).padLeft(24);
 
-        root.add(centerRow).growX().center().padTop(8);
+        root.add(centerRow).growX().center().padTop(6);
         root.row();
 
-        // ================= BOTTOM STATISTICS & DEV CREDITS TABLET =================
+        // ================= BOTTOM STATUS FOOTER =================
         var statsTablet = new Table();
-        statsTablet.setBackground(ui.comicBox(Color.valueOf("061324"), OnlineUi.BRAWL_BORDER, 2f, 0, 0));
-        statsTablet.pad(6, 24, 6, 24);
+        statsTablet.setBackground(ui.comicBox(Color.valueOf("071221"), OnlineUi.BRAWL_BORDER, 2f, 0, 0));
+        statsTablet.pad(4, 20, 4, 20);
 
         statsTablet.add(ui.small("THỜI GIAN ĐÃ CHƠI: ", OnlineUi.MUTED));
         statsTablet.add(ui.small(gamePropertiesManager.getEntry(Keys.GAMETIME), Color.WHITE));
@@ -236,11 +284,14 @@ public class MainMenuScreen implements Screen {
         statsTablet.add(ui.small("DEV TEAM: ", OnlineUi.MUTED));
         statsTablet.add(ui.small("Leo · Maurice · Alex · Luca", OnlineUi.BRAWL_CYAN));
 
-        root.add(statsTablet).center().padTop(10);
+        root.add(statsTablet).center().padTop(6);
 
         stage.addActor(root);
 
-        // Settings modal dialog
+        // Modals
+        profileOverlay = createProfileModal();
+        stage.addActor(profileOverlay);
+
         settingsOverlay = createSettingsModal();
         stage.addActor(settingsOverlay);
 
@@ -269,7 +320,225 @@ public class MainMenuScreen implements Screen {
             }
         });
 
-        log.info("Initialized MainMenuScreen in Brawlhalla comic format with customizable keybindings");
+        log.info("Initialized MainMenuScreen with Player Profile and Keybindings");
+    }
+
+    private TextureRegion getAvatarRegion(String avatarName) {
+        if ("Leo".equalsIgnoreCase(avatarName)) {
+            return leoRegion;
+        } else if ("Luca".equalsIgnoreCase(avatarName)) {
+            return lucaRegion;
+        }
+        return alexRegion;
+    }
+
+    private Table createProfileBadge() {
+        var badge = new Table();
+        badge.setBackground(ui.comicBox(Color.valueOf("061324"), OnlineUi.BRAWL_CYAN, 2.5f, 2, 2));
+        badge.pad(4, 12, 4, 12);
+
+        var profile = PlayerProfile.get();
+
+        profileAvatarImage = new Image(getAvatarRegion(profile.getAvatar()));
+        badge.add(profileAvatarImage).size(34, 34).padRight(8);
+
+        var textCol = new Table();
+        profileDisplayLabel = ui.small(profile.getDisplayName(), Color.WHITE);
+        profileIdLabel = ui.small("ID: " + profile.getProfileId(), OnlineUi.BRAWL_GOLD);
+        textCol.add(profileDisplayLabel).left();
+        textCol.row();
+        textCol.add(profileIdLabel).left();
+        badge.add(textCol).left().padRight(12);
+
+        var btn = ui.comicButton("HỒ SƠ [P]", "comic-primary", () -> {
+            playSound();
+            openProfile();
+        });
+        badge.add(btn).size(105, 34);
+
+        return badge;
+    }
+
+    private Table createProfileModal() {
+        var overlay = new Table();
+        overlay.setFillParent(true);
+        overlay.setBackground(ui.skin.newDrawable("pixel", new Color(0, 0, 0, 0.85f)));
+        overlay.setVisible(false);
+
+        var dialog = new Table();
+        dialog.setBackground(ui.comicBox(Color.valueOf("09182E"), OnlineUi.BRAWL_GOLD, 4.5f, 8, 10));
+        dialog.pad(16, 28, 16, 28);
+
+        // Header: Title + Close button
+        var dlgHeader = new Table();
+        var dlgTitle = ui.comicHeading("HỒ SƠ NGƯỜI CHƠI", OnlineUi.BRAWL_GOLD);
+        var closeBtn = ui.comicButton("X", "comic-white", () -> {
+            playSound();
+            closeProfile();
+        });
+        dlgHeader.add(dlgTitle).expandX().left();
+        dlgHeader.add(closeBtn).size(40, 40).right();
+        dialog.add(dlgHeader).growX().padBottom(8);
+        dialog.row();
+
+        var instruction = ui.small("Tùy chỉnh thông tin tài khoản và định danh điểm ELO xếp hạng", Color.valueOf("94D2FF"));
+        dialog.add(instruction).center().padBottom(12);
+        dialog.row();
+
+        // 1. Avatar Selection
+        var avatarSection = new Table();
+        avatarSection.add(ui.small("CHIẾN BINH ĐẠI DIỆN:", Color.WHITE)).left().padBottom(6);
+        avatarSection.row();
+
+        var avatarRow = new Table();
+        alexAvatarCard = createAvatarCard("Alex", alexRegion);
+        leoAvatarCard = createAvatarCard("Leo", leoRegion);
+        lucaAvatarCard = createAvatarCard("Luca", lucaRegion);
+        avatarRow.add(alexAvatarCard).size(140, 90).padRight(12);
+        avatarRow.add(leoAvatarCard).size(140, 90).padRight(12);
+        avatarRow.add(lucaAvatarCard).size(140, 90);
+        avatarSection.add(avatarRow).center().padBottom(12);
+        dialog.add(avatarSection).growX();
+        dialog.row();
+
+        // 2. Name & ID Form
+        var form = new Table();
+        form.defaults().left().padBottom(4);
+
+        form.add(ui.small("TÊN HIỂN THỊ (DISPLAY NAME):", OnlineUi.BRAWL_CYAN));
+        form.row();
+        profileNameField = new TextField(PlayerProfile.get().getDisplayName(), ui.skin, "comic");
+        form.add(profileNameField).growX().height(36).padBottom(8);
+        form.row();
+
+        form.add(ui.small("MÃ ĐỊNH DANH (PROFILE ID):", OnlineUi.BRAWL_GOLD));
+        form.row();
+        profileIdField = new TextField(PlayerProfile.get().getProfileId(), ui.skin, "comic");
+        form.add(profileIdField).growX().height(36).padBottom(4);
+        form.row();
+
+        var idHint = ui.small("* Dùng ID này để cộng điểm ELO vào database khi thi đấu.", OnlineUi.MUTED);
+        form.add(idHint).padBottom(12);
+        form.row();
+
+        dialog.add(form).growX();
+        dialog.row();
+
+        // 3. Action Buttons (Well-spaced, no clipping)
+        var btnRow = new Table();
+        var saveBtn = ui.comicButton("LƯU HỒ SƠ", "comic-primary", () -> {
+            playSound();
+            saveProfile();
+        });
+        btnRow.add(saveBtn).size(165, 42).padRight(12);
+
+        var logoutBtn = ui.comicButton("ĐĂNG XUẤT", "comic-gold", () -> {
+            playSound();
+            logoutProfile();
+        });
+        btnRow.add(logoutBtn).size(155, 42).padRight(12);
+
+        var cancelBtn = ui.comicButton("ĐÓNG [ESC]", "comic-white", () -> {
+            playSound();
+            closeProfile();
+        });
+        btnRow.add(cancelBtn).size(140, 42);
+
+        dialog.add(btnRow).center().padTop(6);
+
+        overlay.add(dialog).width(580);
+        return overlay;
+    }
+
+    private Table createAvatarCard(String charName, TextureRegion region) {
+        var card = new Table();
+        card.setTouchable(Touchable.enabled);
+        updateAvatarCardBorder(card, charName);
+
+        var img = new Image(region);
+        card.add(img).size(52, 52).center().padTop(4);
+        card.row();
+        card.add(ui.small(charName, Color.WHITE)).center().padBottom(4);
+
+        card.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                playSound();
+                selectedAvatar = charName;
+                updateAllAvatarCards();
+            }
+        });
+        return card;
+    }
+
+    private void updateAvatarCardBorder(Table card, String charName) {
+        if (charName.equalsIgnoreCase(selectedAvatar)) {
+            card.setBackground(ui.comicBox(Color.valueOf("042B48"), OnlineUi.BRAWL_GOLD, 3f, 2, 2));
+        } else {
+            card.setBackground(ui.comicBox(Color.valueOf("061324"), OnlineUi.BRAWL_BORDER, 2f, 0, 0));
+        }
+    }
+
+    private void updateAllAvatarCards() {
+        if (alexAvatarCard != null) updateAvatarCardBorder(alexAvatarCard, "Alex");
+        if (leoAvatarCard != null) updateAvatarCardBorder(leoAvatarCard, "Leo");
+        if (lucaAvatarCard != null) updateAvatarCardBorder(lucaAvatarCard, "Luca");
+    }
+
+    private void openProfile() {
+        if (profileOverlay != null) {
+            var profile = PlayerProfile.get();
+            profileNameField.setText(profile.getDisplayName());
+            profileIdField.setText(profile.getProfileId());
+            selectedAvatar = profile.getAvatar();
+            updateAllAvatarCards();
+            profileOverlay.setVisible(true);
+        }
+    }
+
+    private void closeProfile() {
+        if (profileOverlay != null) {
+            profileOverlay.setVisible(false);
+        }
+    }
+
+    private void saveProfile() {
+        var profile = PlayerProfile.get();
+        String name = profileNameField.getText().trim();
+        String id = profileIdField.getText().trim();
+        if (!name.isEmpty()) {
+            profile.setDisplayName(name);
+        }
+        if (!id.isEmpty()) {
+            profile.setProfileId(id);
+        }
+        profile.setAvatar(selectedAvatar);
+        profile.save();
+        updateProfileBadge();
+        closeProfile();
+    }
+
+    private void logoutProfile() {
+        var profile = PlayerProfile.get();
+        profile.resetToNew();
+        profileNameField.setText(profile.getDisplayName());
+        profileIdField.setText(profile.getProfileId());
+        selectedAvatar = profile.getAvatar();
+        updateAllAvatarCards();
+        updateProfileBadge();
+    }
+
+    private void updateProfileBadge() {
+        var profile = PlayerProfile.get();
+        if (profileDisplayLabel != null) {
+            profileDisplayLabel.setText(profile.getDisplayName());
+        }
+        if (profileIdLabel != null) {
+            profileIdLabel.setText("ID: " + profile.getProfileId());
+        }
+        if (profileAvatarImage != null) {
+            profileAvatarImage.setDrawable(new TextureRegionDrawable(getAvatarRegion(profile.getAvatar())));
+        }
     }
 
     private void openSettings() {
@@ -422,6 +691,11 @@ public class MainMenuScreen implements Screen {
         game.setScreen(new OnlineLobbyScreen((com.smashprofs.game.Game) game));
     }
 
+    private void openLeaderboard() {
+        log.info("Opening LeaderboardScreen");
+        game.setScreen(new LeaderboardScreen(game, this));
+    }
+
     @Override
     public void show() {
         Gdx.input.setInputProcessor(stage);
@@ -431,13 +705,26 @@ public class MainMenuScreen implements Screen {
     public void render(float delta) {
         if (disposed) { return; }
 
-        if (settingsOverlay != null && settingsOverlay.isVisible()) {
+        if (profileOverlay != null && profileOverlay.isVisible()) {
+            if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
+                playSound();
+                closeProfile();
+            } else if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
+                playSound();
+                saveProfile();
+            }
+        } else if (settingsOverlay != null && settingsOverlay.isVisible()) {
             if (currentlyRebinding == null && (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE) || Gdx.input.isKeyJustPressed(Input.Keys.C))) {
                 playSound();
                 closeSettings();
             }
         } else {
             // Keyboard shortcuts
+            if (Gdx.input.isKeyJustPressed(Input.Keys.P)) {
+                playSound();
+                openProfile();
+                return;
+            }
             if (Gdx.input.isKeyJustPressed(Input.Keys.C) || Gdx.input.isKeyJustPressed(Input.Keys.S)) {
                 playSound();
                 openSettings();
@@ -446,6 +733,11 @@ public class MainMenuScreen implements Screen {
             if (Gdx.input.isKeyJustPressed(Input.Keys.O)) {
                 playSound();
                 openOnline();
+                return;
+            }
+            if (Gdx.input.isKeyJustPressed(Input.Keys.B)) {
+                playSound();
+                openLeaderboard();
                 return;
             }
             if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE) || Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {

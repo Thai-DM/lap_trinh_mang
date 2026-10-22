@@ -4,6 +4,8 @@ import com.smashprofs.common.model.PlayerInput;
 import com.smashprofs.common.protocol.MessageType;
 import com.smashprofs.common.protocol.ProtocolMessage;
 import com.smashprofs.server.room.RoomManager;
+import com.smashprofs.server.ranking.LeaderboardBroadcaster;
+import com.smashprofs.server.ranking.RankingService;
 
 import java.util.Objects;
 
@@ -25,9 +27,20 @@ public final class MessageDispatcher {
     }
 
     public static MessageDispatcher protocolV1(ConnectionManager connections, RoomManager rooms, SessionAdmission admission) {
+        return protocolV1(connections, rooms, admission, null, null);
+    }
+
+    public static MessageDispatcher protocolV1(ConnectionManager connections, RoomManager rooms,
+                                               SessionAdmission admission, RankingService rankingService) {
+        return protocolV1(connections, rooms, admission, rankingService, null);
+    }
+
+    public static MessageDispatcher protocolV1(ConnectionManager connections, RoomManager rooms,
+                                               SessionAdmission admission, RankingService rankingService,
+                                               LeaderboardBroadcaster broadcaster) {
         return new MessageDispatcher((session, type, payload) -> { }, new PlayerInputHandler(connections, rooms),
                 new JoinRoomHandler(connections, rooms), new PlayerReadyHandler(connections, rooms),
-                new ProtocolV1Dispatcher(connections, rooms, admission));
+                new ProtocolV1Dispatcher(connections, rooms, admission, rankingService, broadcaster));
     }
 
     public MessageDispatcher(InboundHandler handler) {

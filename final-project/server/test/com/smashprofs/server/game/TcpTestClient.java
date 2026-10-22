@@ -14,7 +14,7 @@ import java.util.function.Predicate;
 import static org.junit.Assert.*;
 
 /** Client chỉ dành cho test: TCP/codec thật, không reader thread hoặc protocol thay thế. */
-final class TcpTestClient implements AutoCloseable {
+public final class TcpTestClient implements AutoCloseable {
     private static final int TIMEOUT_MS = 5000;
     private final Socket socket = new Socket();
     private final JsonFrameCodec codec = new JsonFrameCodec();
@@ -30,26 +30,33 @@ final class TcpTestClient implements AutoCloseable {
         send(new ProtocolMessage(MessageType.PONG, message.requestId(), ProtocolV1.object())); return true;
     }
 
-    TcpTestClient(int port) throws IOException {
+    public TcpTestClient(int port) throws IOException {
         try {
             socket.connect(new InetSocketAddress("127.0.0.1", port), TIMEOUT_MS);
             socket.setSoTimeout(TIMEOUT_MS);
         } catch (IOException failure) { socket.close(); throw failure; }
     }
-    PlayerId playerId() { return playerId; }
-    List<ProtocolMessage> received() { return List.copyOf(received); }
+    public PlayerId playerId() { return playerId; }
+    public List<ProtocolMessage> received() { return List.copyOf(received); }
 
-    void connect() throws IOException {
-        var ack = request(MessageType.CONNECT, ProtocolV1.object());
+    public void connect() throws IOException {
+        connect(null, null);
+    }
+
+    public void connect(String profileId, String displayName) throws IOException {
+        var payload = ProtocolV1.object();
+        if (profileId != null) payload.put("profileId", profileId);
+        if (displayName != null) payload.put("displayName", displayName);
+        var ack = request(MessageType.CONNECT, payload);
         assertEquals(MessageType.CONNECT_ACK, ack.type()); assertEquals(1, ack.version());
         playerId = new PlayerId(ack.payload().get("playerId").textValue());
     }
-    ProtocolMessage request(MessageType type, ObjectNode payload) throws IOException {
+    public ProtocolMessage request(MessageType type, ObjectNode payload) throws IOException {
         String requestId = "request-" + requestSequence++;
         send(new ProtocolMessage(type, requestId, payload));
         return await(message -> requestId.equals(message.requestId()));
     }
-    void send(ProtocolMessage message) throws IOException {
+    public void send(ProtocolMessage message) throws IOException {
         socket.getOutputStream().write(codec.encode(message)); socket.getOutputStream().flush();
     }
     ObjectNode input(long sequence, float axis, boolean jump, boolean stomp, boolean melee) {
@@ -64,7 +71,7 @@ final class TcpTestClient implements AutoCloseable {
         var ack = request(MessageType.CONNECT, ProtocolV1.object());
         assertEquals(MessageType.CONNECT_ACK, ack.type()); assertEquals(playerId.value(), ack.payload().get("playerId").textValue());
     }
-    ProtocolMessage awaitType(MessageType type) throws IOException { return await(message -> message.type() == type); }
+    public ProtocolMessage awaitType(MessageType type) throws IOException { return await(message -> message.type() == type); }
     private ProtocolMessage await(Predicate<ProtocolMessage> predicate) throws IOException {
         for (int i = 0; i < pending.size(); i++) { if (predicate.test(pending.get(i))) { return pending.remove(i); } }
         long deadline = System.nanoTime() + java.util.concurrent.TimeUnit.MILLISECONDS.toNanos(TIMEOUT_MS);

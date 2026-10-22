@@ -49,7 +49,7 @@
 - **Test:** Viết `RankingProtocolTest.java`.
 - **Lệnh kiểm thử:** `.\gradlew.bat :common:test --tests "*RankingProtocolTest"`
 
-### [ ] Task T09 & T10 — Handler `GET_LEADERBOARD` & `LeaderboardBroadcaster`
+### [x] Task T09 & T10 — Handler `GET_LEADERBOARD` & `LeaderboardBroadcaster`
 - **Mục tiêu:** Cho phép client yêu cầu bảng xếp hạng và server tự động đẩy (push) cập nhật realtime khi có trận đấu kết thúc.
 - **Yêu cầu:**
   - Xử lý message `GET_LEADERBOARD` trong `ProtocolV1Dispatcher.java` để trả về `RANKING_SNAPSHOT`.

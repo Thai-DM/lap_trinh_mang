@@ -31,26 +31,26 @@ public class JumpBindingsTest {
         });
     }
     @After public void restore() { Gdx.app=previousApplication;previousBindings.forEach(config::setKey); }
-    @Test public void defaultWJumpsOnceAndIAimsWithoutJumping() {
+    @Test public void defaultSpaceJumpsOnceAndWAimsWithoutJumping() {
         config.load();
-        var jump=UnarmedControls.sample(UnarmedControls.Preset.B,k->k==Input.Keys.W,k->k==Input.Keys.W);
+        var jump=UnarmedControls.sample(UnarmedControls.Preset.B,k->k==Input.Keys.SPACE,k->k==Input.Keys.SPACE);
         assertTrue(jump.jumpPressed());assertTrue(jump.fighter().jumpHeld());assertFalse(jump.fighter().upHeld());
-        var heldJump=UnarmedControls.sample(UnarmedControls.Preset.B,k->k==Input.Keys.W,k->false);
+        var heldJump=UnarmedControls.sample(UnarmedControls.Preset.B,k->k==Input.Keys.SPACE,k->false);
         assertFalse(heldJump.jumpPressed());assertTrue(heldJump.fighter().jumpHeld());
-        var aim=UnarmedControls.sample(UnarmedControls.Preset.B,k->k==Input.Keys.I,k->k==Input.Keys.I);
+        var aim=UnarmedControls.sample(UnarmedControls.Preset.B,k->k==Input.Keys.W,k->k==Input.Keys.W);
         assertFalse(aim.jumpPressed());assertFalse(aim.fighter().jumpHeld());assertTrue(aim.fighter().upHeld());
-        var space=UnarmedControls.sample(UnarmedControls.Preset.B,k->k==Input.Keys.SPACE,k->k==Input.Keys.SPACE);
-        assertFalse(space.jumpPressed());assertFalse(space.fighter().jumpHeld());
-        assertTrue(UnarmedControls.hint().contains("W nhảy"));
+        var iKey=UnarmedControls.sample(UnarmedControls.Preset.B,k->k==Input.Keys.I,k->k==Input.Keys.I);
+        assertFalse(iKey.jumpPressed());assertFalse(iKey.fighter().jumpHeld());assertFalse(iKey.fighter().upHeld());
+        assertTrue(UnarmedControls.hint().contains("Space"));
     }
     @Test public void oldSavedWASDDefaultsMigrateAndKeepOtherCustomKeys() {
-        stored.put("UP",Input.Keys.W);stored.put("JUMP",Input.Keys.SPACE);stored.put("DODGE",Input.Keys.X);
-        config.load();assertEquals(Input.Keys.W,config.getKey(Action.JUMP));assertEquals(Input.Keys.I,config.getKey(Action.UP));
+        stored.put("UP",Input.Keys.I);stored.put("JUMP",Input.Keys.W);stored.put("DODGE",Input.Keys.X);
+        config.load();assertEquals(Input.Keys.SPACE,config.getKey(Action.JUMP));assertEquals(Input.Keys.W,config.getKey(Action.UP));
         assertEquals(Input.Keys.X,config.getKey(Action.DODGE));
-        config.load();assertEquals(Input.Keys.W,config.getKey(Action.JUMP));
+        config.load();assertEquals(Input.Keys.SPACE,config.getKey(Action.JUMP));
     }
     @Test public void previouslyCustomizedJumpIsPreserved() {
-        stored.put("JUMP",Input.Keys.UP);stored.put("UP",Input.Keys.I);config.load();
+        stored.put("JUMP",Input.Keys.UP);stored.put("UP",Input.Keys.W);config.load();
         assertEquals(Input.Keys.UP,config.getKey(Action.JUMP));
     }
     @Test public void explicitSpaceBindingSavedAfterUpgradeSurvivesReload() {

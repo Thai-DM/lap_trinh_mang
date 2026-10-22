@@ -16,16 +16,17 @@ public class FighterClientTest {
         for(var action:com.smashprofs.game.Helper.KeyBindingConfig.Action.values()) { saved.put(action,config.getKey(action));config.setKey(action,action.defaultKey); }
         try {
         var held=new HashSet<Integer>();var pressed=new HashSet<Integer>();
-        held.add(com.badlogic.gdx.Input.Keys.A);held.add(com.badlogic.gdx.Input.Keys.W);held.add(com.badlogic.gdx.Input.Keys.J);held.add(com.badlogic.gdx.Input.Keys.I);
-        pressed.add(com.badlogic.gdx.Input.Keys.W);pressed.add(com.badlogic.gdx.Input.Keys.J);
+        held.add(com.badlogic.gdx.Input.Keys.A);held.add(com.badlogic.gdx.Input.Keys.SPACE);held.add(com.badlogic.gdx.Input.Keys.J);held.add(com.badlogic.gdx.Input.Keys.W);
+        pressed.add(com.badlogic.gdx.Input.Keys.SPACE);pressed.add(com.badlogic.gdx.Input.Keys.J);
         var command=UnarmedControls.sample(UnarmedControls.Preset.B,held::contains,pressed::contains);
         assertEquals(-1,command.horizontal(),0);assertTrue(command.jumpPressed());assertTrue(command.lightPressed());assertTrue(command.fighter().upHeld());assertFalse(command.fighter().heavyPressed());
         config.setKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.LEFT,com.badlogic.gdx.Input.Keys.LEFT);
         config.setKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.RIGHT,com.badlogic.gdx.Input.Keys.RIGHT);
+        config.setKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.UP,com.badlogic.gdx.Input.Keys.UP);
         config.setKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.DOWN,com.badlogic.gdx.Input.Keys.DOWN);
         config.setKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.HEAVY,com.badlogic.gdx.Input.Keys.X);
         config.setKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.DODGE,com.badlogic.gdx.Input.Keys.Z);
-        held.clear();pressed.clear();held.add(com.badlogic.gdx.Input.Keys.RIGHT);held.add(com.badlogic.gdx.Input.Keys.DOWN);held.add(com.badlogic.gdx.Input.Keys.X);held.add(com.badlogic.gdx.Input.Keys.I);
+        held.clear();pressed.clear();held.add(com.badlogic.gdx.Input.Keys.RIGHT);held.add(com.badlogic.gdx.Input.Keys.DOWN);held.add(com.badlogic.gdx.Input.Keys.UP);held.add(com.badlogic.gdx.Input.Keys.X);
         pressed.add(com.badlogic.gdx.Input.Keys.X);pressed.add(com.badlogic.gdx.Input.Keys.Z);
         command=UnarmedControls.sample(UnarmedControls.Preset.A,held::contains,pressed::contains);
         assertEquals(1,command.horizontal(),0);assertFalse(command.jumpPressed());assertTrue(command.fighter().upHeld());assertTrue(command.fighter().downHeld());assertTrue(command.fighter().heavyPressed());assertFalse(command.fighter().dodgePressed());assertTrue(command.fighter().dashPressed());

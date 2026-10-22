@@ -43,7 +43,7 @@ public final class LocalFighterPrediction implements AutoCloseable {
         boolean grounded=authoritative.grounded(),jumping=body.getLinearVelocity().y>1.8f;
         var air=new AirActionBudget(fighter.airJumps(),fighter.detail().recoveries(),fighter.detail().aerialActionsUsed());
         int wallJumps=fighter.wallJumps(),wall=0,wallLock=fighter.detail().wallLockTicks(),dashTicks=fighter.detail().dashTicks(),lavaStun=0;
-        int runTicks=fighter.detail().runTicks(),dashCooldown=fighter.detail().dashCooldownTicks(),wallActions=fighter.detail().wallActions(),previousWall=0;
+        int runTicks=fighter.detail().runTicks(),dashCooldown=Math.max(fighter.dodgeCooldownTicks(),fighter.detail().dashCooldownTicks()),wallActions=fighter.detail().wallActions(),previousWall=0;
         float dashVelocity=fighter.detail().dashVelocity();
         boolean idle=fighter.action().equals("IDLE");
         // Group render samples in the 60 Hz client tick domain; 120 FPS never means twice the movement.
@@ -83,7 +83,7 @@ public final class LocalFighterPrediction implements AutoCloseable {
                     if(!grounded && wall!=0 && wallLock==0 && wallActions<UnarmedRules.WALL_SLIP) { body.setLinearVelocity(wall*.6f,4.2f);air.reset();wallLock=12;jumping=true;wallActions++; }
                     else if(grounded || air.jump()) { body.setLinearVelocity(v.x,4.2f);if(!grounded) { wallActions++; }jumping=true;grounded=false; }
                 }
-                if(step==0 && (input.fighter().dashPressed() || input.fighter().dodgePressed() && input.moveAxis()!=0) && wasGrounded && dashCooldown==0) {
+                if(step==0 && (input.fighter().dashPressed() || input.fighter().dodgePressed() && input.moveAxis()!=0) && wasGrounded && dashCooldown==0 && dashTicks==0) {
                     dashTicks=FighterMovement.DASH_TICKS;dashCooldown=FighterMovement.DASH_COOLDOWN_TICKS;dashVelocity=(input.moveAxis()!=0?Math.signum(input.moveAxis()):authoritative.facingRight()?1:-1)*FighterMovement.DASH_SPEED;
                 }
                 runTicks=grounded && input.moveAxis()!=0?Math.min(18,runTicks+1):0;

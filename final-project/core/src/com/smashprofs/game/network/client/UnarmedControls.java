@@ -41,7 +41,7 @@ public final class UnarmedControls {
         boolean dropPressed=pressed.test(drop) || doubleTapDown;
         boolean jumpPressed=pressed.test(jump);
         boolean jumpHeld=held.test(jump);
-        boolean upHeld=held.test(up) || pressed.test(up) || held.test(Input.Keys.I);
+        boolean upHeld=held.test(up) || pressed.test(up);
         boolean downHeld=held.test(down) || pressed.test(down);
         return new Frame(h,jumpPressed,pressed.test(light),held.test(light),pressed.test(interact),dropPressed,
                 new FighterInput(downHeld,jumpHeld,upHeld,pressed.test(heavy),held.test(heavy),dodgeEdge,pressed.test(throwKey),dashIntent));
@@ -57,7 +57,7 @@ public final class UnarmedControls {
         String hv=com.smashprofs.game.Helper.KeyBindingConfig.keyName(cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.HEAVY));
         String dg=com.smashprofs.game.Helper.KeyBindingConfig.keyName(cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.DODGE));
         String ab=com.smashprofs.game.Helper.KeyBindingConfig.keyName(cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.ABILITY));
-        return u+"/"+l+"/"+d+"/"+r+" ngắm 8 hướng (2 phím góc 45°) · "+jm+" nhảy · "+d+" 2 lần xuống sàn · "+lt+" nhẹ · "+hv+" mạnh · "+dg+" né · "+ab+" kỹ năng";
+        return u+"/"+l+"/"+d+"/"+r+" ngắm 8 hướng (2 phím góc 45°) • "+jm+" nhảy • "+d+" 2 lần xuống sàn • "+lt+" nhẹ • "+hv+" mạnh • "+dg+" né • "+ab+" kỹ năng";
     }
     public static String hint(Preset preset) { return hint(); }
 }

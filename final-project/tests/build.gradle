@@ -21,6 +21,7 @@ dependencies {
     testImplementation files(project(':server').sourceSets.test.output)
     implementation 'junit:junit:4.13.1'
     testImplementation 'com.badlogicgames.gdx:gdx-backend-headless:1.11.0'
+    testImplementation 'com.badlogicgames.gdx:gdx-backend-lwjgl3:1.10.0'
 
 }
 

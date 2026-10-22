@@ -241,8 +241,8 @@ final class FighterEngine implements AutoCloseable {
             f.chaseCharges--;f.dodgeKind="CHASE";f.dodgeStart=tick;f.gcUntil=0;
             f.dodgeX=(float)(x/length*UnarmedRules.CHASE_SPEED);f.dodgeY=(float)(y/length*UnarmedRules.CHASE_SPEED);return true;
         }
+        if(tick<f.nextDash || tick<f.nextDodge) { return false; }
         if(grounded && input.fighter().dashPressed()) {
-            if(tick<f.nextDash) { return false; }
             int facing=game.state.getPlayer(id).isFacingRight()?1:-1;
             int direction=x!=0?(x<0?-1:1):facing;
             boolean backdash=direction!=facing && (input.jumpPressed() || input.fighter().jumpHeld());
@@ -251,7 +251,7 @@ final class FighterEngine implements AutoCloseable {
             if(!backdash) { game.state.getPlayer(id).updateFacing(direction); }
             return false;
         }
-        if(tick<f.nextDodge || !grounded && f.airDodgeUsed) { return false; }
+        if(!grounded && f.airDodgeUsed) { return false; }
         f.dodgeKind=grounded?"GROUND_SPOT":length==0?"AIR_SPOT":"AIR_DIRECTION";f.dodgeStart=tick;
         f.nextDodge=tick+(grounded?UnarmedRules.GROUND_COOLDOWN:UnarmedRules.AIR_COOLDOWN);f.airDodgeUsed|=!grounded;
         f.gcUntil=f.dodgeKind.equals("AIR_SPOT")?tick+UnarmedRules.GC_WINDOW:0;

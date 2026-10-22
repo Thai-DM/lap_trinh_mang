@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.smashprofs.server.network.LeaderboardRequestTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-10-22T12:38:43" hostname="LAPTOP-FVL46F8B" time="0.151">
+  <properties/>
+  <testcase name="testGetLeaderboard_AllEntries_OrderedByRating" classname="com.smashprofs.server.network.LeaderboardRequestTest" time="0.13"/>
+  <testcase name="testGetLeaderboard_InvalidLimitZeroOrNegative_ReturnsInvalidPayload" classname="com.smashprofs.server.network.LeaderboardRequestTest" time="0.004"/>
+  <testcase name="testGetLeaderboard_InvalidLimitNotInteger_ReturnsInvalidPayload" classname="com.smashprofs.server.network.LeaderboardRequestTest" time="0.001"/>
+  <testcase name="testGetLeaderboard_ExtraUnexpectedFields_ReturnsInvalidPayload" classname="com.smashprofs.server.network.LeaderboardRequestTest" time="0.001"/>
+  <testcase name="testGetLeaderboard_UnauthorizedPlayerField_ReturnsUnauthorizedPlayer" classname="com.smashprofs.server.network.LeaderboardRequestTest" time="0.001"/>
+  <testcase name="testGetLeaderboard_WithoutConnect_ReturnsInvalidSession" classname="com.smashprofs.server.network.LeaderboardRequestTest" time="0.002"/>
+  <testcase name="testGetLeaderboard_WithoutRankingService_ReturnsEmptySnapshot" classname="com.smashprofs.server.network.LeaderboardRequestTest" time="0.001"/>
+  <testcase name="testGetLeaderboard_EmptyStore_ReturnsEmptySnapshot" classname="com.smashprofs.server.network.LeaderboardRequestTest" time="0.001"/>
+  <testcase name="testGetLeaderboard_AutoSubscribesToBroadcaster" classname="com.smashprofs.server.network.LeaderboardRequestTest" time="0.001"/>
+  <testcase name="testGetLeaderboard_WithLimit_ReturnsTopN" classname="com.smashprofs.server.network.LeaderboardRequestTest" time="0.001"/>
+  <testcase name="testGetLeaderboard_WithLimitLargerThanTotal_ReturnsAll" classname="com.smashprofs.server.network.LeaderboardRequestTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

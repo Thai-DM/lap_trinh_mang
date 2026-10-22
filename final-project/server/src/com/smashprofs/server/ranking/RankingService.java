@@ -1,14 +1,18 @@
 package com.smashprofs.server.ranking;
 
+import com.smashprofs.common.model.PlayerId;
+import com.smashprofs.common.model.RankingEntry;
 import com.smashprofs.server.game.AuthoritativeMatchResult;
 import com.smashprofs.server.game.RankingGateway;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -32,6 +36,7 @@ public class RankingService implements RankingGateway {
     private final RankingStore store;
     private final RatingEngine ratingEngine;
     private final ReentrantLock lock = new ReentrantLock();
+    private final List<RankingListener> listeners = new CopyOnWriteArrayList<>();
 
     /**
      * Khởi tạo RankingService với RatingEngine mặc định.
@@ -92,6 +97,7 @@ public class RankingService implements RankingGateway {
                 LOGGER.info("MatchId " + result.matchId() + " đã được xử lý trước đó; bỏ qua (idempotent)");
             } else {
                 LOGGER.info("Xử lý thành công kết quả xếp hạng cho matchId: " + result.matchId());
+                notifyListeners();
             }
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Lỗi khi xử lý lưu kết quả trận đấu cho matchId: " + result.matchId(), e);
@@ -128,6 +134,82 @@ public class RankingService implements RankingGateway {
             LOGGER.log(Level.WARNING, "Lỗi khi lấy bảng xếp hạng", e);
             return Collections.emptyList();
         }
+    }
+
+    /**
+     * Đăng ký một RankingListener để nhận thông báo khi bảng xếp hạng thay đổi.
+     *
+     * @param listener listener cần đăng ký
+     */
+    public void addRankingListener(RankingListener listener) {
+        if (listener != null) {
+            listeners.add(listener);
+        }
+    }
+
+    /**
+     * Hủy đăng ký một RankingListener.
+     *
+     * @param listener listener cần hủy
+     */
+    public void removeRankingListener(RankingListener listener) {
+        listeners.remove(listener);
+    }
+
+    /**
+     * Bắn thông báo cập nhật bảng xếp hạng tới toàn bộ các listener đã đăng ký.
+     */
+    private void notifyListeners() {
+        if (listeners.isEmpty()) {
+            return;
+        }
+        List<RankingEntry> entries = getLeaderboardEntries();
+        for (RankingListener listener : listeners) {
+            try {
+                listener.onRankingUpdated(entries);
+            } catch (Exception e) {
+                LOGGER.log(Level.WARNING, "Lỗi khi thông báo tới RankingListener " + listener, e);
+            }
+        }
+    }
+
+    /**
+     * Lấy toàn bộ bảng xếp hạng hiện tại dưới dạng danh sách RankingEntry (đã tính rank, winRate, v.v.).
+     *
+     * @return danh sách RankingEntry bất biến
+     */
+    public List<RankingEntry> getLeaderboardEntries() {
+        return toRankingEntries(getLeaderboard());
+    }
+
+    /**
+     * Chuyển đổi danh sách PlayerRecord sang danh sách RankingEntry giao thức mạng.
+     *
+     * @param records danh sách hồ sơ người chơi (đã sắp xếp theo rating giảm dần)
+     * @return danh sách RankingEntry bất biến
+     */
+    public static List<RankingEntry> toRankingEntries(List<PlayerRecord> records) {
+        if (records == null || records.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<RankingEntry> entries = new ArrayList<>(records.size());
+        int rank = 1;
+        for (PlayerRecord rec : records) {
+            if (rec == null) continue;
+            double winRate = rec.totalMatches() > 0 ? (double) rec.wins() / rec.totalMatches() : 0.0;
+            double roundedWinRate = Math.round(winRate * 1000.0) / 1000.0;
+            entries.add(new RankingEntry(
+                    rank++,
+                    new PlayerId(rec.profileId()),
+                    rec.profileId(),
+                    rec.wins(),
+                    rec.losses(),
+                    rec.totalMatches(),
+                    roundedWinRate,
+                    (int) Math.round(rec.rating())
+            ));
+        }
+        return Collections.unmodifiableList(entries);
     }
 
     /**

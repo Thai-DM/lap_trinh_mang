@@ -40,7 +40,7 @@
 - **Test:** Viết `RankingServiceTest.java` và `RankingServiceConcurrencyTest.java` (kiểm tra nộp trùng `matchId` và nộp đồng thời bằng `ExecutorService`).
 - **Lệnh kiểm thử:** `.\gradlew.bat :server:test --tests "*RankingServiceTest"`
 
-### [ ] Task T07 & T08 — Bổ sung Protocol Leaderboard & `profileId`
+### [x] Task T07 & T08 — Bổ sung Protocol Leaderboard & `profileId`
 - **Mục tiêu:** Mở rộng giao thức mạng để hỗ trợ lấy bảng xếp hạng và định danh người chơi.
 - **Yêu cầu:**
   - Cập nhật `MessageType.java` thêm: `GET_LEADERBOARD`, `RANKING_SNAPSHOT`, `RANKING_UPDATED`.

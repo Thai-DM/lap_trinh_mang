@@ -1,0 +1,206 @@
+package com.smashprofs.server.game;
+
+import com.smashprofs.common.model.*;
+import org.junit.*;
+import java.util.*;
+import static org.junit.Assert.*;
+
+/** Equipment and Unarmed actions share the real simulation, ammo and hit registration. */
+public class FighterEquipmentTest {
+    private final PlayerId a=new PlayerId("a"),b=new PlayerId("b");
+    private MatchRuntime runtime;private GameplayMatch game;private long sequence;
+    @Before public void start() {
+        runtime=new MatchRuntime(new MatchSetup("equipment","room",List.of(new MatchSetup.Participant(a,0,"Alex"),new MatchSetup.Participant(b,1,"Luca")),
+                new MatchRules(2,0,3,MatchRules.DropRate.NONE,true,true)));
+        runtime.start();game=runtime.gameplay();game.bodies.respawn(a,5.45f,.23f);game.bodies.respawn(b,5.72f,.23f);ticks(10);
+    }
+    @After public void close() { runtime.close(); }
+    private void ticks(int count) { for(int i=0;i<count;i++) { runtime.tick(); } }
+    private PlayerInput input(boolean light,boolean pickup,boolean drop,boolean throwing) {
+        return new PlayerInput(a,sequence++,sequence,0,false,false,light,false,false,pickup,drop,
+                new FighterInput(false,false,false,false,false,false,throwing,false));
+    }
+    private void send(PlayerInput input) { assertEquals(InputQueue.OfferResult.ACCEPTED,runtime.submitInput(input));runtime.tick(); }
+    private void pickup(String type) {
+        var position=game.bodies.getPosition(a);assertTrue(game.items.drop(type,position.xMeters(),position.yMeters(),runtime.getMatchState().getServerTick()));
+        send(input(false,true,false,false));
+    }
+    @Test public void equippedAttackOnlyDealsProjectileDamageAndNeverStartsAPunch() {
+        pickup("LASER");send(input(true,false,false,false));
+        assertEquals(5,game.progress.get(a).ammo);assertNull(game.fighter.fighters.get(a).attack);
+        assertEquals("NONE",game.snapshot().fighter().player("a").attack());
+        float hp=game.state.getPlayer(b).getHp();assertEquals(76,hp,.001f);
+        ticks(14);assertEquals(hp,game.state.getPlayer(b).getHp(),.001f);assertEquals(5,game.progress.get(a).ammo);
+    }
+    @Test public void finalRoundIsUsedOnceAndTheNextAttackReturnsToUnarmed() {
+        pickup("LASER");game.progress.get(a).ammo=1;send(input(true,false,false,false));
+        assertEquals("NONE",game.progress.get(a).weapon);assertEquals(0,game.progress.get(a).ammo);
+        assertNull(game.fighter.fighters.get(a).attack);assertEquals(76,game.state.getPlayer(b).getHp(),.001f);ticks(25);
+        send(input(true,false,false,false));assertEquals("NLIGHT",game.fighter.fighters.get(a).attack.move.name());
+        ticks(8);assertEquals(0,game.progress.get(a).ammo);
+    }
+    @Test public void cooldownAndAllAttackKeysStillCannotFallThroughToMelee() {
+        pickup("LASER");send(input(true,false,false,false));
+        for(int i=0;i<10;i++) {
+            send(new PlayerInput(a,sequence++,sequence,0,false,false,true,false,true,false,false,
+                    new FighterInput(true,false,false,true,true,false,false,false)));
+            assertNull(game.fighter.fighters.get(a).attack);assertEquals("NONE",game.snapshot().fighter().player("a").attack());
+        }
+        assertEquals(5,game.progress.get(a).ammo);assertEquals(76,game.state.getPlayer(b).getHp(),.001f);
+    }
+    @Test public void aMissedGunShotHasNoHandHitboxForAnOpponentAboveTheBulletPath() {
+        pickup("LASER");game.bodies.respawn(b,5.65f,.54f);game.fighter.physics.reset(b);
+        send(input(true,false,false,false));assertEquals(100,game.state.getPlayer(b).getHp(),0);
+        ticks(8);assertEquals(100,game.state.getPlayer(b).getHp(),0);assertNull(game.fighter.fighters.get(a).attack);
+    }
+    @Test public void shootingInAirWithTheHeavyKeyDoesNotStartAnUnarmedRecoveryOrGroundPound() {
+        pickup("LASER");game.bodies.respawn(a,6,3);game.fighter.physics.reset(a);runtime.tick();
+        send(new PlayerInput(a,sequence++,sequence,0,false,false,false,false,false,false,false,
+                new FighterInput(false,false,false,true,true,false,false,false)));
+        assertNull(game.fighter.fighters.get(a).attack);assertEquals(0,game.snapshot().fighter().player("a").detail().recoveries());
+        assertEquals(5,game.progress.get(a).ammo);assertTrue(game.bodies.getVelocity(a).yMetersPerSecond()<0);
+    }
+    @Test public void firstShotUsesTheDirectionPressedInThatSameFrame() {
+        pickup("SHOTGUN");game.bodies.respawn(b,8,.23f);
+        send(new PlayerInput(a,sequence++,sequence,-1,false,false,true,false,false));
+        assertFalse(game.state.getPlayer(a).isFacingRight());assertEquals(3,game.items.shotViews().size());
+        for(var shot:game.items.shotViews()) { assertTrue(shot.vx()<0); }
+        assertNull(game.fighter.fighters.get(a).attack);
+    }
+    @Test public void droppingTheGunAllowsTheNextInputToPunchAgain() {
+        pickup("LASER");send(input(false,false,true,false));send(input(true,false,false,false));
+        assertEquals("NONE",game.progress.get(a).weapon);assertEquals("NLIGHT",game.fighter.fighters.get(a).attack.move.name());
+        assertTrue(game.items.shotViews().isEmpty());
+    }
+    @Test public void pickupSwapAndDropPreserveAmmoAndStaleEdgesCannotDuplicateItems() {
+        pickup("SHOTGUN");game.progress.get(a).ammo=4;pickup("LASER");
+        assertEquals("LASER",game.progress.get(a).weapon);
+        var previous=game.items.itemViews().stream().filter(i->i.type().equals("SHOTGUN")).findFirst().orElseThrow();
+        game.bodies.respawn(a,previous.x(),previous.y());send(input(false,true,false,false));
+        assertEquals("SHOTGUN",game.progress.get(a).weapon);assertEquals(4,game.progress.get(a).ammo);
+        var drop=input(false,true,true,false);send(drop);int items=game.items.itemViews().size();
+        assertEquals("NONE",game.progress.get(a).weapon);assertEquals(InputQueue.OfferResult.DUPLICATE_OR_STALE,runtime.submitInput(drop));
+        runtime.tick();assertEquals(items,game.items.itemViews().size());assertEquals("NONE",game.progress.get(a).weapon);
+    }
+    @Test public void throwInputWinsOverPickupAndAttackAndReturnsAmmoToARecoverableDrop() {
+        pickup("LASER");game.progress.get(a).ammo=4;send(input(true,true,false,true));
+        assertNull(game.fighter.fighters.get(a).attack);assertEquals("NONE",game.progress.get(a).weapon);
+        assertTrue(game.items.shotViews().stream().anyMatch(s->s.type().equals("THROWN")));
+        ticks(100);var weapon=game.items.itemViews().stream().filter(i->i.type().equals("LASER")).findFirst().orElseThrow();
+        game.bodies.respawn(a,weapon.x(),weapon.y());send(input(false,true,false,false));
+        assertEquals("LASER",game.progress.get(a).weapon);assertEquals(4,game.progress.get(a).ammo);
+    }
+    @Test public void healthAndShieldStillWorkWithTheUnifiedHpModel() {
+        game.state.getPlayer(a).applyDamage(60);pickup("HEALTH");assertEquals(70,game.state.getPlayer(a).getHp(),0);
+        pickup("SHIELD");assertTrue(game.progress.get(a).shield);
+        assertTrue(game.fighter.hit(b,a,"LASER",24,.8f,.2f,1,0,false));assertFalse(game.progress.get(a).shield);
+        assertEquals(70,game.state.getPlayer(a).getHp(),0);
+        assertTrue(game.fighter.hit(b,a,"LASER",24,.8f,.2f,1,0,false));assertEquals(46,game.state.getPlayer(a).getHp(),0);
+    }
+    @Test public void hitstunCannotPickupOrThrowOrFireEquippedWeapons() {
+        pickup("LASER");game.fighter.hit(b,a,"NLIGHT",1,.8f,.2f,1,0,false);
+        send(input(true,true,true,true));assertEquals("LASER",game.progress.get(a).weapon);assertEquals(6,game.progress.get(a).ammo);
+        assertTrue(game.items.shotViews().isEmpty());assertNull(game.fighter.fighters.get(a).attack);
+    }
+    @Test public void noneRateKeepsAutomaticDropsOffWithoutDisablingEquipment() {
+        for(int tick=1;tick<=1800;tick++) { game.items.update(tick); }
+        assertTrue(game.items.itemViews().isEmpty());pickup("BAZOOKA");assertEquals("BAZOOKA",game.progress.get(a).weapon);
+    }
+    @Test public void shootingWithDirectionalKeysAimsWithoutMovingOrJumping() {
+        pickup("SHOTGUN");
+        float initialX = game.bodies.getPosition(a).xMeters();
+        send(new PlayerInput(a,sequence++,sequence,-1,false,false,true,false,false));
+        assertFalse(game.state.getPlayer(a).isFacingRight());
+        assertEquals(initialX, game.bodies.getPosition(a).xMeters(), 0.01f);
+        for(var shot : game.items.shotViews()) { assertTrue(shot.vx() < 0); }
+
+        ticks(25);
+        pickup("SHOTGUN");
+        send(new PlayerInput(a,sequence++,sequence,0,true,false,true,false,false,false,false,
+                new FighterInput(false,false,true,false,false,false,false,false)));
+        assertTrue("Character should not jump when aiming weapon upwards", game.bodies.getVelocity(a).yMetersPerSecond() <= 0.05f);
+        assertTrue(game.items.shotViews().stream().anyMatch(s -> s.vy() > 0));
+
+        ticks(25);
+        pickup("BAZOOKA");
+        initialX = game.bodies.getPosition(a).xMeters();
+        send(new PlayerInput(a,sequence++,sequence,1,false,false,true,false,false,false,false,
+                new FighterInput(false,false,true,false,false,false,false,false)));
+        assertTrue(game.state.getPlayer(a).isFacingRight());
+        assertEquals(initialX, game.bodies.getPosition(a).xMeters(), 0.01f);
+        assertTrue(game.items.shotViews().stream().anyMatch(s -> s.type().equals("BAZOOKA") && s.vx() > 0 && s.vy() > 0));
+    }
+
+    @Test public void meleeWeaponsDealExpectedDamageAndEffects() {
+        // Sword: 18 damage, 6 ammo
+        pickup("SWORD");
+        assertEquals(6, game.progress.get(a).ammo);
+        float hpB = game.state.getPlayer(b).getHp();
+        send(input(true, false, false, false));
+        assertEquals(5, game.progress.get(a).ammo);
+        ticks(2);
+        assertEquals(hpB - 18f, game.state.getPlayer(b).getHp(), 0.001f);
+        assertTrue(game.snapshot().fighter().player("b").hitstunTicks() > 0);
+
+        // Warhammer: 32 damage, breaks shield
+        ticks(30);
+        game.progress.get(b).shield = true;
+        pickup("WARHAMMER");
+        assertEquals(4, game.progress.get(a).ammo);
+        hpB = game.state.getPlayer(b).getHp();
+        send(input(true, false, false, false));
+        assertEquals(3, game.progress.get(a).ammo);
+        ticks(2);
+        assertFalse("Warhammer should break shield", game.progress.get(b).shield);
+        assertEquals(hpB - 32f, game.state.getPlayer(b).getHp(), 0.001f);
+
+        // Spear: 24 damage if tipper or 14 if body
+        ticks(30);
+        pickup("SPEAR");
+        assertEquals(6, game.progress.get(a).ammo);
+        hpB = game.state.getPlayer(b).getHp();
+        send(input(true, false, false, false));
+        assertEquals(5, game.progress.get(a).ammo);
+        ticks(2);
+        assertTrue(game.state.getPlayer(b).getHp() < hpB);
+
+        // Dual daggers: 10 damage per strike
+        ticks(30);
+        pickup("DUAL_DAGGERS");
+        assertEquals(8, game.progress.get(a).ammo);
+        hpB = game.state.getPlayer(b).getHp();
+        send(input(true, false, false, false));
+        assertEquals(7, game.progress.get(a).ammo);
+        ticks(2);
+        assertEquals(hpB - 10f, game.state.getPlayer(b).getHp(), 0.001f);
+    }
+
+    @Test public void thrownWeaponStunsTargetForOneSecond() {
+        pickup("SWORD");
+        game.bodies.respawn(a, 5.0f, 0.23f);
+        game.bodies.respawn(b, 5.35f, 0.23f);
+        send(input(false, false, false, true)); // throw key
+        ticks(6); // thrown weapon travels and hits opponent
+        assertEquals("Hitstun should be 1 second (60 ticks)", 60, game.snapshot().fighter().player("b").hitstunTicks());
+        assertEquals("TUMBLE", game.snapshot().fighter().player("b").action());
+    }
+
+    @Test public void keepWeaponOnThrowRuleRetainsWeapon() {
+        runtime.close();
+        runtime = new MatchRuntime(new MatchSetup("keep-throw", "room",
+                List.of(new MatchSetup.Participant(a, 0, "Alex"), new MatchSetup.Participant(b, 1, "Luca")),
+                new MatchRules(2, 0, 3, MatchRules.DropRate.NONE, true, true, true)));
+        runtime.start();
+        game = runtime.gameplay();
+        game.bodies.respawn(a, 5.45f, .23f);
+        game.bodies.respawn(b, 5.72f, .23f);
+        ticks(10);
+
+        pickup("SWORD");
+        assertEquals("SWORD", game.progress.get(a).weapon);
+        assertEquals(6, game.progress.get(a).ammo);
+        send(input(false, false, false, true)); // throw weapon
+        assertEquals("Weapon should be retained with keepWeaponOnThrow=true", "SWORD", game.progress.get(a).weapon);
+        assertEquals(6, game.progress.get(a).ammo);
+    }
+}

@@ -1,0 +1,586 @@
+﻿{
+    "head":  "f688f30a1b76bb0d6f114e02c5adee400385bd85",
+    "jarHashes":  [
+                      {
+                          "Hash":  "60341F3CE9FAFAFED442D662423CCEDEC49DCACF51F352205888B9B052681722",
+                          "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\build\\performance\\20261015-221532\\baseline-runtime\\common-1.0.jar"
+                      },
+                      {
+                          "Hash":  "FFB49B06711E34B1A175DF17311B0F3AE0E85BF46C569A137EC00D291BB2CAE1",
+                          "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\build\\performance\\20261015-221532\\baseline-runtime\\gdx-1.10.0.jar"
+                      },
+                      {
+                          "Hash":  "BA93A086F68947253074C6514138108CCEA8D63C83AF28C70310AE29F7185A09",
+                          "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\build\\performance\\20261015-221532\\baseline-runtime\\gdx-box2d-1.10.0.jar"
+                      },
+                      {
+                          "Hash":  "B241F4A6FB58C6C013BF9880776E52BB6A0EC2DE32AF00AEB994665B207F56C4",
+                          "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\build\\performance\\20261015-221532\\baseline-runtime\\gdx-box2d-platform-1.10.0-natives-desktop.jar"
+                      },
+                      {
+                          "Hash":  "4241C14A7727C34FEEA6507EC801318A3D4A90F070E4525681079FB94EE4C593",
+                          "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\build\\performance\\20261015-221532\\baseline-runtime\\gson-2.10.1.jar"
+                      },
+                      {
+                          "Hash":  "53CA085F4A150F703F49E1AABD935BD03B43E1EA3D55D135438292AF22CEF56B",
+                          "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\build\\performance\\20261015-221532\\baseline-runtime\\jackson-annotations-2.21.jar"
+                      },
+                      {
+                          "Hash":  "36111C3A4372CD5C2BE6F4EC44A050382487920F3FC38CA3015C9C1678BD7C56",
+                          "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\build\\performance\\20261015-221532\\baseline-runtime\\jackson-core-2.21.6.jar"
+                      },
+                      {
+                          "Hash":  "62134A98DE12D0A421CD2F5B9854C8E63F10F524B0341E66CFD31A4326F6A329",
+                          "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\build\\performance\\20261015-221532\\baseline-runtime\\jackson-databind-2.21.6.jar"
+                      },
+                      {
+                          "Hash":  "ADC8C5C1022B625AF04CD4A499734CC1DFE895BCC8FBF77E5048C8F5FFC8B091",
+                          "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\build\\performance\\20261015-221532\\baseline-runtime\\server-1.0.jar"
+                      }
+                  ],
+    "branch":  "integration/member2-check",
+    "workingTree":  [
+                        " M final-project/common/build/libs/common-1.0.jar",
+                        " M final-project/common/build/tmp/compileJava/previous-compilation-data.bin",
+                        " M final-project/core/src/com/smashprofs/game/Game.java",
+                        " M final-project/core/src/com/smashprofs/game/network/client/NetworkClient.java",
+                        " M final-project/desktop/src/com/smashprofs/game/DesktopLauncher.java",
+                        " M final-project/server/build.gradle",
+                        " M final-project/server/build/libs/server-1.0.jar",
+                        " M final-project/server/build/tmp/compileJava/previous-compilation-data.bin",
+                        " M final-project/server/src/com/smashprofs/server/game/FixedTickScheduler.java",
+                        " M final-project/server/src/com/smashprofs/server/game/MatchRuntime.java",
+                        " M final-project/server/src/com/smashprofs/server/network/ClientSession.java",
+                        " M final-project/server/src/com/smashprofs/server/network/ConnectionManager.java",
+                        " M final-project/server/src/com/smashprofs/server/network/GameServer.java",
+                        " M final-project/server/src/com/smashprofs/server/network/MessageDispatcher.java",
+                        " M final-project/server/src/com/smashprofs/server/network/ProtocolV1Dispatcher.java",
+                        " M final-project/server/src/com/smashprofs/server/network/SessionChannel.java",
+                        " M final-project/server/src/com/smashprofs/server/network/StateBroadcaster.java",
+                        " M final-project/server/src/com/smashprofs/server/network/TcpClientConnection.java",
+                        " M final-project/server/src/com/smashprofs/server/room/GameRoom.java",
+                        "?? config/scalability/local.properties",
+                        "?? docs/scalability/01-CURRENT-ARCHITECTURE.md",
+                        "?? docs/scalability/02-TARGET-ARCHITECTURE-100M-CCU.md",
+                        "?? docs/scalability/03-TEN-SERVER-FUNCTIONS.md",
+                        "?? docs/scalability/04-PROTOCOL-COMPATIBILITY.md",
+                        "?? docs/scalability/05-ROOM-SHARDING.md",
+                        "?? docs/scalability/06-LOAD-AWARE-ALGORITHM.md",
+                        "?? docs/scalability/07-ADAPTIVE-SYNCHRONIZATION.md",
+                        "?? docs/scalability/08-LOAD-TEST-RESULTS.md",
+                        "?? docs/scalability/09-CAPACITY-PLANNING.md",
+                        "?? docs/scalability/10-TEACHER-DEFENSE.md",
+                        "?? docs/scalability/README.md",
+                        "?? docs/scalability/results/client-tests.txt",
+                        "?? docs/scalability/results/comparison/adaptive-safety-stop.json",
+                        "?? docs/scalability/results/comparison/environment.json",
+                        "?? docs/scalability/results/comparison/load-aware-safety-stop.json",
+                        "?? docs/scalability/results/comparison/round-robin-safety-stop.json",
+                        "?? docs/scalability/results/comparison/single-safety-stop.json",
+                        "?? docs/scalability/results/environment.json",
+                        "?? docs/scalability/results/runtime.json",
+                        "?? docs/scalability/results/script-smoke.json",
+                        "?? docs/scalability/results/server-tests.txt",
+                        "?? docs/scalability/results/single-16-1.json",
+                        "?? docs/scalability/results/single-16-2.json",
+                        "?? docs/scalability/results/single-2-1.json",
+                        "?? docs/scalability/results/single-2-2.json",
+                        "?? docs/scalability/results/single-32-1.json",
+                        "?? docs/scalability/results/single-32-2.json",
+                        "?? docs/scalability/results/single-4-1.json",
+                        "?? docs/scalability/results/single-4-2.json",
+                        "?? docs/scalability/results/single-64-1.json",
+                        "?? docs/scalability/results/summary.csv",
+                        "?? docs/scalability/verification.json",
+                        "?? final-project/common/build/reports/tests/test/classes/com.smashprofs.common.protocol.JsonFrameCodecTest.html",
+                        "?? final-project/common/build/reports/tests/test/css/base-style.css",
+                        "?? final-project/common/build/reports/tests/test/css/style.css",
+                        "?? final-project/common/build/reports/tests/test/index.html",
+                        "?? final-project/common/build/reports/tests/test/js/report.js",
+                        "?? final-project/common/build/reports/tests/test/packages/com.smashprofs.common.protocol.html",
+                        "?? final-project/common/build/resources/test/protocol-v1-vectors.txt",
+                        "?? final-project/common/build/test-results/test/TEST-com.smashprofs.common.protocol.JsonFrameCodecTest.xml",
+                        "?? final-project/common/build/test-results/test/binary/output.bin",
+                        "?? final-project/common/build/test-results/test/binary/output.bin.idx",
+                        "?? final-project/common/build/test-results/test/binary/results.bin",
+                        "?? final-project/common/build/tmp/compileTestJava/previous-compilation-data.bin",
+                        "?? final-project/core/src/com/smashprofs/game/network/client/ClusterLobbyConnector.java",
+                        "?? final-project/server/build/reports/tests/test/classes/com.smashprofs.server.cluster.ControlPlaneTest.html",
+                        "?? final-project/server/build/reports/tests/test/css/base-style.css",
+                        "?? final-project/server/build/reports/tests/test/css/style.css",
+                        "?? final-project/server/build/reports/tests/test/index.html",
+                        "?? final-project/server/build/reports/tests/test/js/report.js",
+                        "?? final-project/server/build/reports/tests/test/packages/com.smashprofs.server.cluster.html",
+                        "?? final-project/server/build/resources/main/1/Map1New2Remake.tmx",
+                        "?? final-project/server/build/test-results/test/TEST-com.smashprofs.server.cluster.ControlPlaneTest.xml",
+                        "?? final-project/server/build/test-results/test/binary/output.bin",
+                        "?? final-project/server/build/test-results/test/binary/output.bin.idx",
+                        "?? final-project/server/build/test-results/test/binary/results.bin",
+                        "?? final-project/server/build/tmp/compileTestJava/previous-compilation-data.bin",
+                        "?? final-project/server/build/tmp/test/jar_extract_10066433516649950929_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_10197262101228989703_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_10273639406198843259_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_10399091725832492049_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_10483882937218406480_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_10699314703185494635_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_11008654535924564438_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_11256935337646171118_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_11427723113401356642_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_11577077907316373982_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_12065042158758286590_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_12127837510963003555_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_12137084721875723920_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_12654048160915310180_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_1268159204116596926_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_13375734694712607942_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_13886922225606219086_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_14206703540724646866_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_14800588411453426941_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_15300417067914745827_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_15449532238570645983_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_15500962325342237603_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_15845884053166632432_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_15981999327627146842_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_16025408456176638701_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_16162757154315798968_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_16216835233516083688_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_16220661227381263207_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_16413325869820361862_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_16782723893531146563_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_17259202326968894697_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_17446077866870690029_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_17953579957386551550_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_18191776865219497346_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_1948232872639319463_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_1972275518919630083_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_2183316769722567557_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_2196483145041071116_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_2267122686268708505_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_2578780610736864302_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_2670665047322975704_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_2780188113437768252_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_3129168812417253714_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_3216712924431896449_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_3576324508345199477_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_377028986538464071_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_4010714074106616316_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_4267237013663575640_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_4404533750338164253_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_5022341437230215474_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_5342887234546635439_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_5445947851940802688_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_5611397835153454743_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_6267295593597201877_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_6288322614776266711_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_6563779940127374146_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_6573900960948004620_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_6763024547377992449_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_6794411814340381098_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_6800106970858540950_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_6872071009516996393_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_6970819518183346373_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_7279328307927274787_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_7661876951707232824_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_7698903377377511666_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_7786019879881748424_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_8160661946015565997_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_8971404785429374075_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_9776980720952341829_tmp",
+                        "?? final-project/server/build/tmp/test/jar_extract_9874305493509428929_tmp",
+                        "?? final-project/server/src/com/smashprofs/server/cluster/AutoScalingController.java",
+                        "?? final-project/server/src/com/smashprofs/server/cluster/ClusterMain.java",
+                        "?? final-project/server/src/com/smashprofs/server/cluster/ControlPlane.java",
+                        "?? final-project/server/src/com/smashprofs/server/cluster/FileMatchHistory.java",
+                        "?? final-project/server/src/com/smashprofs/server/cluster/HttpJson.java",
+                        "?? final-project/server/src/com/smashprofs/server/cluster/LoadGenerator.java",
+                        "?? final-project/server/src/com/smashprofs/server/cluster/RoomAllocator.java",
+                        "?? final-project/server/src/com/smashprofs/server/cluster/StandaloneMetrics.java",
+                        "?? final-project/server/src/com/smashprofs/server/cluster/WorkerRuntime.java",
+                        "?? final-project/server/src/com/smashprofs/server/metrics/ServerMetrics.java",
+                        "?? final-project/server/src/com/smashprofs/server/network/AdaptiveSnapshotPolicy.java",
+                        "?? final-project/server/src/com/smashprofs/server/network/SessionAdmission.java",
+                        "?? final-project/server/test/com/smashprofs/server/cluster/ClusterProcessIntegrationTest.java",
+                        "?? final-project/server/test/com/smashprofs/server/cluster/ControlPlaneTest.java",
+                        "?? final-project/server/test/com/smashprofs/server/cluster/FileMatchHistoryTest.java",
+                        "?? final-project/server/test/com/smashprofs/server/cluster/HttpJsonTest.java",
+                        "?? final-project/server/test/com/smashprofs/server/cluster/MatchmakingRoomGateTest.java",
+                        "?? final-project/server/test/com/smashprofs/server/cluster/ScalingPoliciesTest.java",
+                        "?? final-project/server/test/com/smashprofs/server/game/FileHistoryTcpIntegrationTest.java",
+                        "?? final-project/tests/src/com/smashprofs/tests/network/ClusterLobbyIntegrationTest.java",
+                        "?? scripts/scalability/Start-Cluster.ps1",
+                        "?? scripts/scalability/Stop-Cluster.ps1",
+                        "?? scripts/scalability/Verify-LowMemory.ps1",
+                        "?? scripts/scalability/benchmark.py",
+                        "?? scripts/scalability/start-cluster.sh",
+                        "?? scripts/scalability/stop-cluster.sh"
+                    ],
+    "mergeInProgress":  false,
+    "runId":  "20261015-221532",
+    "baselineRuntime":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\build\\performance\\20261015-221532\\baseline-runtime",
+    "sourceHashes":  [
+                         {
+                             "Hash":  "5C95FE6367EB3FC1EBFD5D341CF81F95AB3560714654C0B1DB6950A681CDE78F",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\core\\src\\com\\smashprofs\\game\\network\\client\\WireMatchResult.java"
+                         },
+                         {
+                             "Hash":  "D5561B17AFBA855FFF01C4813F940009F5A9AF399BE9EC696F1FE10E2EBCC613",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\core\\src\\com\\smashprofs\\game\\network\\client\\WireGameSnapshot.java"
+                         },
+                         {
+                             "Hash":  "BDB4581530C0F4AF8491369103A51BBF51D0DE6E9F4DA6EDB0EA9C60F3F278DF",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\core\\src\\com\\smashprofs\\game\\network\\client\\StateInterpolator.java"
+                         },
+                         {
+                             "Hash":  "732680F649371C3F0D460CEB4D17ED7E746804CCB706C6806B20BBAA8ADED090",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\core\\src\\com\\smashprofs\\game\\network\\client\\SnapshotBuffer.java"
+                         },
+                         {
+                             "Hash":  "1664F1B57CBC699DE797BDA40DB4FB566D87AA37DF9C5D352CE0EB77ABC37BB4",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\core\\src\\com\\smashprofs\\game\\network\\client\\OutboundInputQueue.java"
+                         },
+                         {
+                             "Hash":  "0480D0EA70F5E37AA7010A8D8A6C4DED18FF456B52D9F6B16546D92D9EACE31A",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\core\\src\\com\\smashprofs\\game\\network\\client\\OnlineVisualCatalog.java"
+                         },
+                         {
+                             "Hash":  "8AB5232305DEF6C2C739CC9CC382DC3CA09980A11689F1027088DA93D2855C5A",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\core\\src\\com\\smashprofs\\game\\network\\client\\OnlineMatchPresentation.java"
+                         },
+                         {
+                             "Hash":  "81FA9A14647B5185CFBDEA91E66FDD47F175167908AD2C6675D25ABF89A8DF1B",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\core\\src\\com\\smashprofs\\game\\network\\client\\OnlineLobbyFormModel.java"
+                         },
+                         {
+                             "Hash":  "4C6B04298E7F34397AFD25C7A0EC728F6BC9AEA3162E90CC2614CA68705087A0",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\core\\src\\com\\smashprofs\\game\\network\\client\\NetworkMetricsTracker.java"
+                         },
+                         {
+                             "Hash":  "4F768EB2B8CC46416F63DE87B4BE13BC24B7C872709D51D8D3DDA8C01E7BEB75",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\core\\src\\com\\smashprofs\\game\\network\\client\\NetworkClient.java"
+                         },
+                         {
+                             "Hash":  "E7ADA875C8DAC92D7B6EA91B377BEF6981E59E7974A5AAEC3AD5C46AFF3A5227",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\core\\src\\com\\smashprofs\\game\\network\\client\\LobbyConfiguration.java"
+                         },
+                         {
+                             "Hash":  "09BF1AB719118D9944D4BE6B21E80C622641E5A363BD1F3F6A7323CB02B9719A",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\core\\src\\com\\smashprofs\\game\\network\\client\\LobbyClient.java"
+                         },
+                         {
+                             "Hash":  "19E0425E119C9966F6A3D1DE1A3CBBAF01CE948725223DB2A0A6402F39088819",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\core\\src\\com\\smashprofs\\game\\network\\client\\GameStartRoster.java"
+                         },
+                         {
+                             "Hash":  "514485DB5D6CB725314B92699D130D47FF76012821583634AEBDE067CBFF5C9B",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\core\\src\\com\\smashprofs\\game\\network\\client\\ConnectionListener.java"
+                         },
+                         {
+                             "Hash":  "FE4C3D9B2008A8190997290D5A5F91F0959AACC1569CEA698905D400613C58A5",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\core\\src\\com\\smashprofs\\game\\network\\client\\ClusterLobbyConnector.java"
+                         },
+                         {
+                             "Hash":  "6ADFBAB039AFC75C0D387B305D56C74F06EADF7BD8D5D40973051FE556A4BA34",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\core\\src\\com\\smashprofs\\game\\network\\client\\ClientMatchSession.java"
+                         },
+                         {
+                             "Hash":  "BFE48F01DBC4E3E46005B79CE4E68A6C11B082086BB59E5EFBEC60BCBC23EC3E",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\room\\RoomPhase.java"
+                         },
+                         {
+                             "Hash":  "18F42D49CF9B06FC382ADF13B4D6E1AB3C69928C47DF04B2AFCC46B6FEB8101B",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\room\\RoomManager.java"
+                         },
+                         {
+                             "Hash":  "CC24E9F48DADB57F7CAFF001741F4FFD3DF4A8B040B2AE8E81302639703B6960",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\room\\PlayerSlot.java"
+                         },
+                         {
+                             "Hash":  "88FD401A4E796C075E226D8E75449D9AE903B6B1504FD15DE97C5ABE1D169F88",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\room\\package-info.java"
+                         },
+                         {
+                             "Hash":  "AC0E8FA7DB75505172811611911B3CE561CDA9FB0DCE1242754B6C5A31D743C5",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\room\\GameRoom.java"
+                         },
+                         {
+                             "Hash":  "BB1283F6CFC51092B740EAD173B0E966B8A0959FF0AA6931FE4685ED846ED962",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\reliability\\package-info.java"
+                         },
+                         {
+                             "Hash":  "19ACBCA5FBF7C0FF45C453F32FAB80CA9C6F4E07F7444CF7BF3D101C017C0EFE",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\ranking\\package-info.java"
+                         },
+                         {
+                             "Hash":  "52F280D8BA8DF0CC48C92C68E0B0C30D333E7036789DC6FF3B5885A69E99F212",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\network\\TcpSessionChannel.java"
+                         },
+                         {
+                             "Hash":  "AFE2A9EA10F5013F3B69063F98FE7163A6518872735AFEFFF4AD9A6E4041D4F8",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\network\\TcpServerTransport.java"
+                         },
+                         {
+                             "Hash":  "9CCFB4779E895AC7BBE105A2F1023D2B41801784B720A2E6A03D4B6F643CB438",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\network\\TcpMessageCodec.java"
+                         },
+                         {
+                             "Hash":  "19B47D7BD8A483BEA6DEF5170C0661258A738712309BA24E99828B83075F5C4E",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\network\\TcpIoConfiguration.java"
+                         },
+                         {
+                             "Hash":  "9B379C099F89A23606CF63455AF4FC07181061C94CEFAA42EFD4FC46DCAB547D",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\network\\TcpClientConnection.java"
+                         },
+                         {
+                             "Hash":  "587F992ABDA2C12C30B9ABD3D583BED5E8DD33398A704123BB9EB2611CFDAEB0",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\network\\StateBroadcaster.java"
+                         },
+                         {
+                             "Hash":  "2E00B6CB6A3E066D14426DBF2B1D50BE04EC87685CF816C4C73C481211AA9CC7",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\network\\SessionChannel.java"
+                         },
+                         {
+                             "Hash":  "CBEE9EE19D5EDF5BC15168E43A8465F36A831A2FCDC75BD2E23E8323BB3DB0F7",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\network\\SessionAdmission.java"
+                         },
+                         {
+                             "Hash":  "F4E1AC9B5CD61E6C45C42E2B759CE7E7F4D56224AED12185979FE488452AC795",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\network\\ProtocolV1Dispatcher.java"
+                         },
+                         {
+                             "Hash":  "4CAB7806BE7401E610A337C4546D0455AE0A5B1F2C7F80203E4E681C66E6E5AC",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\network\\PlayerReadyHandler.java"
+                         },
+                         {
+                             "Hash":  "DEA90D03D9DFCAE083ED4E2D82C0C3ABDC55FEA964E0F6E23E39C170F8224589",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\network\\PlayerInputHandler.java"
+                         },
+                         {
+                             "Hash":  "849E2F4624DC29D089BD40FBAD3148A1EA31054121766859CE6F9D449FC450C2",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\network\\package-info.java"
+                         },
+                         {
+                             "Hash":  "04B880233CEAC0DBFF20DCAFC05208B59CE9FCD4F3ABD9CC0EC409365B94BB6B",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\network\\MessageDispatcher.java"
+                         },
+                         {
+                             "Hash":  "B3954A8B34DD239DCBC93B4D4B478B2DD817F339CFC97504FE243A6498F6872F",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\network\\JsonTcpMessageCodec.java"
+                         },
+                         {
+                             "Hash":  "599E94A7A27C56F8C18E241AA6664330F970D597D5B9662502E5E1192260C918",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\network\\JoinRoomHandler.java"
+                         },
+                         {
+                             "Hash":  "1E153076EC2DA87904E227B340FD1AE35822FEBB3C490F5A7C8C085A16E160F4",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\network\\HeartbeatManager.java"
+                         },
+                         {
+                             "Hash":  "975B928D04B1EC5E39E5354267158C1F1439BD7EA98955F3A98ADB7D41AC210A",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\network\\HeartbeatDelivery.java"
+                         },
+                         {
+                             "Hash":  "93A13506980E85F4428EBD98DAC38846287D688F5D904BF01725A38AD8E1E51F",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\network\\HeartbeatConfiguration.java"
+                         },
+                         {
+                             "Hash":  "3983243037E5339FE0C2D6040E06ABE64E7160C5F26369B4D61366A83E18A2EA",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\network\\GameStateMessageMapper.java"
+                         },
+                         {
+                             "Hash":  "4E1A9D3413A033E539E7D0C72785DA7CA1AC1DA1F7F1651D71587E851A3E5CC7",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\network\\GameStateDelivery.java"
+                         },
+                         {
+                             "Hash":  "4E08662CCA482876E2F1DB3B2751E31B4724F19E8C6EBE7AA90344453503C904",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\network\\GameStartMessageMapper.java"
+                         },
+                         {
+                             "Hash":  "06BB71581D1767B78588D7542212CBA9B8E9D19FF230F94CBEB6938E6D1C0C82",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\network\\GameStartDelivery.java"
+                         },
+                         {
+                             "Hash":  "C0D4F1C5278F55C06637EF59A82197C39AD8E1B9D68EE3A0E8D98445892B3233",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\network\\GameServer.java"
+                         },
+                         {
+                             "Hash":  "4AA1C82612772C5F3E4EA2CD1EB04C172B9605405ECAA5CB86083A8D11D56AA9",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\network\\GameEndMessageMapper.java"
+                         },
+                         {
+                             "Hash":  "D72812F68DAFFD475E215F0984A46E1B8292FACBD204FFF9BF1EDB5428787287",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\network\\GameEndDelivery.java"
+                         },
+                         {
+                             "Hash":  "7D0CE99F08786FFC5A8AF1F2CBB7660DCC4B852E1DCF49FE3EE8A384040FB277",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\network\\ConnectionManager.java"
+                         },
+                         {
+                             "Hash":  "E290DABB62821E3D8139B9D660EB46C5B6BA76337049D5FF445357EA3EEEE447",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\network\\ClientSession.java"
+                         },
+                         {
+                             "Hash":  "B5D37F1B6BBB9D8A847A47A5E0CFB7C5CCB675C7ABFE1EA77FD085028C364E24",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\network\\AdaptiveSnapshotPolicy.java"
+                         },
+                         {
+                             "Hash":  "BE1479C9464EB79E6D96FDD00940E347054E441A49F88BF12D718B03FD37EA42",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\metrics\\ServerMetrics.java"
+                         },
+                         {
+                             "Hash":  "488C81D16AB46321275B7C408308DF093CDC4BF7F85549752BC82C51ADFD890A",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\metrics\\package-info.java"
+                         },
+                         {
+                             "Hash":  "F0956475C6402A09E675803A6B177CDC3836745F8D021635BDBBF70BE26855C5",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\game\\ServerPlayer.java"
+                         },
+                         {
+                             "Hash":  "84EB6FBA2BEF0CC6B9C001B844DEBDE08DBAFE9F91C586BDC957347B547A73E6",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\game\\RankingGateway.java"
+                         },
+                         {
+                             "Hash":  "897B1B094DC458C49B3411BBF0B83EB9BF5CE601343033E14664F156F624915D",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\game\\projectile\\ServerProjectile.java"
+                         },
+                         {
+                             "Hash":  "E3930AC6A02B03646E09975E68B450A9FC20A5584EAB0005526BC080D5697F64",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\game\\projectile\\ProjectileType.java"
+                         },
+                         {
+                             "Hash":  "8B5A0A7B69113886DA2CC2D69706FB7036AFDDE2CBA26C8E704A01FE41C33472",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\game\\projectile\\ProjectileManager.java"
+                         },
+                         {
+                             "Hash":  "950F87E2977FF67C0922534D7C5777993A64A4870BA05C7BD6EA4AF7CAF3AEF2",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\cluster\\WorkerRuntime.java"
+                         },
+                         {
+                             "Hash":  "13A729F948773B0EE37417E5E2C6213BAE3F37A7322A21B299225C19F2953CD6",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\cluster\\StandaloneMetrics.java"
+                         },
+                         {
+                             "Hash":  "1D87904B86BBC4E72292BAA0DEA8B48E8BEDDE2BE85D0FFDFB4CDD833A6C3146",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\cluster\\RoomAllocator.java"
+                         },
+                         {
+                             "Hash":  "06E034B25BBBCF237065B61AC43B6B7021835EC42D11E2925CBDC8704CD040DB",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\cluster\\LoadGenerator.java"
+                         },
+                         {
+                             "Hash":  "A40FE491A0D25E00D3BBF35D7846F976501CCBBB0CB1555F88D52199DBFE34AB",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\cluster\\HttpJson.java"
+                         },
+                         {
+                             "Hash":  "F7ABC5505D503318C84C741BBD69DEC7F9AAE02770BE066F90DB745924ABD0E7",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\cluster\\FileMatchHistory.java"
+                         },
+                         {
+                             "Hash":  "F59C81E237C83E849E89C44BC6085CE4E8EF01A96CE3C888B2EEB26D468214A6",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\cluster\\ControlPlane.java"
+                         },
+                         {
+                             "Hash":  "0A4C3C2AC154715DB17DD68FDBD984C530DCF45A773FB17A2D77DCE1BF4F0129",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\cluster\\ClusterMain.java"
+                         },
+                         {
+                             "Hash":  "8FF0B0FD7BAA833009A3F9491CFC4B38788D6CDD7755C0D16F3C38730E952A43",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\cluster\\AutoScalingController.java"
+                         },
+                         {
+                             "Hash":  "184F56181C9167D74D895F62A8EA4B4DC519F4A87B0C1088B396F0355954AA93",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\game\\InputQueue.java"
+                         },
+                         {
+                             "Hash":  "F108FF331EDBC27EDB76F015849DCC9EDBB3845AAB73CA8B9F5D7C29CA2BC33F",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\game\\GameSnapshotBuilder.java"
+                         },
+                         {
+                             "Hash":  "4C076AE865A1207DDEF6DF109E096E16EC9B3D7338DED2539619E8909876B1FB",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\game\\FixedTickScheduler.java"
+                         },
+                         {
+                             "Hash":  "268B42482AE5AB44A2772E1889B4B2A6F58DEA0E10B5FA2510718BEAAD1211D9",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\game\\physics\\TmxCollisionLoader.java"
+                         },
+                         {
+                             "Hash":  "437814451FFDB1B110A6370F9A448CE2D04434CAF67FEDB41A065260A84AE790",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\game\\physics\\SpawnProvider.java"
+                         },
+                         {
+                             "Hash":  "8A8C47A5E32C1841D0BA78B73BED525DFD784533E33D6EEAA7D3D2D8E445E82C",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\game\\physics\\PlayerPhysicsFactory.java"
+                         },
+                         {
+                             "Hash":  "0C8D16CC620718427A39B3C2B63DDC96583858B3E89E699DEDB4897D50B54567",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\game\\physics\\PlayerMovementController.java"
+                         },
+                         {
+                             "Hash":  "8EBEF4B3D22CD2B4589DD72AA862CC272203CD71D7C586DA513D74AC00BDEB9A",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\game\\physics\\PlayerJumpController.java"
+                         },
+                         {
+                             "Hash":  "3C10D13580FB2C34B6FEEBFBB352B29E1DC9D8C6EED3E00843644BB5DAC3EC49",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\game\\physics\\PhysicsWorldFactory.java"
+                         },
+                         {
+                             "Hash":  "486F84AAE74F7097EED83461FE7BE9CEDAAB150582243AA616EF25A002AED241",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\game\\physics\\MapCollisionDefinition.java"
+                         },
+                         {
+                             "Hash":  "E86A8C1E6E260F950837CD4D7D1939FA4D44DF6550B19511D43426AD00700FA2",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\game\\physics\\MapCollisionBuilder.java"
+                         },
+                         {
+                             "Hash":  "B028A6E6B7FA96A6F04CE7BC5542366F0A41FCF22BFB2B0266663623C3AE6EEE",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\game\\physics\\HeadlessPhysicsWorld.java"
+                         },
+                         {
+                             "Hash":  "204E7705659875C1A7ED15D4556AB7B608D1383097F7C4C6DCA67B07D6AA1B18",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\game\\physics\\GroundContactListener.java"
+                         },
+                         {
+                             "Hash":  "E0E6CB49EC5DD4BAB612D6F4E2F83E88DCEC8A2A12BDAE4DF90156A05FB30DA1",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\game\\physics\\ArenaBoundaryController.java"
+                         },
+                         {
+                             "Hash":  "38B2BB8B33B22E174076B658B810F9E9A39EB62F0BF3D03FB4F9BD0AD3D7EA5B",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\game\\package-info.java"
+                         },
+                         {
+                             "Hash":  "6730B402DA7A15640762CE174C03D67CD1336278494FD57EAEEB2254B5D87562",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\game\\MatchState.java"
+                         },
+                         {
+                             "Hash":  "69B4A3446D184A00C9E40761A5C119043E0ACA5932B51D145E8B9673F240AB10",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\game\\MatchSetup.java"
+                         },
+                         {
+                             "Hash":  "3785DFFAE86956A8A666BF29C34740205889F489936194E5B2FFC96EE746A316",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\game\\MatchRuntime.java"
+                         },
+                         {
+                             "Hash":  "46E22D576AFA21B95B67A5A436ADFEC05E75F3434C86B6AAA9C50199F742B9F7",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\game\\MatchResultPublisher.java"
+                         },
+                         {
+                             "Hash":  "574300F89EC400029734FD67EDBBC34AC7846127B32FECCB8A5FBA49B1DD990C",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\game\\MatchEndEvaluator.java"
+                         },
+                         {
+                             "Hash":  "46B598684AF67E3354BE6819F1FCD66C852019748EECF4179A9502291644BC39",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\game\\AuthoritativeGameSnapshot.java"
+                         },
+                         {
+                             "Hash":  "BD1EE62B078B81CBD5D6CA1C16DA65D9FCE60DA31142C37DFE73A996FA2126BA",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\game\\AuthoritativeMatchResult.java"
+                         },
+                         {
+                             "Hash":  "6896B87286FF0EFFD39BA3D2688589DAE45252440D5ABEFF4E193C60086782DB",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\game\\combat\\StompCombatController.java"
+                         },
+                         {
+                             "Hash":  "C880191D47FECD7FFA8CAED552ED462184D07A3FA338A990EB8D002CB4D37A11",
+                             "Path":  "E:\\2026-2\\lap-trinh-mang\\smashprofs-integration\\final-project\\server\\src\\com\\smashprofs\\server\\game\\combat\\MeleeCombatController.java"
+                         }
+                     ]
+}

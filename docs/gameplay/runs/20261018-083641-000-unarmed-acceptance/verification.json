@@ -1,0 +1,9 @@
+﻿{
+    "date":  "2026-10-18T08:36:50.1407524+07:00",
+    "status":  "PASS",
+    "label":  "unarmed-acceptance",
+    "heapMiB":  128,
+    "suites":  [
+                   "com.smashprofs.server.game.UnarmedGameplayTest"
+               ]
+}

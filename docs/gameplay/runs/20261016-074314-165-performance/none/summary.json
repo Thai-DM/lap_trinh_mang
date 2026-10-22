@@ -1,0 +1,60 @@
+[
+  {
+    "case": "COMBAT-4-final-1",
+    "clients": 4,
+    "workers": 1,
+    "variant": "final",
+    "profile": "COMBAT",
+    "repeat": 1,
+    "correctness": "FAIL",
+    "deliveriesPerClientPerSecond": 8.744776963339222,
+    "windowSeconds": [
+      20.0341055
+    ],
+    "cycleHz": [
+      59.99068706969565
+    ],
+    "roomTick": [
+      {
+        "count": 524,
+        "budgetExceeds": 0,
+        "meanMs": 0.32548282442748094,
+        "maxMs": 3.1983,
+        "p99Ms": 0.786431,
+        "budgetExceedRatio": 0.0,
+        "p95Ms": 0.520191,
+        "p50Ms": 0.290815
+      }
+    ],
+    "workerCycle": [
+      {
+        "count": 1202,
+        "budgetExceeds": 1,
+        "meanMs": 0.300052163061564,
+        "maxMs": 18.6908,
+        "p99Ms": 1.032191,
+        "budgetExceedRatio": 0.0008319467554076539,
+        "p95Ms": 0.622591,
+        "p50Ms": 0.184319
+      }
+    ],
+    "schedulingLag": [
+      {
+        "count": 1202,
+        "budgetExceeds": 16,
+        "meanMs": 5.403627742096506,
+        "maxMs": 65.126162,
+        "p99Ms": 29.097983,
+        "budgetExceedRatio": 0.013311148086522463,
+        "p95Ms": 15.073279,
+        "p50Ms": 2.424831
+      }
+    ],
+    "snapshotEncodes": 175,
+    "snapshotCacheHits": 525,
+    "peakRssBytes": 131387392,
+    "performanceSlo": "FAIL",
+    "sloScope": "Processing p99 and cycle frequency only; review schedulingLag and per-room metrics separately",
+    "deadlineSlo": "FAIL"
+  }
+]

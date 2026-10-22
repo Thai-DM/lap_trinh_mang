@@ -1,0 +1,12 @@
+﻿{
+    "date":  "2026-10-16T07:22:14.2674959+07:00",
+    "status":  "PASS",
+    "label":  "stock-compile",
+    "heapMiB":  128,
+    "suites":  [
+                   "com.smashprofs.server.room.HostRulesTest",
+                   "com.smashprofs.server.game.MatchRuntimeTest",
+                   "com.smashprofs.server.game.MatchRuntimeMeleeTest",
+                   "com.smashprofs.server.game.MatchRuntimeEndingTest"
+               ]
+}

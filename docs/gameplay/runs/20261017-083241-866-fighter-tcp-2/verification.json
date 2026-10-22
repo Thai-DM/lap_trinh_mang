@@ -1,0 +1,11 @@
+﻿{
+    "date":  "2026-10-17T08:32:55.7957451+07:00",
+    "status":  "PASS",
+    "label":  "fighter-tcp-2",
+    "heapMiB":  128,
+    "suites":  [
+                   "com.smashprofs.server.game.FighterEngineTest",
+                   "com.smashprofs.game.network.client.FighterClientTest",
+                   "com.smashprofs.server.game.FighterTcpIntegrationTest"
+               ]
+}

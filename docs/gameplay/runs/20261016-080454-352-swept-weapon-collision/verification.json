@@ -1,0 +1,11 @@
+﻿{
+    "date":  "2026-10-16T08:05:18.5059108+07:00",
+    "status":  "PASS",
+    "label":  "swept-weapon-collision",
+    "heapMiB":  128,
+    "suites":  [
+                   "com.smashprofs.server.game.ItemGameplayTest",
+                   "com.smashprofs.server.game.StockGameplayTest",
+                   "com.smashprofs.server.game.GameplayTcpIntegrationTest"
+               ]
+}

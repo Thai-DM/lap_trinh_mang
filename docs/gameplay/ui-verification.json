@@ -1,0 +1,159 @@
+{
+    "date":  "2026-10-16T16:01:37.3750749+07:00",
+    "baseHead":  "2310c2c74ade126ee6c20ee8fc0bfefbd4c9367e",
+    "status":  "PASS",
+    "sourceFiles":  [
+                        {
+                            "path":  "final-project/assets/ui/online/body.fnt",
+                            "sha256":  "260d5934957180b6105257ab2f74e983a1cc556f29627a0dafdcfd07089df206"
+                        },
+                        {
+                            "path":  "final-project/assets/ui/online/body.png",
+                            "sha256":  "1a83b350280ad9c2a2b18628ea40d40282cd08a2194e44ad9827f60098b12009"
+                        },
+                        {
+                            "path":  "final-project/assets/ui/online/heading.fnt",
+                            "sha256":  "771d5bbdceded62cafd86fedd5c1d36560d6977b1491028d8d8d8bdc172f9709"
+                        },
+                        {
+                            "path":  "final-project/assets/ui/online/heading.png",
+                            "sha256":  "655a3b9c77e53c23253aa23790dcf520ce14cec4575636e5e2582daa99263938"
+                        },
+                        {
+                            "path":  "final-project/assets/ui/online/small.fnt",
+                            "sha256":  "908febc38f5b032719fd6068636e47fb33289fcd62b4ff9b84e527cbb90713d8"
+                        },
+                        {
+                            "path":  "final-project/assets/ui/online/small.png",
+                            "sha256":  "426c40814ac6487ecabf52d1ed7fe5d1de93569f6024c5d32bc314150e79682b"
+                        },
+                        {
+                            "path":  "final-project/core/src/com/smashprofs/game/Game.java",
+                            "sha256":  "80438113102e9db04b7b9e98d61fa583f4d8ed0e5e8faf9f526e2ad3af766b89"
+                        },
+                        {
+                            "path":  "final-project/core/src/com/smashprofs/game/network/client/LobbyClient.java",
+                            "sha256":  "e8ca28e76ab579ce0700b2b25fd51c1652f22adefcab1d1563766c2a0eeea1d6"
+                        },
+                        {
+                            "path":  "final-project/core/src/com/smashprofs/game/network/client/OnlineLobbyFormModel.java",
+                            "sha256":  "d64676e8087583e99eed7f751497c3ea5683382f851616f7f30cfafd0d1d67ed"
+                        },
+                        {
+                            "path":  "final-project/core/src/com/smashprofs/game/network/client/OnlineRoomPresentation.java",
+                            "sha256":  "3bf685845887191a5210c7b7e2eea3fe4fa0e92eed016dbed82d2a5f888527f7"
+                        },
+                        {
+                            "path":  "final-project/core/src/com/smashprofs/game/Scenes/OnlineHud.java",
+                            "sha256":  "013095c436a5afdeb6c2d031e81f6f609c55f846ebcb78b709e25236590a5f83"
+                        },
+                        {
+                            "path":  "final-project/core/src/com/smashprofs/game/Screens/HostLobbySettingsScreen.java",
+                            "sha256":  "dbaa40b725f6a3ac120647134faf3b0ae6dfd5ceb16e520f9d09e2cd8c53d477"
+                        },
+                        {
+                            "path":  "final-project/core/src/com/smashprofs/game/Screens/MainMenuScreen.java",
+                            "sha256":  "025ba48f419a081bb8cca1bd07a59ab964566c4c2c71dcb6ecd2a2f79fc8cb82"
+                        },
+                        {
+                            "path":  "final-project/core/src/com/smashprofs/game/Screens/OnlineLobbyScreen.java",
+                            "sha256":  "460cd9a6e08d5023aa146ed508a1aa999f7963f106ec65d935dde1dfbd2fc261"
+                        },
+                        {
+                            "path":  "final-project/core/src/com/smashprofs/game/Screens/OnlinePlayScreen.java",
+                            "sha256":  "182e55f5c7e3875df933d62127922b9df58ad71419f310d04cf9f8c463549ed2"
+                        },
+                        {
+                            "path":  "final-project/core/src/com/smashprofs/game/Screens/OnlineResultScreen.java",
+                            "sha256":  "6b9eda2372f0efbe5e7d82332bc778af8457215d2179724f35b4a876427adba9"
+                        },
+                        {
+                            "path":  "final-project/core/src/com/smashprofs/game/Screens/OnlineRoomScreen.java",
+                            "sha256":  "8c57bbbf026da4774769232af2b67a5610b0bb5acc95012e710551dd0fda55b3"
+                        },
+                        {
+                            "path":  "final-project/core/src/com/smashprofs/game/ui/OnlineUi.java",
+                            "sha256":  "9e0240d9acadbd0cdb064068f6c181e1e6c805c87aaaa17d2dc5136d9bbef84c"
+                        },
+                        {
+                            "path":  "final-project/desktop/src/com/smashprofs/game/DesktopLauncher.java",
+                            "sha256":  "121b439ca46fcd6fa9fe7d61591c0004e8a50545c27f894670f28407c7c7ca63"
+                        },
+                        {
+                            "path":  "final-project/server/src/com/smashprofs/server/network/ProtocolV1Dispatcher.java",
+                            "sha256":  "75fdb3aa9c72a9b5470d1c5f2a80c496e58cff492b9c8ad6170890493257e3ff"
+                        },
+                        {
+                            "path":  "final-project/server/src/com/smashprofs/server/room/GameRoom.java",
+                            "sha256":  "a030995af50bd8ac0e2e9acb6e2278ccdd2bc32f668c9811f58c87d98c0e17b9"
+                        },
+                        {
+                            "path":  "final-project/tests/src/com/smashprofs/tests/network/OnlineLobbyFormModelTest.java",
+                            "sha256":  "7de7b0b41a3f4e50c03e205ffad48e54e67f4f6761456723218b9df5ff302063"
+                        },
+                        {
+                            "path":  "final-project/tests/src/com/smashprofs/tests/network/OnlineRoomFlowTest.java",
+                            "sha256":  "7e4dac4342de2cead70508ba727bc80c65f89984fb98fe50dd13090b20e59926"
+                        },
+                        {
+                            "path":  "scripts/gameplay/GenerateUiFont.java",
+                            "sha256":  "f9991616802e096bf8d5ec009eea27687a68801300561a8515aeef860f96d141"
+                        },
+                        {
+                            "path":  "scripts/gameplay/Run-Client.ps1",
+                            "sha256":  "55589d37697217d344183770946a3bf5284d4ebe8950692b12e445955a281ca3"
+                        },
+                        {
+                            "path":  "scripts/gameplay/UiPreview.java",
+                            "sha256":  "58cad31f21e701c50807c9cca5358ee836838cb3d12c1eee1aba9d2fedaa5467"
+                        },
+                        {
+                            "path":  "scripts/gameplay/Verify-Gameplay.ps1",
+                            "sha256":  "ef233125008dce8cfd8d0191dfc539bbc5fbced9ad3554e812d460e29fbebdf7"
+                        }
+                    ],
+    "automatedTests":  {
+                           "tests":  96,
+                           "suites":  11,
+                           "heapMiB":  128,
+                           "evidence":  "docs/gameplay/runs/20261016-155200-158-room-ui-final",
+                           "status":  "PASS"
+                       },
+    "nativeGlSmoke":  {
+                          "status":  "PASS",
+                          "hiddenWindow":  true,
+                          "clients":  [
+                                          2,
+                                          4
+                                      ],
+                          "resolutions":  [
+                                              "1280x720",
+                                              "960x540"
+                                          ],
+                          "testedActions":  [
+                                                "character click",
+                                                "ready click",
+                                                "cancel ready click",
+                                                "character reselection",
+                                                "server confirmed character",
+                                                "match start",
+                                                "peer disconnect",
+                                                "result"
+                                            ],
+                          "screenshots":  "docs/gameplay/ui-previews",
+                          "audioEnabled":  false,
+                          "manualGameplayAudioCompleted":  false
+                      },
+    "clientDistribution":  {
+                               "status":  "BUILD_SUCCESSFUL",
+                               "task":  ":desktop:dist --offline --no-daemon",
+                               "heapMiB":  256,
+                               "log":  "docs/gameplay/runs/20261016-155200-158-room-ui-final/client-build.log",
+                               "archiveSha256":  "092c11249d1f5523ff1e9ae6f8c53e13f5961a54d0c807e7ccb366b976caa483"
+                           },
+    "rulesChanged":  false,
+    "performanceComparison":  "BLOCKED_MEMORY, prior safety stop retained",
+    "pushedAtVerification":  false,
+    "subsequentPushAuthorizedByUser":  true,
+    "publicationBranch":  "integration/member2-check"
+}

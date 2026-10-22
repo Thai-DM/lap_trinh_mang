@@ -1,0 +1,22 @@
+{
+  "status": "PASS",
+  "tests": 30,
+  "testEvidence": "../20261017-090929-161-fighter-movement-control-final/tests.log",
+  "nativePlayers": 2,
+  "nativeEvidence": "native.log",
+  "baseRunSpeed": 2.8,
+  "groundAcceleration": 24,
+  "airAcceleration": 14,
+  "groundDrag": 0.7,
+  "airDrag": 0.88,
+  "dashSpeed": 4.4,
+  "dodgeSpeed": 4.4,
+  "sha256": {
+    "final-project/common/src/com/smashprofs/common/model/FighterMovement.java": "e779200b6944cd10a584a8be304b0abd45b6a84ce1d5b7f7b34fb47b4199df6f",
+    "final-project/server/src/com/smashprofs/server/game/FighterEngine.java": "fd38d71ddc949619c3c062d9e3096fa9c20a6864428ff861f210f3f731437f1b",
+    "final-project/core/src/com/smashprofs/game/network/client/LocalFighterPrediction.java": "01426f59664ad5fef77d349047d45efcd14e5714cea07f548a71c15859268d13",
+    "final-project/server/test/com/smashprofs/server/game/FighterEngineTest.java": "c278ef36a67b1a1c96887b063e4981a56e095068ea23edb74df807019b23d683",
+    "final-project/tests/src/com/smashprofs/game/network/client/FighterClientTest.java": "e8cc0c208a32ae0ca363fcfe361f78c612c9a5e710a77f39e1202552df67c5c5",
+    "final-project/desktop/build/libs/desktop-1.0.jar": "94ad73303a158ed2b7899ef847c61c33f3f5c44dc3545df9f31c527c1206764a"
+  }
+}

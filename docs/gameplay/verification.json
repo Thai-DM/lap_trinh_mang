@@ -1,0 +1,327 @@
+{
+    "created":  "2026-10-16T08:12:01.0778565+07:00",
+    "head":  "df0da3f757f3c71f4c76599d349f4e76b242904a",
+    "specification":  {
+                          "path":  "E:\\2026-2\\lap-trinh-mang\\tinhnang.md",
+                          "sha256":  "c760eeb90246e51f408ca9c0dd3d89f36e9559f04049bde20e150b02402fe1d1",
+                          "scope":  "9 official features, Part I"
+                      },
+    "sourceScope":  "Current working-tree Java source/test, gameplay scripts/config, performance runner diff. Excludes build artifacts/logs.",
+    "compilation":  "common/server/core/desktop javac --release 17 PASS",
+    "automatedTests":  {
+                           "status":  "PASS",
+                           "tests":  638,
+                           "suites":  36,
+                           "heapMiB":  128,
+                           "junitSeconds":  41.073,
+                           "evidence":  "docs/gameplay/runs/20261016-080639-267-final-gameplay-regression",
+                           "manualSchedulerInTcpTests":  true,
+                           "realTcpAndNativePhysics":  true
+                       },
+    "manualGuiAudioSmoke":  "NOT_STARTED",
+    "performance":  {
+                        "status":  "BLOCKED_MEMORY",
+                        "finalComparisonCompleted":  false,
+                        "safetyStop":  "docs/gameplay/runs/20261016-075156-731-performance/none/safety-stop.json",
+                        "freeBytes":  1197531136,
+                        "minimumStartMB":  1500,
+                        "minimumRunMB":  750,
+                        "completedDataPoints":  0,
+                        "longSoak":  "NOT_STARTED",
+                        "diagnosticFailedRun":  "docs/gameplay/runs/20261016-074314-165-performance/none/COMBAT-4-final-1"
+                    },
+    "gitWritesPerformedAtVerification":  false,
+    "subsequentPushAuthorizedByUser":  true,
+    "publicationBranch":  "integration/member2-check",
+    "sourceFileCount":  72,
+    "files":  [
+                  {
+                      "path":  "config/gameplay/local.properties",
+                      "sha256":  "517f681ddb8f7e848790d614507bd69cbe77e717435fb5e740f918d5bb95df5c"
+                  },
+                  {
+                      "path":  "final-project/common/src/com/smashprofs/common/model/GameplaySnapshot.java",
+                      "sha256":  "a2e041bb02cc34fa1e1e21a807ede217c86ce8b7b8d2a6ae797d10cf46a28022"
+                  },
+                  {
+                      "path":  "final-project/common/src/com/smashprofs/common/model/MatchEvent.java",
+                      "sha256":  "b8d3c6da161d0671261ab744d43f8bfb0e801a4559d682d297f501a5594bce22"
+                  },
+                  {
+                      "path":  "final-project/common/src/com/smashprofs/common/model/MatchRules.java",
+                      "sha256":  "7fd73cb90e1bae1605c3ad8b2736d2ce937150da51d110ba6197979f7749ce7f"
+                  },
+                  {
+                      "path":  "final-project/common/src/com/smashprofs/common/protocol/GameplayProtocol.java",
+                      "sha256":  "10ab6a230576e0cd597f92345865b876cc49e7cdf708c38873392f0b77432235"
+                  },
+                  {
+                      "path":  "final-project/common/src/com/smashprofs/common/protocol/MessageType.java",
+                      "sha256":  "0dcb329341cecdc3e1f991b7706f97add3df965b6ccb5dbcf7617fe602c87997"
+                  },
+                  {
+                      "path":  "final-project/common/src/com/smashprofs/common/protocol/ProtocolV1.java",
+                      "sha256":  "4ecde9de90ab3cd183798d362d5bcb0d9dc8957dbdea5fec47bbef66bb4a33af"
+                  },
+                  {
+                      "path":  "final-project/core/src/com/smashprofs/game/Game.java",
+                      "sha256":  "e661f015cd7e3a625bca5f795261bf02e1e8074cfe5e138b243aa4d3d31178e0"
+                  },
+                  {
+                      "path":  "final-project/core/src/com/smashprofs/game/network/client/ClientMatchSession.java",
+                      "sha256":  "3e52e6c53085ad41ef3dba5e59ecb79427bc43ca5e6e2cf92b51e4620f3840b5"
+                  },
+                  {
+                      "path":  "final-project/core/src/com/smashprofs/game/network/client/ClusterLobbyConnector.java",
+                      "sha256":  "bb58efebcbeb78f694eb4e898e9a725d1a4688b084537b44ffb544d2800083b0"
+                  },
+                  {
+                      "path":  "final-project/core/src/com/smashprofs/game/network/client/KillFeedModel.java",
+                      "sha256":  "e9ad98dedbaa954c637357f7a64db4a98cc814a5a7186455bf490015927e4f3d"
+                  },
+                  {
+                      "path":  "final-project/core/src/com/smashprofs/game/network/client/LobbyClient.java",
+                      "sha256":  "0968a33211c546294a5ccd5b9727f0a33bc8acadce618882e69a5ded91219e77"
+                  },
+                  {
+                      "path":  "final-project/core/src/com/smashprofs/game/network/client/NetworkClient.java",
+                      "sha256":  "ffe0c0a5af2a846c698170a2baa6ea4f3c5afcee69255ef556132ed91f12bd97"
+                  },
+                  {
+                      "path":  "final-project/core/src/com/smashprofs/game/network/client/OnlineLobbyFormModel.java",
+                      "sha256":  "8e1b09f82b75a350a6093bf5360627275502959709293aa0022aae8bc822659b"
+                  },
+                  {
+                      "path":  "final-project/core/src/com/smashprofs/game/network/client/WireGameSnapshot.java",
+                      "sha256":  "2271e5102c1b8e45ef18a75f9a8d33a83702a5c0e5ba0c3fbd8080f510d79af1"
+                  },
+                  {
+                      "path":  "final-project/core/src/com/smashprofs/game/network/client/WireMatchResult.java",
+                      "sha256":  "2de76d74c0e2150380076461f9dfd8533eac4c95c44be53e1b91a889e0861be5"
+                  },
+                  {
+                      "path":  "final-project/core/src/com/smashprofs/game/Scenes/OnlineHud.java",
+                      "sha256":  "d8dd5f495bdd1a7a1f03d64aecce673b3c34f8b0b082ac829d96408eab9701d1"
+                  },
+                  {
+                      "path":  "final-project/core/src/com/smashprofs/game/Screens/CharacterSelectScreen.java",
+                      "sha256":  "6c57a0550985ec0a0c8ecd667edefc81745a3e03c71eb1d5fc2418d2c69d1860"
+                  },
+                  {
+                      "path":  "final-project/core/src/com/smashprofs/game/Screens/HostLobbySettingsScreen.java",
+                      "sha256":  "57f841e0d59b03fe6f1bf809dddee11d1c84be77feb63a7df43d57da0100ed7a"
+                  },
+                  {
+                      "path":  "final-project/core/src/com/smashprofs/game/Screens/OnlinePlayScreen.java",
+                      "sha256":  "c85265fc253c564fa83d95035c9267ce00aa586e53ebdff1ca375c8df16e0afa"
+                  },
+                  {
+                      "path":  "final-project/core/src/com/smashprofs/game/Screens/OnlineResultScreen.java",
+                      "sha256":  "c5ba71032374fd54efadf0040436192c9b5a46099206ba7db6aea5e24dc81394"
+                  },
+                  {
+                      "path":  "final-project/core/src/com/smashprofs/game/Screens/OnlineSpriteAssets.java",
+                      "sha256":  "fab1a43abbfd024739bbce3d6b91aabca7abd83b21fedb8eaa19c26f01b6de56"
+                  },
+                  {
+                      "path":  "final-project/desktop/src/com/smashprofs/game/DesktopLauncher.java",
+                      "sha256":  "4a15cde0281746f922261ab26d00070b93acf8518a386d47b01396e9269c6680"
+                  },
+                  {
+                      "path":  "final-project/server/src/com/smashprofs/server/cluster/ControlPlane.java",
+                      "sha256":  "b7be7cca21856b229db73593fa686dff9bb58356afa499b9aceafc31f30fa53d"
+                  },
+                  {
+                      "path":  "final-project/server/src/com/smashprofs/server/cluster/LoadGenerator.java",
+                      "sha256":  "1775ca0fea4dbc273aca496674b935e77d8572b7461afbdfbe3bebc6a89e221e"
+                  },
+                  {
+                      "path":  "final-project/server/src/com/smashprofs/server/cluster/StandaloneMetrics.java",
+                      "sha256":  "326a69bce36cb8726cf4e217705ede11e016332fb2cbb38c3a2a134dde96a749"
+                  },
+                  {
+                      "path":  "final-project/server/src/com/smashprofs/server/cluster/WorkerRuntime.java",
+                      "sha256":  "7fbd6516a353272a760b7ce09af8211969c6d318f9a76fa2164277430b2ae17f"
+                  },
+                  {
+                      "path":  "final-project/server/src/com/smashprofs/server/game/AuthoritativeGameSnapshot.java",
+                      "sha256":  "cdb8aaa703f90919371a7fecc69ea726caa5575ea34a38055fd29746fdf38f12"
+                  },
+                  {
+                      "path":  "final-project/server/src/com/smashprofs/server/game/AuthoritativeMatchResult.java",
+                      "sha256":  "1eae0f6f6592508be8f53a3fbcdf00bf48188dbe95da711a681fa2aba0bc8a45"
+                  },
+                  {
+                      "path":  "final-project/server/src/com/smashprofs/server/game/GameplayMatch.java",
+                      "sha256":  "4b19516a9f06767e962e74635bbdbef452b9b65b835d055208f25415b60aaa98"
+                  },
+                  {
+                      "path":  "final-project/server/src/com/smashprofs/server/game/InputQueue.java",
+                      "sha256":  "d7482aaebf88cc39a46040f505a6d26d7a608a050f75ba6edf5990e55533a907"
+                  },
+                  {
+                      "path":  "final-project/server/src/com/smashprofs/server/game/ItemSystem.java",
+                      "sha256":  "d74580ee3754808c5f9885d1f42963da06ec801dca02329b1c1961534fdfc176"
+                  },
+                  {
+                      "path":  "final-project/server/src/com/smashprofs/server/game/KnockbackScaling.java",
+                      "sha256":  "bae24c5f4cb1ccb2019ec0efc2b98ca27ee2215a70e482f201ecf5f8acee89af"
+                  },
+                  {
+                      "path":  "final-project/server/src/com/smashprofs/server/game/MatchEndEvaluator.java",
+                      "sha256":  "3ef38b6d17ddd908c28c7a83d577ad34bd42bd7e64042b5e797733c116ce6bb9"
+                  },
+                  {
+                      "path":  "final-project/server/src/com/smashprofs/server/game/MatchRuntime.java",
+                      "sha256":  "0372c89b775292da554c056f6e77f6a1b8f3d54dca5303b9f9b8faf966c660ad"
+                  },
+                  {
+                      "path":  "final-project/server/src/com/smashprofs/server/game/MatchSetup.java",
+                      "sha256":  "8a74713c6693a2247ea767f4ed51569f052405e0975fc4863291e835e3371507"
+                  },
+                  {
+                      "path":  "final-project/server/src/com/smashprofs/server/game/physics/GroundContactListener.java",
+                      "sha256":  "16b39b1b168a416f768bff8923d67aa930dbc3a8b4afde794b8750fc15dda957"
+                  },
+                  {
+                      "path":  "final-project/server/src/com/smashprofs/server/game/physics/PlayerJumpController.java",
+                      "sha256":  "481205f0de3cec109bcd2497c363f45bdd667f2450959b3597ab07dac94b5d73"
+                  },
+                  {
+                      "path":  "final-project/server/src/com/smashprofs/server/game/physics/PlayerPhysicsFactory.java",
+                      "sha256":  "f799c3d022f8c07bf605ec6c7b04d214967d87b2b34d19ed0a09d2011b0e9133"
+                  },
+                  {
+                      "path":  "final-project/server/src/com/smashprofs/server/game/projectile/ProjectileManager.java",
+                      "sha256":  "ac1d32fb88b4d842a3253101cbe66f07230f99541782d183365553a84ca4638c"
+                  },
+                  {
+                      "path":  "final-project/server/src/com/smashprofs/server/game/ServerPlayer.java",
+                      "sha256":  "6482d7984df57acdf11bcdc07d130ebc114af1d36c4e29e7a91e0849d8a434ca"
+                  },
+                  {
+                      "path":  "final-project/server/src/com/smashprofs/server/network/ClientSession.java",
+                      "sha256":  "c0cca132d7705576fa1cfee78afb74e4778ebc953454d3363fee04e9b9959277"
+                  },
+                  {
+                      "path":  "final-project/server/src/com/smashprofs/server/network/GameEndMessageMapper.java",
+                      "sha256":  "4cf778d5de966bdc3e8faa33df0f1a8934f8f825ca077c16586902fa87e17a65"
+                  },
+                  {
+                      "path":  "final-project/server/src/com/smashprofs/server/network/GameStateMessageMapper.java",
+                      "sha256":  "da02585ebece179e2e8545f6a2fdaac41a8df7388172eaf1bb1d643acd2afa3f"
+                  },
+                  {
+                      "path":  "final-project/server/src/com/smashprofs/server/network/HeartbeatDelivery.java",
+                      "sha256":  "e022edeaaf3256a64dbc3d687dc848962a76a2515abc1103abe3af1c529f9818"
+                  },
+                  {
+                      "path":  "final-project/server/src/com/smashprofs/server/network/HeartbeatManager.java",
+                      "sha256":  "2c7a093ec3d7ca97922ed8895082ab798c29bc6d583c14319a7a967ba1e2f824"
+                  },
+                  {
+                      "path":  "final-project/server/src/com/smashprofs/server/network/PlayerInputHandler.java",
+                      "sha256":  "4577a479fae31bd2832c63a5c3a1dd744ed627f52926e00f0f3b6f7971dc147f"
+                  },
+                  {
+                      "path":  "final-project/server/src/com/smashprofs/server/network/ProtocolV1Dispatcher.java",
+                      "sha256":  "1f1ffa025bc23e7ab3c9d0e6b0a8fd87a486f7bab22c7379159060b08fd0ba29"
+                  },
+                  {
+                      "path":  "final-project/server/src/com/smashprofs/server/network/ReliableDelivery.java",
+                      "sha256":  "3bfb6faaf2d9a9395d5530fd0f97053279a68a48a900c17a59c1cbab3591def8"
+                  },
+                  {
+                      "path":  "final-project/server/src/com/smashprofs/server/network/SessionChannel.java",
+                      "sha256":  "9a746434d74cb7e86af6f355ee1582d9853571fd46c82e33736e92ad228e1790"
+                  },
+                  {
+                      "path":  "final-project/server/src/com/smashprofs/server/network/SharedFrame.java",
+                      "sha256":  "1e06abea7aff51e8886cd125dc62193c05730e01341c2c30af21ef6d389fbc0b"
+                  },
+                  {
+                      "path":  "final-project/server/src/com/smashprofs/server/network/SharedSnapshotCache.java",
+                      "sha256":  "64ec380438792bbafcec925c87e5f9664e2d957dcc07402cc712997af85c7d83"
+                  },
+                  {
+                      "path":  "final-project/server/src/com/smashprofs/server/network/StateBroadcaster.java",
+                      "sha256":  "adae79773f621c1e829054d162637639839e2ad5a16b5984eaa5b8787777e3e8"
+                  },
+                  {
+                      "path":  "final-project/server/src/com/smashprofs/server/network/TcpClientConnection.java",
+                      "sha256":  "4956827bbeaa2002687de45135d851829c0c8e7c65bc45528c3063278461cc89"
+                  },
+                  {
+                      "path":  "final-project/server/src/com/smashprofs/server/network/TcpServerTransport.java",
+                      "sha256":  "4a9cbc836768b354c564a26f5033484bef39f433e4fcc9be359e2955369e9b0e"
+                  },
+                  {
+                      "path":  "final-project/server/src/com/smashprofs/server/network/TcpSessionChannel.java",
+                      "sha256":  "1fb766bbe53d4a4153ec54e021ce20f79dc66da7f417ffe9fdb19cdfb8ca74e6"
+                  },
+                  {
+                      "path":  "final-project/server/src/com/smashprofs/server/room/GameRoom.java",
+                      "sha256":  "43b169c8c2baca07c80fc6eda2c87c895731f8a856cec51f16d3544c7de4812a"
+                  },
+                  {
+                      "path":  "final-project/server/test/com/smashprofs/server/game/ItemGameplayTest.java",
+                      "sha256":  "6cf161a665eb3fb0786dfc441753c5408cf46e66ae455d5083cef92edb31e0d4"
+                  },
+                  {
+                      "path":  "final-project/server/test/com/smashprofs/server/game/physics/WallMovementTest.java",
+                      "sha256":  "06b955df9e2f2ee64ba1ce964aa7b3e5aeff74c878db58beee4a00a53dc7a71f"
+                  },
+                  {
+                      "path":  "final-project/server/test/com/smashprofs/server/game/StockGameplayTest.java",
+                      "sha256":  "c3d199e11ba75bbce9ce9582f53ee2a52ed9b5f538c5388ca0427e927df8f2be"
+                  },
+                  {
+                      "path":  "final-project/server/test/com/smashprofs/server/network/HeartbeatManagerTest.java",
+                      "sha256":  "b7c042cbc4409232b63c2f5b76046639d19beaf7b3d44be5ea895ad7f892d78a"
+                  },
+                  {
+                      "path":  "final-project/server/test/com/smashprofs/server/network/SharedSnapshotCacheTest.java",
+                      "sha256":  "d79ad7e40e464a6a94472740ef8cf6217fee1913da720325674281cc814f6eba"
+                  },
+                  {
+                      "path":  "final-project/server/test/com/smashprofs/server/network/TcpSnapshotBackpressureTest.java",
+                      "sha256":  "9d86c4ddffa990fe2fe60ac888ecdc363ac7160291c06c2f742793228f0e2b85"
+                  },
+                  {
+                      "path":  "final-project/server/test/com/smashprofs/server/room/HostRulesTest.java",
+                      "sha256":  "c4eaf42d74f2812303036e5282b879c2c2cb952b8604cabbf0cc9da62f4dedab"
+                  },
+                  {
+                      "path":  "final-project/tests/src/com/smashprofs/server/game/GameplayTcpIntegrationTest.java",
+                      "sha256":  "dcddd3a19e02bebc041f8bda18864f58e6056962f99a0227643d56a01a084825"
+                  },
+                  {
+                      "path":  "final-project/tests/src/com/smashprofs/tests/network/GameplayClientModelTest.java",
+                      "sha256":  "332e1b43d8fc71b4a7d0c0a300939cae2793c8f0b3763a9388b09a2f5536c652"
+                  },
+                  {
+                      "path":  "final-project/tests/src/com/smashprofs/tests/network/GameplayClusterIntegrationTest.java",
+                      "sha256":  "b5941411e8c947b62d8b61e2c0e72917d7c5d0ddb743477a9d767181c3b2c04e"
+                  },
+                  {
+                      "path":  "scripts/gameplay/Benchmark.ps1",
+                      "sha256":  "75f90ba75ffe0f30cf285afe192fc9debbfda8d352f181859b89584557489d25"
+                  },
+                  {
+                      "path":  "scripts/gameplay/Run-Server.ps1",
+                      "sha256":  "b3995ce6caade3d537383f91abcb288abcf8a9358d7d60e3fd465e6ced602de1"
+                  },
+                  {
+                      "path":  "scripts/gameplay/Verify.ps1",
+                      "sha256":  "787644b19e9933de8c8abe3977d0dab59910aa2fc6d8113db3a341ff263443a1"
+                  },
+                  {
+                      "path":  "scripts/gameplay/Verify-Gameplay.ps1",
+                      "sha256":  "eac2fe1257cf5c9b12034ae8c9ef29b9125a12a4fbd73a5db0dd84043d5d95c5"
+                  },
+                  {
+                      "path":  "scripts/performance/run.py",
+                      "sha256":  "4a946c05122ca723d123a231ccb01551f8ec7f47441d05efd46ca807ed965a58"
+                  }
+              ]
+}

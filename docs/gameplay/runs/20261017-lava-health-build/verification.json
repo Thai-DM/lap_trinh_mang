@@ -1,0 +1,32 @@
+{
+  "status": "PASS",
+  "tests": 726,
+  "testEvidence": "../20261017-094051-292-final-gameplay-regression/tests.log",
+  "beforeFixEvidence": "../20261017-094003-489-lava-health-respawn-repro/tests.log",
+  "nativeCases": [
+    {
+      "players": 2,
+      "width": 1280,
+      "evidence": "two-players-final.log"
+    },
+    {
+      "players": 4,
+      "width": 960,
+      "evidence": "four-players-small-final.log"
+    }
+  ],
+  "lavaDamageHP": 10,
+  "lavaDamageCooldownTicks": 60,
+  "respawnHP": 100,
+  "respawnDamagePercent": 0,
+  "respawnDelayTicks": 90,
+  "hud": "damage percent and HP",
+  "sha256": {
+    "final-project/server/src/com/smashprofs/server/game/FighterEngine.java": "2f6751f8930abecdca02a80363d2c5f634245405b1e6c724a118d8740f83ca29",
+    "final-project/core/src/com/smashprofs/game/Scenes/OnlineHud.java": "af6d7bebee7a81528e29bd7c3cdadd502ca3a66c46004df186acaf16fadf8e39",
+    "final-project/server/test/com/smashprofs/server/game/FighterEngineTest.java": "c3e514f169dee1e34e9ec6a44b790842fa1a3df719c54c39fd35e7ae315784bf",
+    "final-project/tests/src/com/smashprofs/server/game/FighterTcpIntegrationTest.java": "5f4f07dcc27f3117d23a728481e41bdeb27a19467686b7149ab7925da6d02559",
+    "scripts/gameplay/FighterVisualPreview.java": "a57f0c3546b164703b94887b15df622a9ff8283a7763c69cc4a8f999ba1796f3",
+    "final-project/desktop/build/libs/desktop-1.0.jar": "9da3b935aaf0c8884bc7128e034c043225b19b47b77ff699f5344ce318820f53"
+  }
+}

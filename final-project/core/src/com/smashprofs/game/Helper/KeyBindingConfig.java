@@ -14,9 +14,9 @@ public final class KeyBindingConfig {
     public enum Action {
         LEFT("Sang trái", Input.Keys.A),
         RIGHT("Sang phải", Input.Keys.D),
-        UP("Hướng lên / Ngắm", Input.Keys.I),
+        UP("Hướng lên / Ngắm", Input.Keys.W),
         DOWN("Hướng xuống / Rơi", Input.Keys.S),
-        JUMP("Nhảy", Input.Keys.W),
+        JUMP("Nhảy", Input.Keys.SPACE),
         LIGHT("Đánh nhẹ / Bắn", Input.Keys.J),
         HEAVY("Đánh mạnh", Input.Keys.K),
         DODGE("Né / Lướt", Input.Keys.L),
@@ -40,7 +40,7 @@ public final class KeyBindingConfig {
 
     private static final String PREF_NAME = "smash-profs-keybindings";
     private static final String VERSION_KEY = "bindingsVersion";
-    private static final int VERSION = 1;
+    private static final int VERSION = 2;
     private static KeyBindingConfig instance;
 
     private final Map<Action, Integer> bindings = new EnumMap<>(Action.class);
@@ -62,15 +62,14 @@ public final class KeyBindingConfig {
             int key = prefs != null ? prefs.getInteger(action.name(), action.defaultKey) : action.defaultKey;
             bindings.put(action, key);
         }
-        // Upgrade only the old default WASD pair. Explicit new bindings and other layouts are preserved.
         if (prefs != null && prefs.getInteger(VERSION_KEY, 0) < VERSION) {
-            if (getKey(Action.LEFT) == Input.Keys.A && getKey(Action.RIGHT) == Input.Keys.D
-                    && getKey(Action.DOWN) == Input.Keys.S && getKey(Action.UP) == Input.Keys.W
-                    && getKey(Action.JUMP) == Input.Keys.SPACE) {
-                bindings.put(Action.JUMP, Input.Keys.W);
-                bindings.put(Action.UP, Input.Keys.I);
-                prefs.putInteger(Action.JUMP.name(), Input.Keys.W);
-                prefs.putInteger(Action.UP.name(), Input.Keys.I);
+            if (getKey(Action.JUMP) == Input.Keys.W) {
+                bindings.put(Action.JUMP, Input.Keys.SPACE);
+                prefs.putInteger(Action.JUMP.name(), Input.Keys.SPACE);
+            }
+            if (getKey(Action.UP) == Input.Keys.I) {
+                bindings.put(Action.UP, Input.Keys.W);
+                prefs.putInteger(Action.UP.name(), Input.Keys.W);
             }
             prefs.putInteger(VERSION_KEY, VERSION);
             prefs.flush();

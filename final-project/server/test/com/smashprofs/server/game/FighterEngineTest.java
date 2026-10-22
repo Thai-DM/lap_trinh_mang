@@ -110,6 +110,27 @@ public class FighterEngineTest {
         runtime.tick();
         assertEquals(0, game.bodies.getVelocity(a).xMetersPerSecond(), 0.001f);
     }
+    @Test public void dashCooldownPreventsImmediateDoubleDashOrDodge() {
+        floor();
+        runtime.submitInput(new PlayerInput(a,sequence++,0,1,false,false,false,false,false,false,false,
+                new FighterInput(false,false,false,false,false,false,false,true)));runtime.tick();
+        assertEquals("DASH",state().detail().state());
+        long firstDashUntil=game.fighter.fighters.get(a).dashUntil;
+        // Pressing dash again during active dash / cooldown is rejected
+        runtime.submitInput(new PlayerInput(a,sequence++,0,1,false,false,false,false,false,false,false,
+                new FighterInput(false,false,false,false,false,false,false,true)));runtime.tick();
+        assertEquals(firstDashUntil,game.fighter.fighters.get(a).dashUntil);
+        // Neutral dodge during dash cooldown is also rejected
+        runtime.submitInput(new PlayerInput(a,sequence++,0,0,false,false,false,false,false,false,false,
+                new FighterInput(false,false,false,false,false,true,false,false)));runtime.tick();
+        assertEquals(0,state().dodgeTicks());
+        // Wait until cooldown ends
+        for(int i=0;i<FighterMovement.DASH_COOLDOWN_TICKS;i++) { runtime.tick(); }
+        // Now next dash succeeds
+        runtime.submitInput(new PlayerInput(a,sequence++,0,1,false,false,false,false,false,false,false,
+                new FighterInput(false,false,false,false,false,false,false,true)));runtime.tick();
+        assertTrue(game.fighter.fighters.get(a).dashUntil>firstDashUntil);
+    }
     @Test public void lavaReboundsAtTheVisibleSurfaceWithoutLosingStocks() {
         for(float x:new float[]{1.2f,2.5f,4.9f,6.65f,8.5f,10.5f,11.3f}) {
             game.state.getPlayer(a).heal(100);game.fighter.fighters.get(a).nextLavaDamage=0;

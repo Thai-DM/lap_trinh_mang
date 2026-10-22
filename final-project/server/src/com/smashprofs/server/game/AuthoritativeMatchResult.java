@@ -19,10 +19,10 @@ public record AuthoritativeMatchResult(
     }
     public AuthoritativeMatchResult { participants = List.copyOf(participants); }
 
-    /** Null winner là hòa, không giữ một flag outcome thứ hai có thể mâu thuẫn. */
-    public boolean isDraw() { return winnerId == null; }
+    /** PvP uses a null winner for draws; boss matches use the explicit team finish reason. */
+    public boolean isDraw() { return winnerId == null && (gameplay==null || !gameplay.rules().boss()); }
 
-    public enum FinishReason { LAST_PLAYER_STANDING, ALL_PLAYERS_ELIMINATED, TIME_LIMIT }
+    public enum FinishReason { LAST_PLAYER_STANDING, ALL_PLAYERS_ELIMINATED, TIME_LIMIT, BOSS_DEFEATED, TEAM_ELIMINATED, BOSS_TIMEOUT }
 
     /** eliminated là bản sao dead authoritative tại tick cuối, không phải nguồn death state mới. */
     public record ParticipantResult(PlayerId playerId, int slotIndex, String characterId,

@@ -44,6 +44,9 @@ final class OnlinePlayScreen implements Screen {
     private final Map<String,Integer> lastStocks=new HashMap<>();
     private float koFlash;
     private long visualEventSequence;
+    private long bossHitSerial;
+    private int bossPhase=1;
+    private boolean bossDeathPlayed;
     private final List<KoBurst> bursts=new ArrayList<>(4);
     private static final class KoBurst {
         final String cause;final float x,y;float time=.4f;
@@ -81,7 +84,7 @@ final class OnlinePlayScreen implements Screen {
         presentation.update();
         var result = presentation.takeResultTransition();if(result!=null) { pendingResult=result; }
         if(pendingResult!=null) { finishTime+=Math.max(0,delta); }
-        if (pendingResult!=null && finishTime>=1.5f) {
+        if (pendingResult!=null && finishTime>=(pendingResult.isBoss()?2.4f:1.5f)) {
             game.setScreen(new OnlineResultScreen(game,pendingResult, session.getLocalPlayerId().value()));
             return; // setScreen hides/disposes this screen on the render thread.
         }
@@ -122,6 +125,14 @@ final class OnlinePlayScreen implements Screen {
         updateCamera(delta);viewport.apply(); camera.update(); tiles.setView(camera); tiles.render();
         var authoritative=presentation.getFrame()==null?null:presentation.getFrame().authoritative();
         var gameplay=authoritative==null?null:authoritative.gameplay();
+        if(gameplay!=null && gameplay.boss()!=null && arena.boss!=null) {
+            var boss=gameplay.boss();
+            if(boss.hitSerial()>bossHitSerial && Game.soundEffects) { hitSound.play(.2f); }bossHitSerial=boss.hitSerial();
+            if(boss.phase()!=bossPhase && Game.soundEffects) { readySound.play(.5f); }bossPhase=boss.phase();
+            if(boss.hp()==0 && !bossDeathPlayed) { bossDeathPlayed=true;if(Game.soundEffects) { koSound.play(.5f); } }
+            arena.boss.update(boss,authoritative.serverTick(),delta);
+            shapes.setProjectionMatrix(camera.combined);arena.boss.warnings(shapes,gameplay.boss());
+        }
         if(authoritative!=null) {
             for(var entry:session.getKillFeed().entries()) {
                 var event=entry.event();if(event.sequence()<=visualEventSequence) { continue; }visualEventSequence=event.sequence();
@@ -254,6 +265,7 @@ final class OnlinePlayScreen implements Screen {
                 }
             }
         }
+        if(gameplay!=null && gameplay.boss()!=null && arena.boss!=null) { arena.boss.draw(batch,gameplay.boss(),authoritative.serverTick()); }
         projectiles.keySet().retainAll(presentation.getProjectiles().keySet());
         for (var p : presentation.getProjectiles().values()) {
             var sprite = projectiles.computeIfAbsent(p.projectileId(), id -> assets.projectile(p.projectileType()));
@@ -360,6 +372,10 @@ final class OnlinePlayScreen implements Screen {
             minX=Math.min(minX,p.x());maxX=Math.max(maxX,p.x());minY=Math.min(minY,p.y());maxY=Math.max(maxY,p.y());
         }
         if(!Float.isFinite(minX)) { minX=maxX=mapWidth/2;minY=maxY=.25f; }
+        if(presentation.getFrame()!=null && presentation.getFrame().authoritative().gameplay()!=null) {
+            var boss=presentation.getFrame().authoritative().gameplay().boss();
+            if(boss!=null && boss.hp()>0) { minX=Math.min(minX,boss.x()-.4f);maxX=Math.max(maxX,boss.x()+.4f);minY=Math.min(minY,boss.y());maxY=Math.max(maxY,boss.y()+1.05f); }
+        }
         var frame=framing.update(minX,maxX,minY,maxY,Gdx.graphics.getWidth()/(float)Math.max(1,Gdx.graphics.getHeight()),mapWidth,mapHeight,delta);
         viewport.setWorldSize(frame.width(),frame.height());
         camera.position.set(frame.x(),frame.y(),0);

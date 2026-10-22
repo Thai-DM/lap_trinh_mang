@@ -178,6 +178,16 @@ public final class MatchRuntime implements AutoCloseable {
                 candidateStomp = new StompCombatController(initialState, candidatePlayers, candidateJump);
                 if(setup.rules().gameplay()) { candidateGameplay=new GameplayMatch(setup,initialState,candidatePlayers,candidateJump,geometry);candidateProjectiles.enableGameplayLimits(); }
                 if(setup.rules().fighter()) { candidateGameplay.enableFighter(candidate.getWorld(),geometry); }
+                if(candidateGameplay!=null && candidateGameplay.boss!=null) {
+                    var boss=candidateGameplay.boss;
+                    candidateProjectiles.setBossTarget(new ProjectileManager.BossTarget() {
+                        public float x() { return boss.x; }
+                        public float y() { return boss.y+.35f; }
+                        public boolean hit(PlayerId owner,float x,float y,float radius,float damage) {
+                            return boss.overlaps(x-radius,y-radius,x+radius,y+radius) && boss.damage(owner,damage);
+                        }
+                    });
+                }
                 initializationCheck.accept(candidate);
                 candidateStartedAtNanos = nanoClock.getAsLong();
             } catch (RuntimeException | Error failure) {
@@ -413,6 +423,7 @@ public final class MatchRuntime implements AutoCloseable {
     private List<PlayerInput> tickFighter(long tick,List<PlayerInput> inputs) {
         projectileManager.updateProjectiles();
         if(gameplay!=null) { projectileManager.expireGameplayProjectiles(tick); }
+        if(gameplay.boss!=null) { gameplay.boss.update(tick); }
         gameplay.fighter.update(tick,inputs);
         gameplay.items.update(tick);
         Map<PlayerId, PlayerInput> inputByPlayer = new HashMap<>();

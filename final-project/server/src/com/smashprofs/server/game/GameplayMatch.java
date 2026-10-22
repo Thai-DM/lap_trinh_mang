@@ -14,6 +14,7 @@ final class GameplayMatch implements AutoCloseable {
     final Map<PlayerId,Progress> progress=new LinkedHashMap<>();
     final ItemSystem items;
     FighterEngine fighter;
+    BossEngine boss;
     private final List<MatchEvent> events=new ArrayList<>(128);
     private final Set<PlayerId> disconnected=new HashSet<>();
     private final List<SpawnProvider.SpawnPosition> respawnCandidates;
@@ -34,7 +35,7 @@ final class GameplayMatch implements AutoCloseable {
         jumps.enableWallMovement();
     }
     synchronized void disconnect(PlayerId id) { if(progress.containsKey(id)) { disconnected.add(id); } }
-    void enableFighter(com.badlogic.gdx.physics.box2d.World world,MapCollisionDefinition geometry) { fighter=new FighterEngine(this,world,geometry); }
+    void enableFighter(com.badlogic.gdx.physics.box2d.World world,MapCollisionDefinition geometry) { fighter=new FighterEngine(this,world,geometry);if(setup.rules().boss()) { boss=new BossEngine(this,geometry);for(var p:progress.values()) { p.weapon="LASER";p.ammo=6;p.invulnerableUntil=120; } } }
     void beforeTick(long tick) {
         this.tick=tick;
         synchronized(this) {
@@ -52,6 +53,7 @@ final class GameplayMatch implements AutoCloseable {
                 state.getPlayer(id).respawn();p.respawnAt=0;p.invulnerableUntil=tick+INVULNERABLE_TICKS;p.lastAttacker=null;
                 var position=fighter==null?safeRandomRespawn(id):fighter.respawnPosition(id);lastRespawn.put(id,position);bodies.respawn(id,position.xMeters(),position.yMeters());
                 if(fighter!=null) { fighter.respawn(id,tick); }
+                if(boss!=null) { p.weapon="LASER";p.ammo=6;p.nextShot=tick; }
                 jumps.resetAfterRespawn(id);event("PLAYER_RESPAWNED",null,id,"NONE","RESPAWN");
             }
             // Attribution expires by simulation time, not client timestamps.
@@ -80,6 +82,7 @@ final class GameplayMatch implements AutoCloseable {
     boolean ultimateReady(PlayerId id) { return active(id) && tick>=progress.get(id).nextUltimate; }
     void ultimateUsed(PlayerId id) { progress.get(id).nextUltimate=tick+ULTIMATE_TICKS; }
     boolean damage(PlayerId attacker,PlayerId target,String weapon,float amount,float x,float y) {
+        if(boss!=null && attacker!=null) { return false; }
         if(fighter!=null) { return fighter.projectileHit(attacker,target,weapon,amount,x,y); }
         if(!Float.isFinite(amount) || amount<=0 || !Float.isFinite(x) || !Float.isFinite(y)) { throw new IllegalArgumentException("Invalid hit"); }
         if(!active(target) || (attacker!=null && !active(attacker))) { return false; }
@@ -144,7 +147,7 @@ final class GameplayMatch implements AutoCloseable {
             values.add(new GameplaySnapshot.Player(id.value(),p.lives,status,Math.max(0,p.respawnAt-tick),Math.max(0,p.invulnerableUntil-tick),
                     Math.max(0,p.nextUltimate-tick),p.weapon,p.shield,p.damage,p.pickups,p.weapons,p.kills,p.deaths,jumps.getWallState(id),p.ammo));
         }
-        return new GameplaySnapshot(setup.rules(),tick,values,items.itemViews(),items.shotViews(),fighter==null?null:fighter.snapshot());
+        return new GameplaySnapshot(setup.rules(),tick,values,items.itemViews(),items.shotViews(),fighter==null?null:fighter.snapshot(),boss==null?null:boss.snapshot());
     }
     @Override public void close() { items.close();if(fighter!=null) { fighter.close(); }events.clear();disconnected.clear();progress.clear();lastRespawn.clear();frozen=null; }
     static final class Progress {

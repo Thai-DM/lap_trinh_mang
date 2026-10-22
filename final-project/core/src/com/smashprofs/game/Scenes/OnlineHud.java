@@ -20,6 +20,9 @@ public final class OnlineHud implements AutoCloseable {
     private final String localId;
     private final Label timer,remaining,status,spectator,weaponName,ammo,ability,bagWeapon,bagShield;
     private final Label pickupHint,networkPing,bagHint;
+    private final Table bossPanel;
+    private final Label bossTitle;
+    private final ProgressBar bossHp;
     private final Label[] feed=new Label[2];
     private final Image weaponIcon,bagIcon,shieldIcon;
     private final Table bag,help,stunPanel;
@@ -67,6 +70,12 @@ public final class OnlineHud implements AutoCloseable {
         if(roster.players().size()==1) { addClock(strip); }
         root.add(strip).growX();root.row();status=ui.small("");status.setColor(OnlineUi.DANGER);root.add(status).padTop(3);root.row();
         spectator=ui.small("");spectator.setColor(OnlineUi.DANGER);root.add(spectator).padTop(2);stage.addActor(root);
+        bossPanel=new Table();bossPanel.setFillParent(true);bossPanel.top().padTop(87);
+        var bossBox=ui.panel();bossBox.pad(4,12,4,12);bossTitle=ui.small("");bossTitle.setColor(OnlineUi.GOLD);
+        bossHp=new ProgressBar(0,100,1,false,ui.skin);
+        var bossBarStyle=new ProgressBar.ProgressBarStyle(bossHp.getStyle());bossBarStyle.knobBefore=ui.skin.newDrawable("pixel",OnlineUi.DANGER);bossBarStyle.knobBefore.setMinHeight(7);bossHp.setStyle(bossBarStyle);
+        bossBox.add(bossTitle).row();bossBox.add(bossHp).width(340).height(7).padTop(3);
+        bossPanel.add(bossBox);bossPanel.setVisible(false);stage.addActor(bossPanel);
 
         var feedRoot=new Table();feedRoot.setFillParent(true);feedRoot.top().right().padTop(80).padRight(12);
         for(int i=0;i<feed.length;i++) { feed[i]=ui.small("");feed[i].setWrap(true);feedRoot.add(feed[i]).width(270).padBottom(4);feedRoot.row(); }stage.addActor(feedRoot);
@@ -108,12 +117,21 @@ public final class OnlineHud implements AutoCloseable {
         pickupHint.setText("");
         if(frame!=null) {
             var latest=frame.authoritative();var gameplay=latest.gameplay();
+            bossPanel.setVisible(gameplay!=null && gameplay.boss()!=null);
+            if(gameplay!=null && gameplay.boss()!=null) {
+                var boss=gameplay.boss();bossHp.setRange(0,boss.maxHp());bossHp.setValue(boss.hp());
+                bossTitle.setText("DEMON SLIME · PHA "+boss.phase()+" · "+Math.round(boss.hp())+" / "+Math.round(boss.maxHp())+" HP");
+            }
             boolean fighter=gameplay!=null && gameplay.fighter()!=null;
             if(fighter) { unarmedHint.setText(UnarmedControls.hint()); }
             bagHint.setText(fighter?"E nhặt · G thả · Q ném khi đang tự do. Đổi súng giữ đạn của súng cũ. Bình hồi phục: hồi 30 HP. Khiên chặn một đòn.":
                     "Đến gần, bấm E để nhặt; G để thả súng. Đổi súng giữ đạn của súng cũ. Bình máu dùng ngay khi nhặt.");
             helpText.setText(fighter?UnarmedControls.hint()+"\nF chiêu đặc trưng · Có súng: chỉ bắn · Hết đạn hoặc bỏ súng: đánh tay không\nE nhặt · G thả · Q ném (I lên / xuống để ngắm) · Tab túi\nI hướng lên: ưu tiên Neutral, không tiêu nhảy\nXuống + nhảy: xuyên sàn mềm · Giữ xuống: rơi nhanh\nNé tại chỗ trên không rồi đánh tay không: Gravity Cancel\nSau đánh trúng: hướng đuổi + né để Chase Dodge\n2 lượt nhảy trên không · Recovery tay không dùng chung ngân sách\nHết HP hoặc vượt biên: mất mạng · Dung nham -10 HP\nU hitbox / Show Stun · O đổi preset A/B":
                     "A/D di chuyển · W nhảy · S dậm\nV/Space bắn hoặc đánh · F tuyệt chiêu\nE nhặt gần nhất · G thả súng\nCtrl đỡ · Tab túi đồ · Esc rời trận\nDung nham: -10 HP và bật lên");
+            if(gameplay!=null && gameplay.boss()!=null) {
+                helpText.setText(UnarmedControls.hint()+"\nHỢP TÁC ĐÁNH BOSS: Hạ Demon Slime trước khi hết giờ.\nĐồng đội không gây sát thương nhau.\nCó sẵn Laser; hết đạn tự nạp sau 1,5 giây.\nNé vùng đỏ và đạn lửa; pha 2 bắt đầu ở 50% HP boss.\nHết HP mất một mạng; cả đội hết mạng thì thua.");
+                bagHint.setText("Boss: hết đạn tự nạp sau 1,5 giây. E đổi súng · G thả · Q ném. Bình máu và khiên dùng như thường.");
+            }
             for(var p:latest.players()) {
                 var card=players.get(p.playerId());card.bar.setValue(p.hp());card.hp.setText(Math.round(p.hp())+" HP");
                 card.bar.setColor(p.hp()<30?OnlineUi.DANGER:Color.WHITE);
@@ -153,6 +171,7 @@ public final class OnlineHud implements AutoCloseable {
                 var cfg=com.smashprofs.game.Helper.KeyBindingConfig.getInstance();
                 String attackKey=fighter?com.smashprofs.game.Helper.KeyBindingConfig.keyName(cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.LIGHT)):"V / Space";
                 ammo.setText(local.weapon().equals("NONE")?attackKey+": đánh":attackKey+": bắn · "+ammunition+" viên");
+                if(gameplay.rules().boss() && !local.weapon().equals("NONE") && local.ammo()==0) { ammo.setText("Đang nạp đạn · 1,5 giây"); }
                 bagWeapon.setText(CombatIcons.name(local.weapon())+(local.weapon().equals("NONE")?"\nChưa nhặt vũ khí":"\nCòn "+ammunition+" viên · "+attackKey+" để dùng"));
                 bagShield.setText(local.shield()?"Khiên · Chặn 1 đòn":"Chưa có khiên");shieldIcon.setColor(1,1,1,local.shield()?1:.25f);
                 String abilityKey=com.smashprofs.game.Helper.KeyBindingConfig.keyName(cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.ABILITY));
@@ -166,6 +185,7 @@ public final class OnlineHud implements AutoCloseable {
                     }
                     airBudget.setText("Né "+(value.dodgeCooldownTicks()==0?"sẵn sàng":String.format(Locale.ROOT,"%.1fs",value.dodgeCooldownTicks()/60f))+" · Nhảy "+value.airJumps()+"/1 · GC "+value.detail().gravityCancelTicks()+" · CD "+value.detail().chaseCharges()+" · Tường "+value.detail().wallActions());
                     airBudget.setColor(value.detail().wallActions()>=com.smashprofs.common.model.UnarmedRules.WALL_DANGER?OnlineUi.DANGER:value.detail().wallActions()>=com.smashprofs.common.model.UnarmedRules.WALL_WARNING?OnlineUi.GOLD:OnlineUi.TEXT);
+                    if(gameplay.boss()!=null) { airBudget.setText("Hợp tác · Né vùng đỏ · Súng tự nạp sau 1,5 giây");airBudget.setColor(OnlineUi.TEXT); }
                     var lines=new StringBuilder();if(showStun) { for(var player:gameplay.fighter().players()) {
                         var d=player.detail();lines.append("P").append(slots.get(player.playerId())+1).append(" ").append(d.state()).append("/").append(d.phase())
                                 .append(" f").append(player.attackFrame()).append(" stun ").append(player.hitstunTicks()).append(" DodgeFrames ").append(d.dodgeFrames()).append(" ").append(d.combo()).append('\n');

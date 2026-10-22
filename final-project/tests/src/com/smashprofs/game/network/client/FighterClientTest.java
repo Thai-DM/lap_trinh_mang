@@ -16,8 +16,8 @@ public class FighterClientTest {
         for(var action:com.smashprofs.game.Helper.KeyBindingConfig.Action.values()) { saved.put(action,config.getKey(action));config.setKey(action,action.defaultKey); }
         try {
         var held=new HashSet<Integer>();var pressed=new HashSet<Integer>();
-        held.add(com.badlogic.gdx.Input.Keys.A);held.add(com.badlogic.gdx.Input.Keys.W);held.add(com.badlogic.gdx.Input.Keys.J);held.add(com.badlogic.gdx.Input.Keys.SPACE);
-        pressed.add(com.badlogic.gdx.Input.Keys.SPACE);pressed.add(com.badlogic.gdx.Input.Keys.J);
+        held.add(com.badlogic.gdx.Input.Keys.A);held.add(com.badlogic.gdx.Input.Keys.W);held.add(com.badlogic.gdx.Input.Keys.J);held.add(com.badlogic.gdx.Input.Keys.I);
+        pressed.add(com.badlogic.gdx.Input.Keys.W);pressed.add(com.badlogic.gdx.Input.Keys.J);
         var command=UnarmedControls.sample(UnarmedControls.Preset.B,held::contains,pressed::contains);
         assertEquals(-1,command.horizontal(),0);assertTrue(command.jumpPressed());assertTrue(command.lightPressed());assertTrue(command.fighter().upHeld());assertFalse(command.fighter().heavyPressed());
         config.setKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.LEFT,com.badlogic.gdx.Input.Keys.LEFT);

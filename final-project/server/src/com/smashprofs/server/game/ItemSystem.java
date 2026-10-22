@@ -25,6 +25,9 @@ final class ItemSystem implements AutoCloseable {
         nextDrop=game.setup.rules().dropRate().intervalTicks;
     }
     void update(long tick) {
+        if(game.boss!=null) { for(var id:game.progress.keySet()) {
+            var p=game.progress.get(id);if(game.active(id)&&!p.weapon.equals("NONE")&&p.ammo==0&&tick>=p.nextShot) { p.ammo=p.weapon.equals("GRENADE")?1:6; }
+        } }
         int interval=game.setup.rules().dropRate().intervalTicks;
         if(interval>0 && tick>=nextDrop) {
             nextDrop=tick+interval;
@@ -72,7 +75,7 @@ final class ItemSystem implements AutoCloseable {
             float wallFraction=piercing?Float.POSITIVE_INFINITY:terrainFraction(previousX,previousY,shot.x,shot.y);
             float firstFraction=wallFraction;PlayerId firstTarget=null;
             for(var p:game.state.playersInSlotOrder()) {
-                var target=p.getPlayerId();if(target.equals(shot.owner) || !game.active(target) || shot.hit.contains(target)) { continue; }
+                var target=p.getPlayerId();if(game.boss!=null || target.equals(shot.owner) || !game.active(target) || shot.hit.contains(target)) { continue; }
                 var pos=game.bodies.getPosition(target);
                 float fraction=game.fighter==null?circleFraction(pos.xMeters(),pos.yMeters(),previousX,previousY,shot.x,shot.y,.085f):
                         Math.min(boxFraction(previousX,previousY,shot.x,shot.y,pos.xMeters()-.12f,pos.xMeters()+.12f,pos.yMeters()-.01f,pos.yMeters()+.17f),
@@ -84,16 +87,25 @@ final class ItemSystem implements AutoCloseable {
                     game.damage(shot.owner,target,shot.type,damage,direction,1.5f);
                 } else if(fraction<=1 && fraction<firstFraction) { firstFraction=fraction;firstTarget=target; }
             }
-            boolean collision=firstTarget!=null,terrain=!piercing && !collision && wallFraction<=1;
+            boolean bossCollision=false;
+            if(game.boss!=null && !shot.bossHit && game.boss.hp>0) {
+                float fraction=game.boss.fraction(previousX,previousY,shot.x,shot.y);
+                if(fraction<=1 && (piercing || fraction<firstFraction)) {
+                    shot.bossHit=true;
+                    if(piercing) { game.boss.damage(shot.owner,shot.type.equals("LASER")?24:10); }
+                    else { bossCollision=true;firstFraction=fraction; }
+                }
+            }
+            boolean collision=firstTarget!=null || bossCollision,terrain=!piercing && !collision && wallFraction<=1;
             if(!piercing && firstFraction<=1) {
                 shot.x=previousX+(shot.x-previousX)*firstFraction;shot.y=previousY+(shot.y-previousY)*firstFraction;
                 if(collision && shot.type.equals("SHOTGUN")) {
-                    shot.hit.add(firstTarget);
-                    game.damage(shot.owner,firstTarget,shot.type,12,shot.vx>=0?1:-1,1.5f);
+                    if(bossCollision) { game.boss.damage(shot.owner,12); }
+                    else { shot.hit.add(firstTarget);game.damage(shot.owner,firstTarget,shot.type,12,shot.vx>=0?1:-1,1.5f); }
                 }
             }
             if(shot.type.equals("THROWN")) {
-                if(collision) { game.damage(shot.owner,firstTarget,"THROWN",8,shot.vx,Math.max(1,shot.vy)); }
+                if(bossCollision) { game.boss.damage(shot.owner,8); }else if(collision) { game.damage(shot.owner,firstTarget,"THROWN",8,shot.vx,Math.max(1,shot.vy)); }
                 if(collision || terrain || tick-shot.tick>=90) {
                     var point=dropPositionAt(shot.x,shot.y+.1f);
                     if(point!=null && drops.size()<MAX_ITEMS) { drops.add(new Drop(nextId++,shot.weaponType,point[0],point[1],tick,shot.weaponAmmo)); }
@@ -177,7 +189,7 @@ final class ItemSystem implements AutoCloseable {
         var p=game.progress.get(id);
         if(!game.active(id) || p.weapon.equals("NONE")) { return false; }
         // An equipped weapon consumes the melee edge even during its fire cooldown.
-        if(tick<p.nextShot) { return true; }
+        if(tick<p.nextShot || p.ammo<=0) { return true; }
         int count=p.weapon.equals("SHOTGUN")?3:1;
         if(shots.size()+count>MAX_SHOTS) { return true; }
         var pos=game.bodies.getPosition(id);
@@ -203,7 +215,7 @@ final class ItemSystem implements AutoCloseable {
             var shot=new Shot(nextId++,p.weapon,id,tick,pos.xMeters(),pos.yMeters(),vx,vy,0);
             shots.add(shot);
         }
-        p.nextShot=tick+24;if(--p.ammo==0) { p.weapon="NONE"; }
+        p.nextShot=tick+24;if(--p.ammo==0) { if(game.boss!=null) { p.nextShot=tick+90; }else { p.weapon="NONE"; } }
         return true;
     }
     private int itemSlots() { return drops.size()+(int)shots.stream().filter(s->s.type.equals("THROWN")).count(); }
@@ -221,6 +233,7 @@ final class ItemSystem implements AutoCloseable {
         return true;
     }
     private void explode(Shot shot,long tick) {
+        if(game.boss!=null && game.boss.overlaps(shot.x-.85f,shot.y-.85f,shot.x+.85f,shot.y+.85f)) { game.boss.damage(shot.owner,32); }
         for(var p:game.state.playersInSlotOrder()) {
             var id=p.getPlayerId();if(id.equals(shot.owner) || !game.active(id) || shot.hit.contains(id)) { continue; }
             var pos=game.bodies.getPosition(id);float dx=pos.xMeters()-shot.x,dy=pos.yMeters()-shot.y;
@@ -235,7 +248,7 @@ final class ItemSystem implements AutoCloseable {
         }
         return closest;
     }
-    private static float boxFraction(float ax,float ay,float bx,float by,float left,float right,float bottom,float top) {
+    static float boxFraction(float ax,float ay,float bx,float by,float left,float right,float bottom,float top) {
         float dx=bx-ax,dy=by-ay,enter=0,exit=1;
         if(dx==0) { if(ax<left || ax>right) { return Float.POSITIVE_INFINITY; } }
         else { float a=(left-ax)/dx,b=(right-ax)/dx;enter=Math.max(enter,Math.min(a,b));exit=Math.min(exit,Math.max(a,b)); }
@@ -258,7 +271,7 @@ final class ItemSystem implements AutoCloseable {
     }
     private record Platform(float left,float right,float top,float bottom) { }
     private static final class Shot {
-        final long id;String type;final PlayerId owner;long tick;float x,y,vx,vy;final float phase;Set<PlayerId> hit=new HashSet<>();String weaponType;int weaponAmmo;
+        final long id;String type;final PlayerId owner;long tick;float x,y,vx,vy;final float phase;Set<PlayerId> hit=new HashSet<>();String weaponType;int weaponAmmo;boolean bossHit;
         Shot(long id,String type,PlayerId owner,long tick,float x,float y,float vx,float vy,float phase) { this.id=id;this.type=type;this.owner=owner;this.tick=tick;this.x=x;this.y=y;this.vx=vx;this.vy=vy;this.phase=phase; }
     }
 }

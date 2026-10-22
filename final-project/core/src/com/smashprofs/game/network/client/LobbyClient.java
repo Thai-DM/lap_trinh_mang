@@ -40,7 +40,9 @@ public final class LobbyClient implements ConnectionListener, AutoCloseable {
     private GameStartRoster match;
     private volatile ClientMatchSession matchSession;
     private Pending pending;
-    private boolean gameplay;
+    private boolean gameplay,bossRoom;
+    public synchronized void enableBossSupport() { enableFighter();networkClient.enableBossSupport(); }
+    public synchronized void enableBoss() { enableBossSupport();bossRoom=true; }
     public record Settings(String hostId,com.smashprofs.common.model.MatchRules rules,int playerCount,long version,long rulesVersion,List<Member> members) {
         public Settings { members=List.copyOf(members); }
         public Settings(String hostId,com.smashprofs.common.model.MatchRules rules,int playerCount,long version,long rulesVersion) {
@@ -135,6 +137,7 @@ public final class LobbyClient implements ConnectionListener, AutoCloseable {
         if (localId == null) { fail("INVALID_SESSION", "Missing server-issued player identity", false); return; }
         if (configuration.mode() == LobbyConfiguration.Mode.CREATE) {
             var payload=ProtocolV1.object().put("roomId",configuration.roomId());if(gameplay) { payload.put("gameplay",true); }
+            if(bossRoom) { payload.put("boss",true); }
             request(MessageType.CREATE_ROOM, payload, null);
         } else { join(); }
     }

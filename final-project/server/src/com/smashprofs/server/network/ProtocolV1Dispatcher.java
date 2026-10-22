@@ -62,7 +62,8 @@ final class ProtocolV1Dispatcher {
             if (admission == null) { ProtocolV1.fields(payload, requestId,"gameplay"); }
             if(payload.has("gameplay")) {
                 String cap = payload.path("gameplay").asText();
-                if(com.smashprofs.common.protocol.FighterProtocol.CAPABILITY.equals(cap) || "fighter-v1".equals(cap)) { session.enableFighter(); }
+                if(com.smashprofs.common.model.BossSnapshot.CAPABILITY.equals(cap)) { session.enableBoss(); }
+                else if(com.smashprofs.common.protocol.FighterProtocol.CAPABILITY.equals(cap) || "fighter-v1".equals(cap)) { session.enableFighter(); }
                 else if(GameplayProtocol.CAPABILITY.equals(cap)) { session.enableGameplay(); }
                 else { throw ProtocolV1.invalid(requestId); }
             }
@@ -102,14 +103,16 @@ final class ProtocolV1Dispatcher {
                 yield null;
             }
             case CREATE_ROOM -> {
-                ProtocolV1.fields(payload, requestId, "roomId", "gameplay");
+                ProtocolV1.fields(payload, requestId, "roomId", "gameplay", "boss");
                 String roomId = ProtocolV1.roomId(payload, requestId);
                 boolean enhanced=payload.has("gameplay") && ProtocolV1.bool(payload,"gameplay",requestId);
                 if(enhanced && !session.supportsGameplay()) { throw error("GAMEPLAY_CAPABILITY_REQUIRED",requestId); }
+                boolean boss=payload.has("boss") && ProtocolV1.bool(payload,"boss",requestId);
+                if(boss && (!enhanced || !session.supportsBoss())) { throw error("BOSS_CAPABILITY_REQUIRED",requestId); }
                 final GameRoom created;
                 try { created = rooms.createRoom(roomId); }
                 catch (IllegalArgumentException duplicate) { throw error("INVALID_ROOM_STATE", requestId); }
-                if(enhanced) { created.configureGameplay(session.getPlayerId(),session.supportsFighter()); }
+                if(boss) { created.configureBoss(session.getPlayerId()); }else if(enhanced) { created.configureGameplay(session.getPlayerId(),session.supportsFighter()); }
                 // Chỉ create: không sửa session binding, không join/ready/start; send nằm ngoài khóa routing.
                 yield new ProtocolMessage(MessageType.ROOM_CREATED, requestId,
                         ProtocolV1.object().put("roomId", created.getRoomId()));
@@ -119,6 +122,7 @@ final class ProtocolV1Dispatcher {
                 String roomId = ProtocolV1.roomId(payload, requestId);
                 var target=rooms.getRoom(roomId);
                 if(target!=null && target.getRules().gameplay() && !session.supportsGameplay()) { throw error("GAMEPLAY_CAPABILITY_REQUIRED",requestId); }
+                if(target!=null && target.getRules().boss() && !session.supportsBoss()) { throw error("BOSS_CAPABILITY_REQUIRED",requestId); }
                 if(target!=null && target.getRules().fighter() && !session.supportsFighter()) { throw error("FIGHTER_CAPABILITY_REQUIRED",requestId); }
                 var result = joins.handle(session, roomId);
                 if (!result.isSuccess()) {

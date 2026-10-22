@@ -3,7 +3,10 @@ package com.smashprofs.common.model;
 import java.util.Set;
 
 /** Immutable negotiated gameplay-v1 rules. Zero seconds means last-player-standing. */
-public record MatchRules(int maxPlayers, int matchSeconds, int lives, DropRate dropRate, boolean gameplay, boolean fighter) {
+public record MatchRules(int maxPlayers, int matchSeconds, int lives, DropRate dropRate, boolean gameplay, boolean fighter, boolean boss) {
+    public MatchRules(int maxPlayers,int matchSeconds,int lives,DropRate dropRate,boolean gameplay,boolean fighter) {
+        this(maxPlayers,matchSeconds,lives,dropRate,gameplay,fighter,false);
+    }
     public MatchRules(int maxPlayers,int matchSeconds,int lives,DropRate dropRate,boolean gameplay) {
         this(maxPlayers,matchSeconds,lives,dropRate,gameplay,false);
     }
@@ -15,8 +18,9 @@ public record MatchRules(int maxPlayers, int matchSeconds, int lives, DropRate d
     public static final MatchRules LEGACY = new MatchRules(4,120,1,DropRate.NONE,false);
     public static final MatchRules DEFAULT = new MatchRules(4,120,3,DropRate.MEDIUM,true);
     public static final MatchRules FIGHTER = new MatchRules(4,120,3,DropRate.MEDIUM,true,true);
+    public static final MatchRules BOSS = new MatchRules(4,180,3,DropRate.HIGH,true,true,true);
     public MatchRules {
         if(maxPlayers<2 || maxPlayers>4 || !Set.of(0,60,90,120,180,300).contains(matchSeconds)
-                || !Set.of(1,2,3,5).contains(lives) || dropRate==null || fighter && !gameplay) { throw new IllegalArgumentException("Invalid match rules"); }
+                || !Set.of(1,2,3,5).contains(lives) || dropRate==null || fighter && !gameplay || boss && (!fighter || matchSeconds==0)) { throw new IllegalArgumentException("Invalid match rules"); }
     }
 }

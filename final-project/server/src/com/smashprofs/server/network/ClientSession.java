@@ -10,7 +10,9 @@ import java.util.function.Consumer;
  */
 public final class ClientSession {
     private volatile boolean gameplay;
-    private volatile boolean fighter;
+    private volatile boolean fighter,boss;
+    public boolean supportsBoss() { return boss; }
+    void enableBoss() { enableFighter();boss=true; }
     public boolean supportsFighter() { return fighter; }
     void enableFighter() { fighter=true;gameplay=true; }
     public boolean supportsGameplay() { return gameplay; }

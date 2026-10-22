@@ -67,6 +67,10 @@ public class NetworkClient {
         enableGameplay();connectPayload.put("gameplay",com.smashprofs.common.protocol.FighterProtocol.CAPABILITY);fighterEnabled=true;
     }
 
+    public synchronized void enableBossSupport() {
+        enableFighter();connectPayload.put("gameplay",com.smashprofs.common.model.BossSnapshot.CAPABILITY);
+    }
+
     /** Explicit cluster-v1 capability on a separate secured listener; normal constructors send {}. */
     public static NetworkClient forCluster(String host, int port, String ticket, ConnectionListener listener) {
         if (ticket == null || ticket.isBlank()) { throw new IllegalArgumentException("Assignment ticket required"); }

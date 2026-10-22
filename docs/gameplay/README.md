@@ -1,5 +1,7 @@
 # Super Smash Profs — Platform Fighter
 
+**Chế độ Boss (22/10):** [Hướng dẫn tạo phòng, luật chơi, chiêu boss và kiểm thử](15-BOSS-MODE.md). Chọn **Hợp tác đánh Boss** phía trên nút Tạo trận đấu; đội 2–4 người cùng hạ Demon Slime, có súng và tự nạp đạn.
+
 **Lướt ngắn (19/10):** Dash/Backdash còn 0,1 giây, khoảng nửa quãng cũ. Một lần bấm chỉ một nhịp; giữ nút né/lướt rồi đổi hướng không tự lướt thêm. Né đứng yên trên đất cũng dừng trượt sau 6 tick, vẫn giữ thời gian bảo vệ. [Chi tiết](13-UNARMED-MVP.md) · [Kiểm chứng](runs/20261019-short-dash/verification.json).
 
 **Bản mới nhất:** [Combat và trang bị](13-UNARMED-MVP.md). Dùng **HP thống nhất**, giữ cả đánh tay không và hệ thống vũ khí/vật phẩm sẵn có. J/K/L (hoặc preset mũi tên + C/X/Z), hai Air Jumps, Recovery kiệt sức, Dodge/Dash riêng, Gravity Cancel, Chase Dodge, input buffer và F2 Show Stun. E nhặt, G thả, Q ném, Tab túi đồ; phòng mới mặc định rơi đồ mỗi 15 giây, chủ phòng có thể đổi. F6 đổi/lưu preset. Camera tiếp tục bám; dung nham bật lên, -10 HP; hết HP mất mạng/hồi sinh.

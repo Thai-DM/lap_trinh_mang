@@ -254,7 +254,7 @@ public class OnlineRoomScreen implements Screen {
 
         // ================= GAME RULES MODAL OVERLAY =================
         maxSelect = select("2 người", "3 người", "4 người");
-        timeSelect = select("Không giới hạn", "60 giây", "90 giây", "120 giây", "180 giây", "300 giây");
+        timeSelect = lobby.getSettings()!=null && lobby.getSettings().rules().boss()?select("60 giây", "90 giây", "120 giây", "180 giây", "300 giây"):select("Không giới hạn", "60 giây", "90 giây", "120 giây", "180 giây", "300 giây");
         livesSelect = select("1 mạng", "2 mạng", "3 mạng", "5 mạng");
         dropsSelect = select("Tắt", "Thấp · 30s/lần", "Vừa · 15s/lần", "Cao · 8s/lần");
 
@@ -333,16 +333,16 @@ public class OnlineRoomScreen implements Screen {
     private MatchRules draft() {
         return new MatchRules(
             maxSelect.getSelectedIndex() + 2,
-            TIMES[timeSelect.getSelectedIndex()],
+            TIMES[timeSelect.getSelectedIndex()+(lobby.getSettings()!=null && lobby.getSettings().rules().boss()?1:0)],
             LIVES[livesSelect.getSelectedIndex()],
             MatchRules.DropRate.values()[dropsSelect.getSelectedIndex()],
-            true, lobby.getSettings()!=null && lobby.getSettings().rules().fighter()
+            true, lobby.getSettings()!=null && lobby.getSettings().rules().fighter(),lobby.getSettings()!=null && lobby.getSettings().rules().boss()
         );
     }
 
     private void sync(MatchRules rules) {
         maxSelect.setSelectedIndex(rules.maxPlayers() - 2);
-        timeSelect.setSelectedIndex(Arrays.asList(TIMES).indexOf(rules.matchSeconds()));
+        timeSelect.setSelectedIndex(Arrays.asList(TIMES).indexOf(rules.matchSeconds())-(rules.boss()?1:0));
         livesSelect.setSelectedIndex(Arrays.asList(LIVES).indexOf(rules.lives()));
         dropsSelect.setSelectedIndex(rules.dropRate().ordinal());
     }
@@ -476,7 +476,7 @@ public class OnlineRoomScreen implements Screen {
         if (settings != null) {
             var r = settings.rules();
             String timeStr = r.matchSeconds() == 0 ? "Vô hạn" : r.matchSeconds() + "s";
-            roomRuleSummary.setText("PHÒNG #" + roomId + "   ·   " + r.lives() + " MẠNG   ·   " + timeStr + "   ·   TỐI ĐA " + r.maxPlayers() + " NGƯỜI");
+            roomRuleSummary.setText((r.boss()?"BOSS #":"PHÒNG #") + roomId + "   ·   " + r.lives() + " MẠNG   ·   " + timeStr + "   ·   TỐI ĐA " + r.maxPlayers() + " NGƯỜI");
         } else {
             roomRuleSummary.setText("PHÒNG #" + roomId);
         }
@@ -587,7 +587,7 @@ public class OnlineRoomScreen implements Screen {
             members.size() < 2 ? "Cần ít nhất 2 người để bắt đầu. Hãy sao chép mã phòng để mời bạn bè!" :
             waiting ? "Cả phòng sẵn sàng → nạp đấu trường → đếm ngược 3 giây!" :
             dirty && host ? "Bạn đang chỉnh luật: Hãy bấm Lưu luật phòng trước khi bấm Sẵn sàng." :
-            "Mỗi người hãy chọn một nhân vật yêu thích rồi bấm Sẵn sàng."
+            settings!=null && settings.rules().boss()?"Cùng hạ boss trước khi hết giờ · Có sẵn súng, tự nạp đạn · Chọn nhân vật rồi Sẵn sàng.":"Mỗi người hãy chọn một nhân vật yêu thích rồi bấm Sẵn sàng."
         );
 
         String message = state.errorCode() != null ? OnlineRoomPresentation.error(state.errorCode(), state.statusText()) : switch (state.phase()) {

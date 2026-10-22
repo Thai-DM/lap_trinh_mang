@@ -26,6 +26,7 @@ public final class OnlineLobbyScreen implements Screen {
     private final OnlineLobbyFormModel model = new OnlineLobbyFormModel();
     private final TextField address, port, code;
     private final TextButton create, join, back;
+    private final SelectBox<String> gameMode;
     private final Label status, serverBadge;
     private final Texture bgTexture;
     private final BitmapFont watermarkFont;
@@ -72,6 +73,8 @@ public final class OnlineLobbyScreen implements Screen {
         code.setAlignment(Align.center);
         code.setTextFieldFilter((field, c) -> Character.isLetterOrDigit(c) && c < 128 || c == '-' || c == '_');
 
+        gameMode=new SelectBox<>(ui.skin);
+        gameMode.setItems("Đối kháng PvP", "Hợp tác đánh Boss");
         // --- Action Buttons ---
         create = ui.comicButton("TẠO TRẬN ĐẤU", "comic-gold", () -> connect(LobbyConfiguration.Mode.CREATE));
         join = ui.comicButton("VÀO PHÒNG", "comic-primary", () -> connect(LobbyConfiguration.Mode.JOIN));
@@ -159,6 +162,7 @@ public final class OnlineLobbyScreen implements Screen {
         var c1Bottom = new Table();
         c1Bottom.setBackground(ui.comicBox(OnlineUi.BRAWL_CYAN, OnlineUi.BRAWL_BORDER, 3.5f, 0, 0));
         c1Bottom.pad(10, 12, 10, 12);
+        c1Bottom.add(gameMode).growX().height(34).padBottom(7);c1Bottom.row();
         c1Bottom.add(create).growX().height(52);
         c1Bottom.row();
         var c1Desc = ui.small("Tự sinh mã phòng  ·  Tùy chỉnh luật đấu", Color.valueOf("052B28"));
@@ -301,7 +305,7 @@ public final class OnlineLobbyScreen implements Screen {
             status.setColor(OnlineUi.DANGER);
             return;
         }
-        model.connect(address.getText(), port.getText(), room, mode);
+        model.connect(address.getText(), port.getText(), room, mode,gameMode.getSelectedIndex()==1);
         refresh();
     }
 
@@ -310,7 +314,7 @@ public final class OnlineLobbyScreen implements Screen {
         address.setDisabled(busy);
         port.setDisabled(busy);
         code.setDisabled(busy);
-        create.setDisabled(busy);
+        create.setDisabled(busy);gameMode.setDisabled(busy);
         join.setDisabled(busy);
         back.setDisabled(busy);
         status.setText(model.getStatus());

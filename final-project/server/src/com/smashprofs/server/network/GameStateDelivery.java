@@ -11,6 +11,6 @@ public record GameStateDelivery(AuthoritativeGameSnapshot snapshot, String phase
         Objects.requireNonNull(snapshot);
         Objects.requireNonNull(stillValid);
         if (!"PLAYING".equals(phase) && !"FINISHED".equals(phase)) { throw new IllegalArgumentException("Sai phase snapshot"); }
-        if (remainingTimeMs < 0 || remainingTimeMs > 120_000) { throw new IllegalArgumentException("Sai thời gian trận"); }
+        if (remainingTimeMs < 0 || remainingTimeMs > (snapshot.gameplay()==null?120_000:300_000)) { throw new IllegalArgumentException("Sai thời gian trận"); }
     }
 }

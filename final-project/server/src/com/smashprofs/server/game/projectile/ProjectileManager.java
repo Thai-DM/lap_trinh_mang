@@ -61,6 +61,12 @@ public final class ProjectileManager implements ContactListener, AutoCloseable {
     private long nextProjectileId = 1L;
     private boolean closed;
     private boolean gameplayLimits;
+    public interface BossTarget {
+        float x();float y();
+        boolean hit(PlayerId owner,float x,float y,float radius,float damage);
+    }
+    private BossTarget bossTarget;
+    public void setBossTarget(BossTarget target) { bossTarget=Objects.requireNonNull(target); }
     public void enableGameplayLimits() { gameplayLimits=true; }
     public void expireGameplayProjectiles(long tick) {
         if(!gameplayLimits) { return; }
@@ -95,7 +101,7 @@ public final class ProjectileManager implements ContactListener, AutoCloseable {
         AbilityKey ability = new AbilityKey(ownerId, type);
         if (serverTick < nextAllowedTick.getOrDefault(ability, 0L)) { return false; }
         var origin = players.getPosition(ownerId);
-        PlayerId rocketTarget = type == ProjectileType.ROCKET ? selectRocketTarget(ownerId) : null;
+        PlayerId rocketTarget = type == ProjectileType.ROCKET ? (bossTarget==null?selectRocketTarget(ownerId):ownerId) : null;
         // Không có đối thủ sống: không spawn, không tiêu cooldown, không fallback sang skill khác.
         if (type == ProjectileType.ROCKET && rocketTarget == null) { return false; }
 
@@ -268,7 +274,7 @@ public final class ProjectileManager implements ContactListener, AutoCloseable {
                 // Target ID bất biến trong roster; Body giữ đến match close, kể cả target đã chết.
                 // Không retarget hoặc giữ reference Body/Player của target. Đây là policy người dùng đã chốt.
                 var target = players.getPosition(projectile.getTargetPlayerId());
-                projectile.updateHoming(target.xMeters(), target.yMeters(), ROCKET_INERTIA, ROCKET_SPEED);
+                projectile.updateHoming(bossTarget==null?target.xMeters():bossTarget.x(), bossTarget==null?target.yMeters():bossTarget.y(), ROCKET_INERTIA, ROCKET_SPEED);
             } else {
                 body.setLinearVelocity(projectile.velocityX(), projectile.velocityY());
             }
@@ -286,6 +292,7 @@ public final class ProjectileManager implements ContactListener, AutoCloseable {
     private void record(Body body, Body other) {
         if (!(body.getUserData() instanceof ServerProjectile projectile)
                 || active.get(projectile.getProjectileId()) != projectile || projectile.body() != body) { return; }
+        if(bossTarget!=null && other.getUserData() instanceof PlayerId) { return; }
         // Mine giữ nguyên native contact với nền: vẫn rơi/đứng trên Tile, không nổ hoặc gây AoE.
         if (projectile.type() == ProjectileType.MINE && "Tile".equals(other.getUserData())) { return; }
         long id = projectile.getProjectileId();
@@ -297,12 +304,23 @@ public final class ProjectileManager implements ContactListener, AutoCloseable {
     }
 
     @Override public void endContact(Contact contact) { }
-    @Override public void preSolve(Contact contact, Manifold oldManifold) { }
+    @Override public void preSolve(Contact contact, Manifold oldManifold) {
+        if(bossTarget!=null) {
+            var a=contact.getFixtureA().getBody().getUserData();var b=contact.getFixtureB().getBody().getUserData();
+            if(a instanceof ServerProjectile && b instanceof PlayerId || b instanceof ServerProjectile && a instanceof PlayerId) { contact.setEnabled(false); }
+        }
+    }
     @Override public void postSolve(Contact contact, ContactImpulse impulse) { }
 
     /** Sau step: một target contact gần nhất; Rocket tie theo PlayerId, các type cũ giữ policy slot. */
     public void collectHitsAfterStep() {
         requireWorld();
+        if(bossTarget!=null) {
+            for(var p:active.values()) {
+                var v=p.view();
+                if(bossTarget.hit(p.getOwnerPlayerId(),v.x(),v.y(),.06f,damage(p.type()))) { collided.add(p.getProjectileId()); }
+            }
+        }
         for (long id : collided.stream().sorted().toList()) {
             ServerProjectile projectile = active.get(id);
             if (projectile == null) { continue; }

@@ -53,7 +53,7 @@ public class Game extends com.badlogic.gdx.Game {
 
 	public LobbyClient getLobbyClient() { return lobbyClient; }
     private com.smashprofs.game.Screens.OnlineArenaAssets pendingArenaAssets;
-    public void prepareOnlineAssets() { if(pendingArenaAssets==null) { pendingArenaAssets=new com.smashprofs.game.Screens.OnlineArenaAssets(); } }
+    public void prepareOnlineAssets() { if(pendingArenaAssets==null) { pendingArenaAssets=new com.smashprofs.game.Screens.OnlineArenaAssets(lobbyClient!=null && lobbyClient.getSettings()!=null && lobbyClient.getSettings().rules().boss()); } }
     public com.smashprofs.game.Screens.OnlineArenaAssets takeOnlineAssets() {
         prepareOnlineAssets();var assets=pendingArenaAssets;pendingArenaAssets=null;return assets;
     }

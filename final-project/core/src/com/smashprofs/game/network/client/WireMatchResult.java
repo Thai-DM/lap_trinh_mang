@@ -4,14 +4,14 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.*;
 import static com.smashprofs.game.network.client.GameStartRoster.*;
 
-/** Immutable GAME_END v1. A null winner is authoritative draw, never inferred from local HP. */
+/** Immutable GAME_END v1. Boss team outcomes come from the authoritative finish reason. */
 public record WireMatchResult(String matchId, String roomId, long finishedAtTick, String winnerId,
                               String finishReason, List<Participant> participants,com.smashprofs.common.model.GameplaySnapshot gameplay) {
     public WireMatchResult(String matchId,String roomId,long finishedAtTick,String winnerId,String finishReason,List<Participant> participants) {
         this(matchId,roomId,finishedAtTick,winnerId,finishReason,participants,null);
     }
     public record Participant(String playerId, int slotIndex, String characterId, float finalHp, boolean eliminated) { }
-    private static final Set<String> REASONS = Set.of("LAST_PLAYER_STANDING", "ALL_PLAYERS_ELIMINATED", "TIME_LIMIT");
+    private static final Set<String> REASONS = Set.of("LAST_PLAYER_STANDING", "ALL_PLAYERS_ELIMINATED", "TIME_LIMIT", "BOSS_DEFEATED", "TEAM_ELIMINATED", "BOSS_TIMEOUT");
     public WireMatchResult {
         require(matchId != null && !matchId.isBlank() && finishedAtTick >= 0, "Invalid result identity/tick");
         LobbyConfiguration.validateRoomId(roomId);
@@ -25,12 +25,17 @@ public record WireMatchResult(String matchId, String roomId, long finishedAtTick
             require(Float.isFinite(p.finalHp()) && p.finalHp() >= 0 && p.finalHp() <= 100, "Invalid finalHp");
         }
         require(winnerId == null || ids.contains(winnerId), "Winner missing from result roster");
+        boolean boss=gameplay!=null && gameplay.rules().boss();
+        require(boss==Set.of("BOSS_DEFEATED","TEAM_ELIMINATED","BOSS_TIMEOUT").contains(finishReason),"Result mode/reason mismatch");
+        if(boss) { require(winnerId==null && (gameplay.boss().hp()==0)==finishReason.equals("BOSS_DEFEATED"),"Invalid team result"); }
         participants = participants.stream().sorted(Comparator.comparingInt(Participant::slotIndex)).toList();
         if(gameplay!=null) { require(gameplay.players().size()==participants.size(),"Result stats roster");for(var p:participants) { require(p.eliminated()==(gameplay.player(p.playerId()).lives()==0),"Result lives mismatch"); } }
     }
-    public boolean isDraw() { return winnerId == null; }
+    public boolean isBoss() { return gameplay!=null && gameplay.rules().boss(); }
+    public boolean teamWon() { return isBoss() && finishReason.equals("BOSS_DEFEATED"); }
+    public boolean isDraw() { return winnerId == null && !isBoss(); }
     public Participant winner() {
-        return isDraw() ? null : participants.stream().filter(p -> p.playerId().equals(winnerId)).findFirst().orElseThrow();
+        return winnerId==null ? null : participants.stream().filter(p -> p.playerId().equals(winnerId)).findFirst().orElseThrow();
     }
     public void validateRoster(GameStartRoster roster) {
         require(matchId.equals(roster.matchId()) && roomId.equals(roster.roomId()), "GAME_END match/room mismatch");

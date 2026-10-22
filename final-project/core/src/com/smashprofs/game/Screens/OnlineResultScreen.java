@@ -121,6 +121,10 @@ public final class OnlineResultScreen implements Screen {
 
     private void buildUi() {
         stage.clear();
+        if(result.isBoss()) {
+            var credit=new Table();credit.setFillParent(true);credit.bottom().padBottom(8);
+            credit.add(ui.small("Boss: Demon Slime · chierit · CC BY 4.0 · chierit.itch.io/boss-demon-slime",OnlineUi.MUTED));stage.addActor(credit);
+        }
 
         // Determine Winner / Champion
         var winner = result.winner();
@@ -128,8 +132,8 @@ public final class OnlineResultScreen implements Screen {
         boolean localWon = winner != null && winner.playerId().equals(localId);
 
         String winnerCharName = winner != null ? winner.characterId().toUpperCase(Locale.ROOT) : "CHIẾN BINH";
-        String mainTitle = isDraw ? "TRẬN ĐẤU HÒA!" : (localWon ? "BẠN ĐÃ CHIẾN THẮNG!" : winnerCharName + " WINS!");
-        Color titleColor = isDraw ? Color.WHITE : (localWon ? OnlineUi.BRAWL_GOLD : OnlineUi.BRAWL_CYAN);
+        String mainTitle = result.isBoss()?(result.teamWon()?"CẢ ĐỘI CHIẾN THẮNG!":"CẢ ĐỘI THẤT BẠI"):isDraw ? "TRẬN ĐẤU HÒA!" : (localWon ? "BẠN ĐÃ CHIẾN THẮNG!" : winnerCharName + " WINS!");
+        Color titleColor = result.isBoss()?(result.teamWon()?OnlineUi.BRAWL_GOLD:OnlineUi.DANGER):isDraw ? Color.WHITE : (localWon ? OnlineUi.BRAWL_GOLD : OnlineUi.BRAWL_CYAN);
 
         // --- TOP HEADER BAR ---
         var headerBar = new Table();
@@ -160,6 +164,9 @@ public final class OnlineResultScreen implements Screen {
         actionChips.add(playAgainBtn).height(34).padRight(12);
 
         var reason = switch (result.finishReason()) {
+            case "BOSS_DEFEATED" -> "Đã hạ Demon Slime · Chiến thắng hợp tác";
+            case "TEAM_ELIMINATED" -> "Cả đội đã hết mạng · Thử lại và né vùng đỏ";
+            case "BOSS_TIMEOUT" -> "Hết giờ · Boss còn "+Math.round(result.gameplay().boss().hp())+" HP";
             case "TIME_LIMIT" -> result.gameplay()!=null && result.gameplay().fighter()!=null?"Hết giờ · Xét mạng, rồi HP cao nhất":"Hết giờ · Xét HP cao nhất";
             case "LAST_PLAYER_STANDING" -> "Sống sót cuối cùng";
             default -> "Đấu trường sinh tử";
@@ -199,7 +206,7 @@ public final class OnlineResultScreen implements Screen {
 
         for (int i = 0; i < count; i++) {
             var p = sortedList.get(i);
-            boolean isWinner = p.playerId().equals(result.winnerId());
+            boolean isWinner = result.isBoss()?result.teamWon():p.playerId().equals(result.winnerId());
             boolean isLocal = p.playerId().equals(localId);
 
             float pillarX = startX + i * (pillarW + gap);
@@ -227,6 +234,7 @@ public final class OnlineResultScreen implements Screen {
                 case 3 -> "rd";
                 default -> "th";
             };
+            if(result.isBoss()) { rankText="ĐỒNG ĐỘI "+(p.slotIndex()+1); }
             Color rankColor = switch (i) {
                 case 0 -> OnlineUi.BRAWL_GOLD;
                 case 1 -> Color.valueOf("38BDF8");
@@ -296,6 +304,7 @@ public final class OnlineResultScreen implements Screen {
     }
 
     private float getPlatformY(int rankIndex, int count) {
+        if(result.isBoss()) { return 355f; }
         if (count <= 2) {
             return rankIndex == 0 ? 380f : 335f;
         } else if (count == 3) {
@@ -525,7 +534,7 @@ public final class OnlineResultScreen implements Screen {
         int currentFrame = (int) (stateTime * 4.5f) % 4;
         for (int i = 0; i < count; i++) {
             var p = sortedList.get(i);
-            boolean isWinner = p.playerId().equals(result.winnerId());
+            boolean isWinner = result.isBoss()?result.teamWon():p.playerId().equals(result.winnerId());
             boolean isLocal = p.playerId().equals(localId);
 
             float pillarX = startX + i * (pillarW + gap);

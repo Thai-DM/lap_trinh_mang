@@ -84,10 +84,13 @@ public final class GameRoom {
         if(closed || getPlayerCount()!=0 || phase!=RoomPhase.WAITING) { throw new IllegalStateException("Configure before joining"); }
         host=Objects.requireNonNull(creator); rules=fighter?com.smashprofs.common.model.MatchRules.FIGHTER:com.smashprofs.common.model.MatchRules.DEFAULT; settingsVersion++;rulesVersion++;
     }
+    public synchronized void configureBoss(PlayerId creator) {
+        configureGameplay(creator,true);rules=com.smashprofs.common.model.MatchRules.BOSS;
+    }
     public synchronized void updateSettings(PlayerId actor,com.smashprofs.common.model.MatchRules next) {
         if(!rules.gameplay() || !Objects.equals(host,actor) || getPlayerSlot(actor)==null) { throw new SecurityException("Only room host may update settings"); }
         if(closed || phase==RoomPhase.COUNTDOWN || isMatchLocked()) { throw new IllegalStateException("Rules locked"); }
-        if(!next.gameplay() || next.fighter()!=rules.fighter() || next.maxPlayers()<getPlayerCount() || next.maxPlayers()<minimumPlayers) { throw new IllegalArgumentException("Invalid mode/capacity"); }
+        if(!next.gameplay() || next.fighter()!=rules.fighter() || next.boss()!=rules.boss() || next.maxPlayers()<getPlayerCount() || next.maxPlayers()<minimumPlayers) { throw new IllegalArgumentException("Invalid mode/capacity"); }
         if(next.equals(rules)) { return; }
         rules=next; readyPlayers.clear(); cancelCountdown(); updateLobbyPhase(); settingsVersion++;rulesVersion++;
     }

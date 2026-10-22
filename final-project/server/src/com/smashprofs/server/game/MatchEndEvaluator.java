@@ -10,7 +10,12 @@ final class MatchEndEvaluator {
         var survivors = snapshot.players().stream().filter(player -> snapshot.gameplay()==null?!player.dead():snapshot.gameplay().player(player.playerId().value()).lives()>0).toList();
         PlayerId winner = null;
         AuthoritativeMatchResult.FinishReason reason;
-        if (survivors.isEmpty()) {
+        if(snapshot.gameplay()!=null && snapshot.gameplay().boss()!=null) {
+            if(snapshot.gameplay().boss().hp()==0) { reason=AuthoritativeMatchResult.FinishReason.BOSS_DEFEATED; }
+            else if(survivors.isEmpty()) { reason=AuthoritativeMatchResult.FinishReason.TEAM_ELIMINATED; }
+            else if(timeLimitReached) { reason=AuthoritativeMatchResult.FinishReason.BOSS_TIMEOUT; }
+            else { return null; }
+        } else if (survivors.isEmpty()) {
             reason = AuthoritativeMatchResult.FinishReason.ALL_PLAYERS_ELIMINATED;
         } else if (survivors.size() == 1) {
             winner = survivors.get(0).playerId();

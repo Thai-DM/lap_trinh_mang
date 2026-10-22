@@ -52,8 +52,9 @@ public final class ControlPlane {
             case "/rooms/create" -> {
                 if(body.has("gameplay") && !body.path("gameplay").isBoolean()) { throw new Failure(400,"INVALID_GAMEPLAY_CAPABILITY"); }
                 if(body.has("fighter") && (!body.path("fighter").isBoolean() || body.path("fighter").asBoolean() && !body.path("gameplay").asBoolean())) { throw new Failure(400,"INVALID_GAMEPLAY_CAPABILITY"); }
+                if(body.has("boss") && (!body.path("boss").isBoolean() || body.path("boss").asBoolean() && (!body.path("fighter").asBoolean() || !body.path("gameplay").asBoolean()))) { throw new Failure(400,"INVALID_GAMEPLAY_CAPABILITY"); }
                 var room=create(List.of(session),region(body));room.gameplay=body.path("gameplay").asBoolean(false);room.hostPlayer=session.player;
-                room.fighter=body.path("fighter").asBoolean(false);
+                room.fighter=body.path("fighter").asBoolean(false);room.boss=body.path("boss").asBoolean(false);
                 yield assignment(session,room);
             }
             case "/rooms/join" -> join(session, text(body, "roomId"));
@@ -102,7 +103,7 @@ public final class ControlPlane {
         }
         session.claimed = true;
         return Map.of("playerId", session.player, "sessionId", session.id, "roomId", room.id, "expiresAt", session.expiry,
-                "minimumPlayers", room.minimumPlayers,"gameplay",room.gameplay,"hostPlayer",room.hostPlayer,"fighter",room.fighter);
+                "minimumPlayers", room.minimumPlayers,"gameplay",room.gameplay,"hostPlayer",room.hostPlayer,"fighter",room.fighter,"boss",room.boss);
     }
     private Room create(List<Session> members, String region) {
         if (rooms.size() >= 10_000) { throw new Failure(503, "ROOM_CAPACITY"); }
@@ -158,9 +159,10 @@ public final class ControlPlane {
     private Object assignment(Session session, Room room) {
         if (room == null || room.terminal()) { throw new Failure(409, "ROOM_TERMINAL"); }
         Worker worker = worker(room.worker);
-        return Map.of("status", "ASSIGNED", "workerId", worker.id, "host", worker.host, "port", worker.port,
+        var response=new LinkedHashMap<String,Object>(Map.of("status", "ASSIGNED", "workerId", worker.id, "host", worker.host, "port", worker.port,
                 "roomId", room.id, "ticket", session.ticket, "ticketExpiresAt", session.ticketExpiry,
-                "capability", "cluster-v1","gameplay",room.gameplay,"fighter",room.fighter);
+                "capability", "cluster-v1","gameplay",room.gameplay,"fighter",room.fighter));
+        if(room.boss) { response.put("boss",true); }return response;
     }
     private RoomAllocator.Capacity capacity(Worker worker) {
         JsonNode r = worker.report;
@@ -251,7 +253,7 @@ public final class ControlPlane {
         String state = "WAITING"; boolean seen; long finished;
         int minimumPlayers = 2,maxPlayers=4;
         boolean gameplay;
-        boolean fighter;
+        boolean fighter,boss;
         String hostPlayer="";
         boolean matchmade;
         Room(String id, String worker, long created) { this.id=id; this.worker=worker; this.created=created; }

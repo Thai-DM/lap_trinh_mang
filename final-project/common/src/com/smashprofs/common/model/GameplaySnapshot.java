@@ -4,7 +4,10 @@ import java.util.*;
 
 /** Bounded immutable gameplay-v1 extension. Stats and timers originate on the simulation owner. */
 public record GameplaySnapshot(MatchRules rules, long durationTicks, List<Player> players,
-                               List<Item> items, List<Shot> shots, FighterSnapshot fighter) {
+                               List<Item> items, List<Shot> shots, FighterSnapshot fighter, BossSnapshot boss) {
+    public GameplaySnapshot(MatchRules rules,long ticks,List<Player> players,List<Item> items,List<Shot> shots,FighterSnapshot fighter) {
+        this(rules,ticks,players,items,shots,fighter,null);
+    }
     public GameplaySnapshot(MatchRules rules,long ticks,List<Player> players,List<Item> items,List<Shot> shots) {
         this(rules,ticks,players,items,shots,null);
     }
@@ -14,6 +17,7 @@ public record GameplaySnapshot(MatchRules rules, long durationTicks, List<Player
         var ids=new HashSet<String>();
         for(var p:players) { if(!ids.add(p.playerId())) { throw new IllegalArgumentException("Duplicate progress"); } }
         if(rules.fighter()!=(fighter!=null) || fighter!=null && (fighter.players().size()!=players.size() || fighter.players().stream().anyMatch(p->!ids.contains(p.playerId())))) { throw new IllegalArgumentException("Fighter state/rules mismatch"); }
+        if(rules.boss()!=(boss!=null)) { throw new IllegalArgumentException("Boss state/rules mismatch"); }
         var itemIds=new HashSet<Long>();for(var item:items) { if(!itemIds.add(item.id())) { throw new IllegalArgumentException("Duplicate item"); } }
         var shotIds=new HashSet<Long>();for(var shot:shots) { if(!shotIds.add(shot.id()) || !ids.contains(shot.owner())) { throw new IllegalArgumentException("Invalid projectile identity"); } }
     }

@@ -25,7 +25,7 @@ public class DesktopLauncher {
 			if (arg != null && java.util.Arrays.stream(arg).anyMatch(a -> a.startsWith("--control-url="))) {
 				clusterLobby = com.smashprofs.game.network.client.ClusterLobbyConnector.fromArguments(arg);
 				lobby = null;
-			} else { lobby = LobbyConfiguration.fromArguments(arg==null?null:java.util.Arrays.stream(arg).filter(a->!a.equals("--gameplay") && !a.equals("--online")).toArray(String[]::new)); }
+			} else { lobby = LobbyConfiguration.fromArguments(arg==null?null:java.util.Arrays.stream(arg).filter(a->!a.equals("--gameplay") && !a.equals("--online") && !a.equals("--boss")).toArray(String[]::new)); }
 		} catch (IllegalArgumentException | java.io.IOException invalid) {
 			System.err.println("[DesktopLauncher] " + invalid.getMessage());
 			System.err.println("Online: --server-host=127.0.0.1 --server-port=PORT --room=ROOM --create-room|--join-room");
@@ -84,7 +84,8 @@ public class DesktopLauncher {
 			game = Game.forLobby(clusterLobby);
 		} else if (lobby != null) {
 			game = new Game(lobby);
-			if(arg!=null && java.util.Arrays.asList(arg).contains("--gameplay")) { game.getLobbyClient().enableGameplay(); }
+			if(arg!=null && java.util.Arrays.asList(arg).contains("--boss")) { game.getLobbyClient().enableBoss(); }
+			else if(arg!=null && java.util.Arrays.asList(arg).contains("--gameplay")) { game.getLobbyClient().enableGameplay(); }
 		} else if (mockMode) {
 			try {
 				com.smashprofs.game.network.mock.MockServer mockServer = new com.smashprofs.game.network.mock.MockServer();

@@ -54,6 +54,9 @@ final class FighterEngine implements AutoCloseable {
             float offsetY=m.y()+(m.x()*(float)Math.sin(rad));
             var targets=physics.targets(p.xMeters()+offsetX-m.halfWidth(),p.yMeters()+offsetY-m.halfHeight(),
                     p.xMeters()+offsetX+m.halfWidth(),p.yMeters()+offsetY+m.halfHeight());
+            if(game.boss!=null && !attack.bossHit && game.boss.overlaps(p.xMeters()+offsetX-m.halfWidth(),p.yMeters()+offsetY-m.halfHeight(),p.xMeters()+offsetX+m.halfWidth(),p.yMeters()+offsetY+m.halfHeight())) {
+                attack.bossHit=game.boss.damage(id,m.damage()*(.75f+f.stats.attack()*.05f)*(1+attack.charge/90f));
+            }
             for(var victim:fighters.keySet()) {
                 if(victim.equals(id) || !targets.contains(victim) || attack.hit.contains(victim)) { continue; }
                 if(hit(id,victim,m.name(),m.damage()*(.75f+f.stats.attack()*.05f)*(1+attack.charge/90f),m.base(),m.scaling(),
@@ -250,6 +253,7 @@ final class FighterEngine implements AutoCloseable {
     }
     boolean hit(PlayerId attacker,PlayerId victim,String moveName,float amount,float base,float scaling,float ux,float uy,boolean heavy) {
         if(!Float.isFinite(amount) || amount<=0 || !Float.isFinite(ux) || !Float.isFinite(uy)) { throw new IllegalArgumentException("Hit"); }
+        if(game.boss!=null && attacker!=null) { return false; }
         if(!game.active(victim) || attacker!=null && !game.active(attacker)) { return false; }
         var f=fighters.get(victim);var progress=game.progress.get(victim);long age=tick-f.dodgeStart;
         if(f.platformUntil>0 || tick<progress.invulnerableUntil || age>=UnarmedRules.DODGE_STARTUP && age<UnarmedRules.DODGE_STARTUP+UnarmedRules.invulnerableFrames(f.dodgeKind)) { return false; }
@@ -343,7 +347,7 @@ final class FighterEngine implements AutoCloseable {
     static final class Attack {
         final long id;final FighterMoves.Move move;final int direction;final Set<PlayerId> hit=new HashSet<>();final boolean gravityCancelled;
         final float aimAngle;
-        int frame=-1,charge;boolean charging;
+        int frame=-1,charge;boolean charging,bossHit;
         Attack(long id,FighterMoves.Move move,int direction,boolean charging,boolean gc,float aimAngle) {
             this.id=id;this.move=move;this.direction=direction;this.charging=charging;this.gravityCancelled=gc;this.aimAngle=aimAngle;
         }

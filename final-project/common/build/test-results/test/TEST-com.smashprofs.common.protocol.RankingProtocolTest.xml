@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.smashprofs.common.protocol.RankingProtocolTest" tests="25" skipped="0" failures="0" errors="0" timestamp="2026-10-22T12:27:21" hostname="LAPTOP-FVL46F8B" time="0.376">
+  <properties/>
+  <testcase name="testRankingEntry_InvalidFields" classname="com.smashprofs.common.protocol.RankingProtocolTest" time="0.27"/>
+  <testcase name="testGetLeaderboard_NoLimit" classname="com.smashprofs.common.protocol.RankingProtocolTest" time="0.001"/>
+  <testcase name="testConnectPayload_RejectsBlankProfileId" classname="com.smashprofs.common.protocol.RankingProtocolTest" time="0.001"/>
+  <testcase name="testConnectPayload_RejectsNonStringProfileId" classname="com.smashprofs.common.protocol.RankingProtocolTest" time="0.001"/>
+  <testcase name="testWireCodec_GetLeaderboardMessage" classname="com.smashprofs.common.protocol.RankingProtocolTest" time="0.043"/>
+  <testcase name="testLeaderboardSnapshot_EmptyList" classname="com.smashprofs.common.protocol.RankingProtocolTest" time="0.002"/>
+  <testcase name="testGetLeaderboard_RejectsExtraFields" classname="com.smashprofs.common.protocol.RankingProtocolTest" time="0.002"/>
+  <testcase name="testConnectPayload_RejectsOverlengthProfileId" classname="com.smashprofs.common.protocol.RankingProtocolTest" time="0.001"/>
+  <testcase name="testGetLeaderboard_RejectsNegativeOrZeroLimit" classname="com.smashprofs.common.protocol.RankingProtocolTest" time="0.001"/>
+  <testcase name="testConnectPayload_RejectsPlayerIdSuppliedByClient" classname="com.smashprofs.common.protocol.RankingProtocolTest" time="0.001"/>
+  <testcase name="testWireCodec_RankingUpdatedMessage" classname="com.smashprofs.common.protocol.RankingProtocolTest" time="0.034"/>
+  <testcase name="testLeaderboardSnapshot_RoundTrip" classname="com.smashprofs.common.protocol.RankingProtocolTest" time="0.002"/>
+  <testcase name="testConnectPayload_EmptyPayload" classname="com.smashprofs.common.protocol.RankingProtocolTest" time="0.003"/>
+  <testcase name="testConnectPayload_WithGameplayCapability" classname="com.smashprofs.common.protocol.RankingProtocolTest" time="0.001"/>
+  <testcase name="testConnectPayload_WithOnlyDisplayName" classname="com.smashprofs.common.protocol.RankingProtocolTest" time="0.0"/>
+  <testcase name="testWireCodec_ConnectWithProfile" classname="com.smashprofs.common.protocol.RankingProtocolTest" time="0.001"/>
+  <testcase name="testConnectPayload_RejectsSessionIdSuppliedByClient" classname="com.smashprofs.common.protocol.RankingProtocolTest" time="0.001"/>
+  <testcase name="testGetLeaderboard_RejectsPlayerIdField" classname="com.smashprofs.common.protocol.RankingProtocolTest" time="0.001"/>
+  <testcase name="testParseSnapshot_FromProtocolMessage" classname="com.smashprofs.common.protocol.RankingProtocolTest" time="0.001"/>
+  <testcase name="testGetLeaderboard_WithLimit" classname="com.smashprofs.common.protocol.RankingProtocolTest" time="0.001"/>
+  <testcase name="testWireCodec_RankingSnapshotMessage" classname="com.smashprofs.common.protocol.RankingProtocolTest" time="0.001"/>
+  <testcase name="testParseSnapshot_RejectsWrongMessageType" classname="com.smashprofs.common.protocol.RankingProtocolTest" time="0.001"/>
+  <testcase name="testConnectPayload_WithProfileIdAndDisplayName" classname="com.smashprofs.common.protocol.RankingProtocolTest" time="0.001"/>
+  <testcase name="testConnectPayload_WithOnlyProfileId" classname="com.smashprofs.common.protocol.RankingProtocolTest" time="0.001"/>
+  <testcase name="testRankingEntry_RoundTrip" classname="com.smashprofs.common.protocol.RankingProtocolTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

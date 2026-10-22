@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.smashprofs.server.game.RankingGatewayTcpIntegrationTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-22T12:22:32" hostname="LAPTOP-FVL46F8B" time="4.145">
+  <properties/>
+  <testcase name="missingMemberThreeServiceIsVisibleWithoutBreakingGameEnd" classname="com.smashprofs.server.game.RankingGatewayTcpIntegrationTest" time="0.745"/>
+  <testcase name="slowFailingGatewayCannotBlockSimulationGameEndOrNativeRoomCleanup" classname="com.smashprofs.server.game.RankingGatewayTcpIntegrationTest" time="0.738"/>
+  <testcase name="restartUsesFreshPublisherAndNoStaleMatchIds" classname="com.smashprofs.server.game.RankingGatewayTcpIntegrationTest" time="0.062"/>
+  <testcase name="concurrentTwoThreeFourPlayerMatchesPublishExactResultsAndIndependentGameEnds" classname="com.smashprofs.server.game.RankingGatewayTcpIntegrationTest" time="1.5"/>
+  <testcase name="serverShutdownDisposesWorldsAndReportsUnconfirmedAndCancelledPublications" classname="com.smashprofs.server.game.RankingGatewayTcpIntegrationTest" time="1.075"/>
+  <testcase name="noResultDuringLobbyCountdownPlayingDisconnectOrUnfinishedShutdown" classname="com.smashprofs.server.game.RankingGatewayTcpIntegrationTest" time="0.023"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[Oct 22, 2026 7:22:32 PM com.smashprofs.server.game.physics.TmxCollisionLoader load
+WARNING: Gi? geometry kích th??c 0 c?a baseline, không b?/thêm ?? dày: 1/Map1New2Remake.tmx, object ID=35
+Oct 22, 2026 7:22:33 PM com.smashprofs.server.game.MatchResultPublisher offer
+WARNING: RankingGateway ch?a c?u hình; result ch?a ???c chuy?n: e51defc6-7e32-461b-aeb1-8722872f7a9b
+Oct 22, 2026 7:22:33 PM com.smashprofs.server.game.physics.TmxCollisionLoader load
+WARNING: Gi? geometry kích th??c 0 c?a baseline, không b?/thêm ?? dày: 1/Map1New2Remake.tmx, object ID=35
+Oct 22, 2026 7:22:33 PM com.smashprofs.server.game.physics.TmxCollisionLoader load
+WARNING: Gi? geometry kích th??c 0 c?a baseline, không b?/thêm ?? dày: 1/Map1New2Remake.tmx, object ID=35
+Oct 22, 2026 7:22:33 PM com.smashprofs.server.game.MatchResultPublisher$Delivery run
+WARNING: RankingGateway submit th?t b?i; không retry ho?c thay ??i k?t qu?: 469b032a-2613-4891-b3fe-480c5f5d86dc
+Oct 22, 2026 7:22:33 PM com.smashprofs.server.game.physics.TmxCollisionLoader load
+WARNING: Gi? geometry kích th??c 0 c?a baseline, không b?/thêm ?? dày: 1/Map1New2Remake.tmx, object ID=35
+Oct 22, 2026 7:22:33 PM com.smashprofs.server.game.physics.TmxCollisionLoader load
+WARNING: Gi? geometry kích th??c 0 c?a baseline, không b?/thêm ?? dày: 1/Map1New2Remake.tmx, object ID=35
+Oct 22, 2026 7:22:33 PM com.smashprofs.server.game.physics.TmxCollisionLoader load
+WARNING: Gi? geometry kích th??c 0 c?a baseline, không b?/thêm ?? dày: 1/Map1New2Remake.tmx, object ID=35
+Oct 22, 2026 7:22:33 PM com.smashprofs.server.game.physics.TmxCollisionLoader load
+WARNING: Gi? geometry kích th??c 0 c?a baseline, không b?/thêm ?? dày: 1/Map1New2Remake.tmx, object ID=35
+Oct 22, 2026 7:22:33 PM com.smashprofs.server.game.physics.TmxCollisionLoader load
+WARNING: Gi? geometry kích th??c 0 c?a baseline, không b?/thêm ?? dày: 1/Map1New2Remake.tmx, object ID=35
+Oct 22, 2026 7:22:35 PM com.smashprofs.server.game.physics.TmxCollisionLoader load
+WARNING: Gi? geometry kích th??c 0 c?a baseline, không b?/thêm ?? dày: 1/Map1New2Remake.tmx, object ID=35
+Oct 22, 2026 7:22:35 PM com.smashprofs.server.game.physics.TmxCollisionLoader load
+WARNING: Gi? geometry kích th??c 0 c?a baseline, không b?/thêm ?? dày: 1/Map1New2Remake.tmx, object ID=35
+Oct 22, 2026 7:22:36 PM com.smashprofs.server.game.MatchResultPublisher close
+WARNING: Ranking shutdown h?t th?i gian drain; pending canceled, in-flight ch?a ???c xác nh?n
+Oct 22, 2026 7:22:36 PM com.smashprofs.server.game.MatchResultPublisher$Delivery run
+WARNING: RankingGateway submit th?t b?i; không retry ho?c thay ??i k?t qu?: e6465950-3a7d-4189-8d15-529f205bb977
+Oct 22, 2026 7:22:36 PM com.smashprofs.server.game.physics.TmxCollisionLoader load
+WARNING: Gi? geometry kích th??c 0 c?a baseline, không b?/thêm ?? dày: 1/Map1New2Remake.tmx, object ID=35
+]]></system-err>
+</testsuite>

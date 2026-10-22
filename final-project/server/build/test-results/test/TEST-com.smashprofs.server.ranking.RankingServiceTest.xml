@@ -1,24 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.smashprofs.server.ranking.RankingServiceTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-22T12:09:50" hostname="LAPTOP-FVL46F8B" time="0.13">
+<testsuite name="com.smashprofs.server.ranking.RankingServiceTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-22T12:22:36" hostname="LAPTOP-FVL46F8B" time="0.018">
   <properties/>
-  <testcase name="testSubmitMatchResult_NewPlayerAutoCreated" classname="com.smashprofs.server.ranking.RankingServiceTest" time="0.089"/>
-  <testcase name="testSubmitMatchResult_DbExceptionHandledSafely" classname="com.smashprofs.server.ranking.RankingServiceTest" time="0.013"/>
-  <testcase name="testSubmitMatchResult_Idempotency_DuplicateMatchId" classname="com.smashprofs.server.ranking.RankingServiceTest" time="0.01"/>
-  <testcase name="testSubmitMatchResult_NormalWin" classname="com.smashprofs.server.ranking.RankingServiceTest" time="0.002"/>
-  <testcase name="testSubmitMatchResult_NullAndInvalidSafelyHandled" classname="com.smashprofs.server.ranking.RankingServiceTest" time="0.006"/>
-  <testcase name="testGetLeaderboard_OrderedByRating" classname="com.smashprofs.server.ranking.RankingServiceTest" time="0.004"/>
-  <testcase name="testSubmitMatchResult_Draw" classname="com.smashprofs.server.ranking.RankingServiceTest" time="0.002"/>
+  <testcase name="testSubmitMatchResult_NewPlayerAutoCreated" classname="com.smashprofs.server.ranking.RankingServiceTest" time="0.002"/>
+  <testcase name="testSubmitMatchResult_DbExceptionHandledSafely" classname="com.smashprofs.server.ranking.RankingServiceTest" time="0.008"/>
+  <testcase name="testSubmitMatchResult_Idempotency_DuplicateMatchId" classname="com.smashprofs.server.ranking.RankingServiceTest" time="0.002"/>
+  <testcase name="testSubmitMatchResult_NormalWin" classname="com.smashprofs.server.ranking.RankingServiceTest" time="0.001"/>
+  <testcase name="testSubmitMatchResult_NullAndInvalidSafelyHandled" classname="com.smashprofs.server.ranking.RankingServiceTest" time="0.002"/>
+  <testcase name="testGetLeaderboard_OrderedByRating" classname="com.smashprofs.server.ranking.RankingServiceTest" time="0.002"/>
+  <testcase name="testSubmitMatchResult_Draw" classname="com.smashprofs.server.ranking.RankingServiceTest" time="0.001"/>
   <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[Oct 22, 2026 7:09:50 PM com.smashprofs.server.ranking.RankingService submitMatchResult
-INFO: Xử lý thành công kết quả xếp hạng cho matchId: match-new
-Oct 22, 2026 7:09:50 PM com.smashprofs.server.ranking.RankingService submitMatchResult
-SEVERE: Lỗi khi xử lý lưu kết quả trận đấu cho matchId: match-fail
-java.lang.RuntimeException: Giả lập lỗi kết nối cơ sở dữ liệu
+  <system-err><![CDATA[Oct 22, 2026 7:22:36 PM com.smashprofs.server.ranking.RankingService submitMatchResult
+INFO: X? lý thành công k?t qu? x?p h?ng cho matchId: match-new
+Oct 22, 2026 7:22:36 PM com.smashprofs.server.ranking.RankingService submitMatchResult
+SEVERE: L?i khi x? lý l?u k?t qu? tr?n ??u cho matchId: match-fail
+java.lang.RuntimeException: Gi? l?p l?i k?t n?i c? s? d? li?u
 	at com.smashprofs.server.ranking.RankingServiceTest$1.saveMatchResult(RankingServiceTest.java:139)
 	at com.smashprofs.server.ranking.RankingService.submitMatchResult(RankingService.java:90)
 	at com.smashprofs.server.ranking.RankingServiceTest.testSubmitMatchResult_DbExceptionHandledSafely(RankingServiceTest.java:162)
-	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
-	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
 	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:59)
 	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
 	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:56)
@@ -41,8 +43,9 @@ java.lang.RuntimeException: Giả lập lỗi kết nối cơ sở dữ liệu
 	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.execute(JUnitTestClassExecutor.java:38)
 	at org.gradle.api.internal.tasks.testing.junit.AbstractJUnitTestClassProcessor.processTestClass(AbstractJUnitTestClassProcessor.java:62)
 	at org.gradle.api.internal.tasks.testing.SuiteTestClassProcessor.processTestClass(SuiteTestClassProcessor.java:51)
-	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
-	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at jdk.internal.reflect.GeneratedMethodAccessor2.invoke(Unknown Source)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
 	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:36)
 	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
 	at org.gradle.internal.dispatch.ContextClassLoaderDispatch.dispatch(ContextClassLoaderDispatch.java:33)
@@ -58,21 +61,21 @@ java.lang.RuntimeException: Giả lập lỗi kết nối cơ sở dữ liệu
 	at worker.org.gradle.process.internal.worker.GradleWorkerMain.run(GradleWorkerMain.java:69)
 	at worker.org.gradle.process.internal.worker.GradleWorkerMain.main(GradleWorkerMain.java:74)
 
-Oct 22, 2026 7:09:50 PM com.smashprofs.server.ranking.RankingService submitMatchResult
-INFO: Xử lý thành công kết quả xếp hạng cho matchId: match-dup
-Oct 22, 2026 7:09:50 PM com.smashprofs.server.ranking.RankingService submitMatchResult
-INFO: MatchId match-dup đã được xử lý trước đó; bỏ qua (idempotent)
-Oct 22, 2026 7:09:50 PM com.smashprofs.server.ranking.RankingService submitMatchResult
-INFO: Xử lý thành công kết quả xếp hạng cho matchId: match-1
-Oct 22, 2026 7:09:50 PM com.smashprofs.server.ranking.RankingService submitMatchResult
-WARNING: Nhận kết quả trận đấu null; bỏ qua
-Oct 22, 2026 7:09:50 PM com.smashprofs.server.ranking.RankingService submitMatchResult
-WARNING: Kết quả trận đấu thiếu matchId hợp lệ; bỏ qua
-Oct 22, 2026 7:09:50 PM com.smashprofs.server.ranking.RankingService submitMatchResult
-INFO: Xử lý thành công kết quả xếp hạng cho matchId: m1
-Oct 22, 2026 7:09:50 PM com.smashprofs.server.ranking.RankingService submitMatchResult
-INFO: Xử lý thành công kết quả xếp hạng cho matchId: m2
-Oct 22, 2026 7:09:50 PM com.smashprofs.server.ranking.RankingService submitMatchResult
-INFO: Xử lý thành công kết quả xếp hạng cho matchId: match-draw-1
+Oct 22, 2026 7:22:36 PM com.smashprofs.server.ranking.RankingService submitMatchResult
+INFO: X? lý thành công k?t qu? x?p h?ng cho matchId: match-dup
+Oct 22, 2026 7:22:36 PM com.smashprofs.server.ranking.RankingService submitMatchResult
+INFO: MatchId match-dup ?ã ???c x? lý tr??c ?ó; b? qua (idempotent)
+Oct 22, 2026 7:22:36 PM com.smashprofs.server.ranking.RankingService submitMatchResult
+INFO: X? lý thành công k?t qu? x?p h?ng cho matchId: match-1
+Oct 22, 2026 7:22:36 PM com.smashprofs.server.ranking.RankingService submitMatchResult
+WARNING: Nh?n k?t qu? tr?n ??u null; b? qua
+Oct 22, 2026 7:22:36 PM com.smashprofs.server.ranking.RankingService submitMatchResult
+WARNING: K?t qu? tr?n ??u thi?u matchId h?p l?; b? qua
+Oct 22, 2026 7:22:36 PM com.smashprofs.server.ranking.RankingService submitMatchResult
+INFO: X? lý thành công k?t qu? x?p h?ng cho matchId: m1
+Oct 22, 2026 7:22:36 PM com.smashprofs.server.ranking.RankingService submitMatchResult
+INFO: X? lý thành công k?t qu? x?p h?ng cho matchId: m2
+Oct 22, 2026 7:22:36 PM com.smashprofs.server.ranking.RankingService submitMatchResult
+INFO: X? lý thành công k?t qu? x?p h?ng cho matchId: match-draw-1
 ]]></system-err>
 </testsuite>

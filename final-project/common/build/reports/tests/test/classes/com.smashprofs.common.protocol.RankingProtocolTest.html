@@ -3,17 +3,17 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 <meta http-equiv="x-ua-compatible" content="IE=edge"/>
-<title>Test results - Class com.smashprofs.common.protocol.JsonFrameCodecTest</title>
+<title>Test results - Class com.smashprofs.common.protocol.RankingProtocolTest</title>
 <link href="../css/base-style.css" rel="stylesheet" type="text/css"/>
 <link href="../css/style.css" rel="stylesheet" type="text/css"/>
 <script src="../js/report.js" type="text/javascript"></script>
 </head>
 <body>
 <div id="content">
-<h1>Class com.smashprofs.common.protocol.JsonFrameCodecTest</h1>
+<h1>Class com.smashprofs.common.protocol.RankingProtocolTest</h1>
 <div class="breadcrumbs">
 <a href="../index.html">all</a> &gt; 
-<a href="../packages/com.smashprofs.common.protocol.html">com.smashprofs.common.protocol</a> &gt; JsonFrameCodecTest</div>
+<a href="../packages/com.smashprofs.common.protocol.html">com.smashprofs.common.protocol</a> &gt; RankingProtocolTest</div>
 <div id="summary">
 <table>
 <tr>
@@ -23,7 +23,7 @@
 <tr>
 <td>
 <div class="infoBox" id="tests">
-<div class="counter">27</div>
+<div class="counter">25</div>
 <p>tests</p>
 </div>
 </td>
@@ -41,7 +41,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">0.406s</div>
+<div class="counter">0.373s</div>
 <p>duration</p>
 </div>
 </td>
@@ -75,138 +75,128 @@
 </tr>
 </thead>
 <tr>
-<td class="success">allMvpGoldenVectorsDecodeAndReencodeExactly</td>
-<td class="success">0.016s</td>
+<td class="success">testConnectPayload_EmptyPayload</td>
+<td class="success">0.003s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
-<td class="success">cleanEofReturnsNull</td>
+<td class="success">testConnectPayload_RejectsBlankProfileId</td>
+<td class="success">0.001s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testConnectPayload_RejectsNonStringProfileId</td>
+<td class="success">0.001s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testConnectPayload_RejectsOverlengthProfileId</td>
+<td class="success">0.001s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testConnectPayload_RejectsPlayerIdSuppliedByClient</td>
+<td class="success">0.001s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testConnectPayload_RejectsSessionIdSuppliedByClient</td>
+<td class="success">0.001s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testConnectPayload_WithGameplayCapability</td>
+<td class="success">0.001s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testConnectPayload_WithOnlyDisplayName</td>
 <td class="success">0s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
-<td class="success">duplicateEnvelopeKeysAreRejected</td>
+<td class="success">testConnectPayload_WithOnlyProfileId</td>
 <td class="success">0.001s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
-<td class="success">duplicateNestedKeysAreRejected</td>
+<td class="success">testConnectPayload_WithProfileIdAndDisplayName</td>
+<td class="success">0.001s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testGetLeaderboard_NoLimit</td>
+<td class="success">0.001s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testGetLeaderboard_RejectsExtraFields</td>
 <td class="success">0.002s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
-<td class="success">envelopePayloadIsDefensivelyCopied</td>
+<td class="success">testGetLeaderboard_RejectsNegativeOrZeroLimit</td>
 <td class="success">0.001s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
-<td class="success">exactMaximumPayloadIsAccepted</td>
-<td class="success">0.058s</td>
+<td class="success">testGetLeaderboard_RejectsPlayerIdField</td>
+<td class="success">0.001s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
-<td class="success">excessiveDepthIsRejectedWithoutStackOverflow</td>
-<td class="success">0.010s</td>
+<td class="success">testGetLeaderboard_WithLimit</td>
+<td class="success">0.001s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
-<td class="success">fragmentedStreamReadsExactlyOneFrame</td>
-<td class="success">0.003s</td>
-<td class="success">passed</td>
-</tr>
-<tr>
-<td class="success">goldenConnectHasExactBytesAndBigEndianHeader</td>
-<td class="success">0.004s</td>
-<td class="success">passed</td>
-</tr>
-<tr>
-<td class="success">illegalLengthIsRejectedBeforeAllocation</td>
+<td class="success">testLeaderboardSnapshot_EmptyList</td>
 <td class="success">0.002s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
-<td class="success">inputIdentityFieldIsRejected</td>
-<td class="success">0.017s</td>
-<td class="success">passed</td>
-</tr>
-<tr>
-<td class="success">inputUsesTrustedIdentityAndPreservesEdgeHeldFields</td>
-<td class="success">0.001s</td>
-<td class="success">passed</td>
-</tr>
-<tr>
-<td class="success">inputValidationRejectsCoercionAndOutOfRange</td>
+<td class="success">testLeaderboardSnapshot_RoundTrip</td>
 <td class="success">0.002s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
-<td class="success">invalidUtf8IsRejected</td>
-<td class="success">0.002s</td>
-<td class="success">passed</td>
-</tr>
-<tr>
-<td class="success">legacyTypesAreNotSilentlyEnabledOnWire</td>
-<td class="success">0.002s</td>
-<td class="success">passed</td>
-</tr>
-<tr>
-<td class="success">malformedFrameCanBeFollowedByGoodFrame</td>
-<td class="success">0.003s</td>
-<td class="success">passed</td>
-</tr>
-<tr>
-<td class="success">malformedJsonIsApplicationError</td>
+<td class="success">testParseSnapshot_FromProtocolMessage</td>
 <td class="success">0.001s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
-<td class="success">multipleFramesPreserveBoundaries</td>
-<td class="success">0.018s</td>
-<td class="success">passed</td>
-</tr>
-<tr>
-<td class="success">requestIdIsRequiredAndBounded</td>
+<td class="success">testParseSnapshot_RejectsWrongMessageType</td>
 <td class="success">0.001s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
-<td class="success">requiredEnvelopeFieldsAndTypesAreStrict</td>
-<td class="success">0.253s</td>
+<td class="success">testRankingEntry_InvalidFields</td>
+<td class="success">0.270s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
-<td class="success">trailingSecondJsonIsRejected</td>
+<td class="success">testRankingEntry_RoundTrip</td>
 <td class="success">0.001s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
-<td class="success">transportLimitIncludesHeader</td>
-<td class="success">0.002s</td>
-<td class="success">passed</td>
-</tr>
-<tr>
-<td class="success">truncatedBodyIsFatal</td>
+<td class="success">testWireCodec_ConnectWithProfile</td>
 <td class="success">0.001s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
-<td class="success">truncatedHeaderIsFatal</td>
+<td class="success">testWireCodec_GetLeaderboardMessage</td>
+<td class="success">0.043s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testWireCodec_RankingSnapshotMessage</td>
 <td class="success">0.001s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
-<td class="success">unknownTypeKeepsCorrelation</td>
-<td class="success">0.001s</td>
-<td class="success">passed</td>
-</tr>
-<tr>
-<td class="success">unsupportedVersionKeepsCorrelation</td>
-<td class="success">0.001s</td>
-<td class="success">passed</td>
-</tr>
-<tr>
-<td class="success">utf8UnicodeCountsBytesNotCharacters</td>
-<td class="success">0.002s</td>
+<td class="success">testWireCodec_RankingUpdatedMessage</td>
+<td class="success">0.034s</td>
 <td class="success">passed</td>
 </tr>
 </table>
@@ -219,7 +209,7 @@
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="http://www.gradle.org">Gradle 7.3.3</a> at 22 Oct 2026, 19:02:23</p>
+<a href="http://www.gradle.org">Gradle 7.3.3</a> at 22 Oct 2026, 19:27:22</p>
 </div>
 </div>
 </body>

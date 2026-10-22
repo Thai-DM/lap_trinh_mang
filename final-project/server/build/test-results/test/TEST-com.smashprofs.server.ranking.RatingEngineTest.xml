@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.smashprofs.server.ranking.RatingEngineTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-10-22T12:22:36" hostname="LAPTOP-FVL46F8B" time="0.007">
+  <properties/>
+  <testcase name="testWinnerStatsUpdated" classname="com.smashprofs.server.ranking.RatingEngineTest" time="0.001"/>
+  <testcase name="testLoserStatsUpdated" classname="com.smashprofs.server.ranking.RatingEngineTest" time="0.001"/>
+  <testcase name="test2PlayerWinnerGetsRatingIncrease" classname="com.smashprofs.server.ranking.RatingEngineTest" time="0.0"/>
+  <testcase name="testDrawDoesNotChangeRating" classname="com.smashprofs.server.ranking.RatingEngineTest" time="0.001"/>
+  <testcase name="test4PlayerCompute" classname="com.smashprofs.server.ranking.RatingEngineTest" time="0.0"/>
+  <testcase name="test2PlayerRatingChangeSumIsZero" classname="com.smashprofs.server.ranking.RatingEngineTest" time="0.001"/>
+  <testcase name="testNoNaNOutput" classname="com.smashprofs.server.ranking.RatingEngineTest" time="0.0"/>
+  <testcase name="test3PlayerCompute" classname="com.smashprofs.server.ranking.RatingEngineTest" time="0.001"/>
+  <testcase name="testDrawIncrementsTotalMatches" classname="com.smashprofs.server.ranking.RatingEngineTest" time="0.0"/>
+  <testcase name="testInitialRecordUsedWhenMissing" classname="com.smashprofs.server.ranking.RatingEngineTest" time="0.0"/>
+  <testcase name="testRatingNotNegative" classname="com.smashprofs.server.ranking.RatingEngineTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

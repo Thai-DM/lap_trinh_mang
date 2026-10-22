@@ -58,6 +58,18 @@ final class OnlinePlayScreen implements Screen {
     private final com.badlogic.gdx.graphics.glutils.ShapeRenderer shapes=new com.badlogic.gdx.graphics.glutils.ShapeRenderer();
     private boolean ultimateWasReady=true;
     private final com.badlogic.gdx.audio.Sound readySound=Gdx.audio.newSound(Gdx.files.internal("sounds/minecraft_click.mp3"));
+    private static final class ActiveExplosion {
+        final long id;
+        final float x, y;
+        float elapsed;
+        final float duration = 0.42f;
+        ActiveExplosion(long id, float x, float y) { this.id = id; this.x = x; this.y = y; }
+    }
+    private final List<ActiveExplosion> activeExplosions = new ArrayList<>();
+    private final Set<Long> seenExplosions = new HashSet<>();
+    private final Texture explosionTexture = new Texture("explosions/explosion-6.png");
+    private final TextureRegion[] explosionFrames = TextureRegion.split(explosionTexture, explosionTexture.getHeight(), explosionTexture.getHeight())[0];
+    private final com.badlogic.gdx.audio.Sound stompSound = Gdx.audio.newSound(Gdx.files.internal("sounds/stomp.wav"));
 
     OnlinePlayScreen(Game game, ClientMatchSession session) {
         this.game = game; this.session = session;
@@ -104,7 +116,7 @@ final class OnlinePlayScreen implements Screen {
                 var command=UnarmedControls.sample(controls,Gdx.input::isKeyPressed,Gdx.input::isKeyJustPressed);
                 int abilityKey=com.smashprofs.game.Helper.KeyBindingConfig.getInstance().getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.ABILITY);
                 boolean ability=Gdx.input.isKeyJustPressed(abilityKey) || Gdx.input.isKeyJustPressed(Input.Keys.F) || Gdx.input.isKeyJustPressed(Input.Keys.P);
-                game.getLobbyClient().recordFrameInput(command.horizontal(),command.jumpPressed(),false,command.lightPressed(),false,ability,command.interactPressed(),command.dropPressed(),command.fighter());
+                game.getLobbyClient().recordFrameInput(command.horizontal(),command.jumpPressed(),false,command.lightPressed(),command.lightHeld(),ability,command.interactPressed(),command.dropPressed(),command.fighter());
             } else {
             float axis = (Gdx.input.isKeyPressed(Input.Keys.D) ? 1 : 0) - (Gdx.input.isKeyPressed(Input.Keys.A) ? 1 : 0);
             game.getLobbyClient().recordFrameInput(axis, Gdx.input.isKeyJustPressed(Input.Keys.W),
@@ -211,15 +223,6 @@ final class OnlinePlayScreen implements Screen {
                 }
             }
             shapes.end();
-            shapes.begin(com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType.Line);
-            for(var shot:gameplay.shots()) {
-                if(shot.type().equals("EXPLOSION")) {
-                    shapes.setColor(Color.ORANGE);shapes.circle(shot.x(),shot.y(),.65f,24);
-                    shapes.setColor(Color.GOLD);shapes.circle(shot.x(),shot.y(),.32f,16);
-                    for(int i=0;i<8;i++) { float angle=i*(float)Math.PI/4;shapes.line(shot.x()+.38f*(float)Math.cos(angle),shot.y()+.38f*(float)Math.sin(angle),shot.x()+.85f*(float)Math.cos(angle),shot.y()+.85f*(float)Math.sin(angle)); }
-                }
-            }
-            shapes.end();
         }
         batch.setProjectionMatrix(camera.combined); batch.begin();
         for (var view : renderedPlayers) {
@@ -230,7 +233,9 @@ final class OnlinePlayScreen implements Screen {
             sprite.setColor(p.dead() ? new Color(0.5f, 0.5f, 0.5f, 0.4f) : p.blocking() ? Color.CYAN : Color.WHITE);
             sprite.setRotation(0);
             if(fighter!=null) {
-                if(fighter.action().equals("DODGE")) { sprite.setColor(.55f,.95f,1,fighter.dodgeTicks()<=20 && fighter.dodgeTicks()>8?.35f:.8f); }
+                if(fighter.action().equals("DODGE") || fighter.detail().state().contains("DASH") || fighter.detail().dashTicks()>0) {
+                    sprite.setColor(.55f,.95f,1,fighter.dodgeTicks()<=20 && fighter.dodgeTicks()>8?.35f:.75f);
+                }
                 if(fighter.action().equals("TUMBLE")) { sprite.setRotation(animationTime*720);sprite.setColor(Color.SALMON); }
                 if(flashes.getOrDefault(p.playerId(),0f)>animationTime) { sprite.setColor(Color.WHITE); }
                 if(fighter.platformTicks()>0) { sprite.setColor(1,1,.5f,((int)(animationTime*12)%2==0)?.35f:1); }
@@ -243,7 +248,21 @@ final class OnlinePlayScreen implements Screen {
                     if(progress.wallState().equals("WALL_JUMPING")) { sprite.setColor(Color.YELLOW); }
                 }
             }
-            sprite.setPosition(p.x() - sprite.getWidth() / 2, p.y() - sprite.getHeight() / 4); sprite.draw(batch);
+            sprite.setPosition(p.x() - sprite.getWidth() / 2, p.y() - sprite.getHeight() / 4);
+            if(fighter!=null && (fighter.action().equals("DODGE") || fighter.detail().state().contains("DASH") || fighter.detail().dashTicks()>0)) {
+                float trailDir=p.facingRight()?1f:-1f;
+                if(fighter.detail().dashVelocity()!=0) { trailDir=Math.signum(fighter.detail().dashVelocity()); }
+                float origX=sprite.getX(),origY=sprite.getY();
+                var origColor=new Color(sprite.getColor());
+                for(int trail=2;trail>=1;trail--) {
+                    sprite.setPosition(origX-trailDir*trail*0.08f,origY);
+                    sprite.setColor(0.35f,0.85f,1f,0.22f/trail);
+                    sprite.draw(batch);
+                }
+                sprite.setPosition(origX,origY);
+                sprite.setColor(origColor);
+            }
+            sprite.draw(batch);
             if(gameplay!=null) {
                 var equipment=gameplay.player(p.playerId());
                 if(!equipment.weapon().equals("NONE")) { combatIcons.draw(batch,equipment.weapon(),p.x()+(p.facingRight()?.08f:-.08f),p.y()+.045f,.23f,.16f,0,!p.facingRight()); }
@@ -254,18 +273,40 @@ final class OnlinePlayScreen implements Screen {
         if(gameplay!=null) {
             for(var item:gameplay.items()) { combatIcons.draw(batch,item.type(),item.x(),item.y()+.02f*(float)Math.sin(animationTime*3+item.id()),.22f,.22f,0,false); }
             for(var shot:gameplay.shots()) {
+                if(shot.type().equals("EXPLOSION") && seenExplosions.add(shot.id())) {
+                    activeExplosions.add(new ActiveExplosion(shot.id(), shot.x(), shot.y()));
+                    if(Game.soundEffects) { stompSound.play(0.45f); }
+                }
                 float angle=(float)Math.toDegrees(Math.atan2(shot.vy(),shot.vx()));
                 switch(shot.type()) {
                     case "SHOTGUN"->combatIcons.draw(batch,"PELLET",shot.x(),shot.y(),.09f,.055f,angle,false);
                     case "BAZOOKA"->combatIcons.draw(batch,"MISSILE",shot.x(),shot.y(),.20f,.13f,angle,false);
                     case "GRENADE"->combatIcons.draw(batch,"GRENADE",shot.x(),shot.y(),.12f,.12f,animationTime*150,false);
                     case "ORBIT"->combatIcons.draw(batch,"ORBIT",shot.x(),shot.y(),.15f,.15f,animationTime*300,false);
-                    case "THROWN"->combatIcons.draw(batch,"SHOTGUN",shot.x(),shot.y(),.23f,.16f,animationTime*600,false);
-                    default->{ }
+                    case "THROWN"->combatIcons.draw(batch,"SHOTGUN",shot.x(),shot.y(),.23f,.16f,animationTime*720,false);
+                    default->{
+                        if(shot.type().startsWith("THROWN_")) {
+                            String weapon=shot.type().substring(7);
+                            combatIcons.draw(batch,weapon,shot.x(),shot.y(),.23f,.16f,animationTime*720,false);
+                        }
+                    }
                 }
             }
         }
         if(gameplay!=null && gameplay.boss()!=null && arena.boss!=null) { arena.boss.draw(batch,gameplay.boss(),authoritative.serverTick()); }
+        for(var it=activeExplosions.iterator();it.hasNext();) {
+            var exp=it.next();
+            exp.elapsed+=delta;
+            if(exp.elapsed>=exp.duration) { it.remove(); }
+        }
+        for(var exp:activeExplosions) {
+            float progress=Math.min(1f,exp.elapsed/exp.duration);
+            int frame=Math.min(explosionFrames.length-1,(int)(progress*explosionFrames.length));
+            float size=0.85f*2.0f*(0.65f+0.45f*(float)Math.sin(progress*Math.PI*0.75f));
+            batch.setColor(1f,1f,1f,Math.max(0f,1f-progress*0.75f));
+            batch.draw(explosionFrames[frame],exp.x-size/2f,exp.y-size/2f,size,size);
+        }
+        batch.setColor(Color.WHITE);
         projectiles.keySet().retainAll(presentation.getProjectiles().keySet());
         for (var p : presentation.getProjectiles().values()) {
             var sprite = projectiles.computeIfAbsent(p.projectileId(), id -> assets.projectile(p.projectileType()));
@@ -276,6 +317,121 @@ final class OnlinePlayScreen implements Screen {
             sprite.draw(batch);
         }
         batch.end();
+        if(!activeExplosions.isEmpty()) {
+            Gdx.gl.glEnable(com.badlogic.gdx.graphics.GL20.GL_BLEND);
+            Gdx.gl.glBlendFunc(com.badlogic.gdx.graphics.GL20.GL_SRC_ALPHA, com.badlogic.gdx.graphics.GL20.GL_ONE_MINUS_SRC_ALPHA);
+            shapes.setProjectionMatrix(camera.combined);
+            shapes.begin(com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType.Filled);
+            for(var exp:activeExplosions) {
+                float progress=Math.min(1f,exp.elapsed/exp.duration);
+                float radius=0.85f*(float)Math.sin(progress*Math.PI*0.5f);
+                if(progress<0.35f) {
+                    float coreAlpha=(0.35f-progress)/0.35f*0.75f;
+                    shapes.setColor(1f,0.95f,0.5f,coreAlpha);
+                    shapes.circle(exp.x,exp.y,radius*0.6f,24);
+                }
+                float fireAlpha=(1f-progress)*0.40f;
+                shapes.setColor(1f,0.5f+0.3f*(1f-progress),0.1f,fireAlpha);
+                shapes.circle(exp.x,exp.y,radius*0.85f,28);
+                float sparkAlpha=(1f-progress);
+                shapes.setColor(1f,0.85f,0.2f,sparkAlpha);
+                for(int s=0;s<8;s++) {
+                    double angle=(s*Math.PI/4.0)+(exp.id*0.35);
+                    float dist=radius*(1.05f+0.12f*(float)Math.sin(s*1.5));
+                    shapes.circle(exp.x+dist*(float)Math.cos(angle),exp.y+dist*(float)Math.sin(angle),0.02f*(1f-progress),6);
+                }
+            }
+            shapes.end();
+        }
+        if(gameplay!=null) {
+            boolean hasMelee = false;
+            for(var shot:gameplay.shots()) {
+                if(shot.type().equals("SWORD_SLASH") || shot.type().equals("WARHAMMER_SWING")
+                        || shot.type().equals("DAGGER_SLASH") || shot.type().equals("SPEAR_THRUST")) {
+                    hasMelee = true; break;
+                }
+            }
+            if(hasMelee) {
+                Gdx.gl.glEnable(com.badlogic.gdx.graphics.GL20.GL_BLEND);
+                Gdx.gl.glBlendFunc(com.badlogic.gdx.graphics.GL20.GL_SRC_ALPHA, com.badlogic.gdx.graphics.GL20.GL_ONE_MINUS_SRC_ALPHA);
+                shapes.setProjectionMatrix(camera.combined);
+                shapes.begin(com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType.Filled);
+                for(var shot:gameplay.shots()) {
+                    float baseAngle = (float)Math.atan2(shot.vy(), shot.vx());
+                    float ux = shot.vx(), uy = shot.vy();
+                    double len = Math.hypot(ux, uy);
+                    if(len > 0) { ux /= (float)len; uy /= (float)len; }
+                    float sx = shot.x(), sy = shot.y();
+                    switch(shot.type()) {
+                        case "SWORD_SLASH"->{
+                            float radius = 0.50f;
+                            int steps = 14;
+                            for(int s=0; s<steps; s++) {
+                                float t = (float)s / steps;
+                                float ang = baseAngle - 0.75f + t * 1.50f;
+                                float r1 = radius * 0.72f;
+                                float r2 = radius * (1.0f + 0.08f * (float)Math.sin(t * Math.PI));
+                                float alpha = (float)Math.sin(t * Math.PI) * 0.85f;
+                                shapes.setColor(0.0f, 0.85f, 1.0f, alpha * 0.6f);
+                                shapes.rectLine(sx + r1*(float)Math.cos(ang), sy + r1*(float)Math.sin(ang),
+                                                sx + r2*(float)Math.cos(ang), sy + r2*(float)Math.sin(ang), 0.045f);
+                                shapes.setColor(1.0f, 1.0f, 1.0f, alpha);
+                                shapes.rectLine(sx + (r1+r2)*0.5f*(float)Math.cos(ang), sy + (r1+r2)*0.5f*(float)Math.sin(ang),
+                                                sx + r2*(float)Math.cos(ang), sy + r2*(float)Math.sin(ang), 0.020f);
+                            }
+                        }
+                        case "WARHAMMER_SWING"->{
+                            float radius = 0.52f;
+                            int steps = 16;
+                            for(int s=0; s<steps; s++) {
+                                float t = (float)s / steps;
+                                float ang = baseAngle - 0.90f + t * 1.80f;
+                                float r1 = radius * 0.65f;
+                                float r2 = radius * (1.05f + 0.12f * (float)Math.sin(t * Math.PI));
+                                float alpha = (float)Math.sin(t * Math.PI) * 0.90f;
+                                shapes.setColor(1.0f, 0.55f, 0.0f, alpha * 0.7f);
+                                shapes.rectLine(sx + r1*(float)Math.cos(ang), sy + r1*(float)Math.sin(ang),
+                                                sx + r2*(float)Math.cos(ang), sy + r2*(float)Math.sin(ang), 0.065f);
+                                shapes.setColor(1.0f, 0.88f, 0.2f, alpha);
+                                shapes.rectLine(sx + (r1+r2)*0.5f*(float)Math.cos(ang), sy + (r1+r2)*0.5f*(float)Math.sin(ang),
+                                                sx + r2*(float)Math.cos(ang), sy + r2*(float)Math.sin(ang), 0.030f);
+                            }
+                            shapes.setColor(1f, 0.9f, 0.4f, 0.85f);
+                            shapes.circle(sx + ux * radius, sy + uy * radius, 0.07f, 12);
+                            shapes.setColor(1f, 0.4f, 0.1f, 0.65f);
+                            shapes.circle(sx + ux * radius, sy + uy * radius, 0.12f, 14);
+                        }
+                        case "DAGGER_SLASH"->{
+                            float r = 0.38f;
+                            for(int d=-1; d<=1; d+=2) {
+                                float ang1 = baseAngle + d * 0.55f;
+                                float ang2 = baseAngle - d * 0.25f;
+                                shapes.setColor(0.88f, 0.10f, 0.75f, 0.70f);
+                                shapes.rectLine(sx + r*0.3f*(float)Math.cos(ang1), sy + r*0.3f*(float)Math.sin(ang1),
+                                                sx + r*(float)Math.cos(ang2), sy + r*(float)Math.sin(ang2), 0.035f);
+                                shapes.setColor(1.0f, 0.85f, 1.0f, 0.90f);
+                                shapes.rectLine(sx + r*0.4f*(float)Math.cos(ang1), sy + r*0.4f*(float)Math.sin(ang1),
+                                                sx + r*0.95f*(float)Math.cos(ang2), sy + r*0.95f*(float)Math.sin(ang2), 0.015f);
+                            }
+                        }
+                        case "SPEAR_THRUST"->{
+                            float lenDist = 0.68f;
+                            float tipX = sx + ux * lenDist, tipY = sy + uy * lenDist;
+                            shapes.setColor(1.0f, 0.85f, 0.20f, 0.70f);
+                            shapes.rectLine(sx + ux * 0.10f, sy + uy * 0.10f, tipX, tipY, 0.045f);
+                            shapes.setColor(1.0f, 1.0f, 1.0f, 0.95f);
+                            shapes.rectLine(sx + ux * 0.15f, sy + uy * 0.15f, tipX, tipY, 0.018f);
+                            shapes.setColor(1.0f, 0.95f, 0.5f, 0.90f);
+                            shapes.circle(tipX, tipY, 0.045f, 8);
+                            shapes.setColor(1.0f, 1.0f, 1.0f, 1.0f);
+                            shapes.circle(tipX, tipY, 0.022f, 6);
+                        }
+                        default->{ }
+                    }
+                }
+                shapes.end();
+            }
+        }
         if(debugCombat && gameplay!=null && gameplay.fighter()!=null) { drawCombatDebug(gameplay); }
         if(!bursts.isEmpty()) {
             shapes.setProjectionMatrix(camera.combined);shapes.begin(com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType.Line);
@@ -389,7 +545,7 @@ final class OnlinePlayScreen implements Screen {
         if (disposed) { return; } disposed = true;
         presentation.close(); players.clear(); projectiles.clear();
         if(prediction!=null) { prediction.close(); }
-        hud.close();combatIcons.close();tiles.dispose();arena.close();identityFont.dispose();shapes.dispose();readySound.dispose();hitSound.dispose();koSound.dispose(); batch.dispose();
+        hud.close();combatIcons.close();tiles.dispose();arena.close();identityFont.dispose();shapes.dispose();readySound.dispose();hitSound.dispose();koSound.dispose();explosionTexture.dispose();stompSound.dispose(); batch.dispose();
         // LobbyClient/Game own the session, listener and TCP connection; this screen never closes them.
     }
 }

@@ -39,7 +39,7 @@ public class GameplayClusterIntegrationTest {
                     assertFalse(peer.updateSettings(MatchRules.DEFAULT));
                     host.startAsync();until(()->host.getSnapshot().canReady() && host.getSettings()!=null);
                     assertEquals(host.getSnapshot().localPlayerId().value(),host.getSettings().hostId());
-                    assertTrue(host.updateSettings(new MatchRules(3,90,2,MatchRules.DropRate.HIGH,true,fighter,boss)));
+                    assertTrue(host.updateSettings(new MatchRules(3,90,2,MatchRules.DropRate.HIGH,true,fighter,false,boss)));
                     until(()->host.getSnapshot().canReady() && peer.getSettings().rules().lives()==2);
                     host.ready("Viktor");peer.ready("Luca");
                     if(fighter) {

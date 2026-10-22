@@ -13,7 +13,9 @@ public class GameplayClientModelTest {
         var encoded=GameplayProtocol.snapshot(state());assertEquals(-1,GameplayProtocol.snapshot(encoded).player("p0").ammo());
         var player=(com.fasterxml.jackson.databind.node.ObjectNode)encoded.path("players").get(0);player.put("ammo",5);
         assertEquals(5,GameplayProtocol.snapshot(encoded).player("p0").ammo());
-        player.put("ammo",7);assertThrows(IllegalArgumentException.class,()->GameplayProtocol.snapshot(encoded));
+        player.put("weapon","DUAL_DAGGERS");player.put("ammo",8);
+        assertEquals(8,GameplayProtocol.snapshot(encoded).player("p0").ammo());
+        player.put("ammo",9);assertThrows(IllegalArgumentException.class,()->GameplayProtocol.snapshot(encoded));
         player.put("ammo",-1);assertThrows(IllegalArgumentException.class,()->GameplayProtocol.snapshot(encoded));
     }
     private GameplaySnapshot state() {

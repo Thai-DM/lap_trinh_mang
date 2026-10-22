@@ -92,6 +92,32 @@ public class BossModeTest {
             assertTrue(character,game.boss.hp<game.boss.maxHp);assertTrue(game.progress.get(a).nextUltimate>0);
         }
     }
+    @Test public void meleeWeaponsHitBossOnceWithoutStunningTeamMatesOrBreakingTheirShield() {
+        game.bodies.respawn(a,game.boss.x-.40f,game.boss.y+.15f);
+        game.bodies.respawn(b,game.boss.x-.20f,game.boss.y+.15f);
+        game.progress.get(b).shield=true;
+        for(String weapon:List.of("SWORD","WARHAMMER","DUAL_DAGGERS","SPEAR")) {
+            game.items.close();game.boss.hp=game.boss.maxHp;
+            var p=game.progress.get(a);p.weapon=weapon;p.ammo=1;p.nextShot=0;
+            assertTrue(game.items.attack(a,1,0,0));game.items.update(1);
+            float hp=game.boss.hp;assertTrue(weapon,hp<game.boss.maxHp);
+            for(int i=2;i<=100;i++) { game.items.update(i); }
+            assertEquals(weapon,hp,game.boss.hp,0);
+            assertEquals("NONE",p.weapon);assertEquals(0,p.ammo);
+            assertEquals(100,game.state.getPlayer(b).getHp(),0);
+            assertTrue(game.progress.get(b).shield);assertEquals(0,game.fighter.fighters.get(b).hitstun);
+        }
+    }
+    @Test public void bossAndKeepWeaponRulesRoundTripIndependently() {
+        for(boolean boss:List.of(false,true)) { for(boolean keep:List.of(false,true)) {
+            var rules=new MatchRules(4,180,3,MatchRules.DropRate.HIGH,true,true,keep,boss);
+            assertEquals(rules,GameplayProtocol.rules(GameplayProtocol.rules(rules)));
+            assertEquals(boss,rules.boss());assertEquals(keep,rules.keepWeaponOnThrow());
+        } }
+        var oldConstructor=new MatchRules(2,0,3,MatchRules.DropRate.NONE,true,true,true);
+        assertTrue(oldConstructor.keepWeaponOnThrow());assertFalse(oldConstructor.boss());
+        assertThrows(IllegalArgumentException.class,()->GameplayProtocol.rules((com.fasterxml.jackson.databind.JsonNode)null));
+    }
     @Test public void cleaveHasOneHitPerTargetAndRespectsShield() {
         for(var p:game.progress.values()) { p.invulnerableUntil=0; }
         game.bodies.respawn(a,game.boss.x+.4f,game.boss.y+.15f);game.progress.get(a).shield=true;

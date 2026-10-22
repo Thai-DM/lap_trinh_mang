@@ -47,11 +47,11 @@ public class FighterEngineTest {
         floor();
         runtime.submitInput(new PlayerInput(a,sequence++,0,1,false,false,false,false,false,false,false,
                 new FighterInput(false,false,false,false,false,false,false,true)));runtime.tick();
-        float dash=game.bodies.getVelocity(a).xMetersPerSecond();assertTrue(dash>2.4f);assertTrue(dash<=2.601f);
+        float dash=game.bodies.getVelocity(a).xMetersPerSecond();assertTrue(dash>3.5f);assertTrue(dash<=3.85f);
         runtime.submitInput(new PlayerInput(a,sequence++,0,1,false,false,false,false,false,false,false,
                 new FighterInput(false,false,true,false,false,true,false,false)));runtime.tick();runtime.tick();runtime.tick();
         var velocity=game.bodies.getVelocity(a);
-        assertEquals(2.6,Math.hypot(velocity.xMetersPerSecond(),velocity.yMetersPerSecond()),.06);
+        assertEquals(3.8,Math.hypot(velocity.xMetersPerSecond(),velocity.yMetersPerSecond()),.06);
     }
     @Test public void dashCoversOneShortBurstAndDoesNotRestartAfterItsCooldownWithoutANewPress() {
         floor();game.bodies.respawn(a,5.2f,.23f);game.bodies.respawn(b,8,.23f);
@@ -61,17 +61,17 @@ public class FighterEngineTest {
         runtime.submitInput(press);runtime.tick();long end=game.fighter.fighters.get(a).dashUntil;
         runtime.submitInput(new PlayerInput(a,sequence++,0,0,false,false,false,false,false));
         for(int i=1;i<FighterMovement.DASH_TICKS;i++) { runtime.tick(); }
-        assertEquals(.26f,game.bodies.getPosition(a).xMeters()-start,.005f);assertEquals(0,state().dodgeTicks());
-        runtime.tick();assertEquals(0,state().detail().dashTicks());assertTrue(game.bodies.getVelocity(a).xMetersPerSecond()<1.5f);
+        assertEquals(.76f,game.bodies.getPosition(a).xMeters()-start,.02f);assertEquals(0,state().dodgeTicks());
+        runtime.tick();assertEquals(0,state().detail().dashTicks());assertTrue(game.bodies.getVelocity(a).xMetersPerSecond()<2.2f);
         assertEquals(InputQueue.OfferResult.DUPLICATE_OR_STALE,runtime.submitInput(press));
         for(int i=0;i<40;i++) { runtime.tick();assertEquals(end,game.fighter.fighters.get(a).dashUntil); }
-        assertTrue(game.bodies.getPosition(a).xMeters()-start<.32f);
+        assertTrue(game.bodies.getPosition(a).xMeters()-start<.85f);
     }
     @Test public void neutralGroundDodgeSlidesOnlyOnceWhileRetainingItsProtection() {
         floor();float start=game.bodies.getPosition(a).xMeters();frame(0,false,false,false,false,false,true);
         for(int i=1;i<FighterMovement.DASH_TICKS;i++) { runtime.tick(); }
-        float stop=game.bodies.getPosition(a).xMeters();assertEquals(.26f,stop-start,.005f);
-        for(int i=0;i<10;i++) { runtime.tick();assertEquals(stop,game.bodies.getPosition(a).xMeters(),.0001f); }
+        float stop=game.bodies.getPosition(a).xMeters();assertEquals(.76f,stop-start,.02f);
+        for(int i=0;i<4;i++) { runtime.tick();assertEquals(stop,game.bodies.getPosition(a).xMeters(),.0001f); }
         assertTrue(state().dodgeTicks()>0);assertFalse(game.fighter.hit(b,a,"NLIGHT",1,.8f,.2f,1,0,false));
         assertEquals(0,game.bodies.getVelocity(a).xMetersPerSecond(),0);
     }
@@ -80,6 +80,35 @@ public class FighterEngineTest {
                 new FighterInput(false,false,false,false,false,true,false,true)));runtime.tick();
         assertEquals("DASH",state().detail().state());assertEquals(FighterMovement.DASH_TICKS,state().detail().dashTicks());
         assertEquals(0,state().dodgeTicks());assertEquals(0,state().dodgeCooldownTicks());
+    }
+    @Test public void dashWithDirectionAOrDUpdatesFacingAndDashesCorrectly() {
+        floor();
+        runtime.submitInput(new PlayerInput(a,sequence++,0,-1,false,false,false,false,false,false,false,
+                new FighterInput(false,false,false,false,false,false,false,true)));runtime.tick();
+        assertFalse(game.state.getPlayer(a).isFacingRight());
+        assertEquals(-FighterMovement.DASH_SPEED,game.bodies.getVelocity(a).xMetersPerSecond(),.04f);
+        game.fighter.fighters.get(a).nextDash=0;
+        runtime.submitInput(new PlayerInput(a,sequence++,0,1,false,false,false,false,false,false,false,
+                new FighterInput(false,false,false,false,false,false,false,true)));runtime.tick();
+        assertTrue(game.state.getPlayer(a).isFacingRight());
+        assertEquals(FighterMovement.DASH_SPEED,game.bodies.getVelocity(a).xMetersPerSecond(),.04f);
+    }
+    @Test public void airborneDashInFacingDirectionDoesNotBlinkInPlace() {
+        game.bodies.respawn(a,6,3);runtime.tick();
+        assertTrue(game.state.getPlayer(a).isFacingRight());
+        frame(0,false,false,false,false,false,true);
+        assertEquals("AIR_SPOT",state().detail().dodgeKind());
+        assertTrue(game.bodies.getVelocity(a).xMetersPerSecond()>1.5f);
+    }
+    @Test public void airborneDashCoversSameDistanceAsGroundDash() {
+        game.bodies.respawn(a,6,3);game.fighter.physics.velocity(a,0,0);runtime.tick();
+        float startX = game.bodies.getPosition(a).xMeters();
+        frame(0,false,false,false,false,false,true);
+        for(int i=1;i<FighterMovement.AIR_DODGE_TICKS;i++) { runtime.tick(); }
+        float distance = game.bodies.getPosition(a).xMeters() - startX;
+        assertEquals(.76f, distance, .04f);
+        runtime.tick();
+        assertEquals(0, game.bodies.getVelocity(a).xMetersPerSecond(), 0.001f);
     }
     @Test public void lavaReboundsAtTheVisibleSurfaceWithoutLosingStocks() {
         for(float x:new float[]{1.2f,2.5f,4.9f,6.65f,8.5f,10.5f,11.3f}) {

@@ -18,7 +18,7 @@ Trong màn hình online, người tạo phòng chọn **Hợp tác đánh Boss**
 
 Phòng hỗ trợ 2–4 người thật. Boss do server điều khiển, không chiếm slot người chơi. Thời gian mặc định 180 giây, mỗi người 3 mạng; chủ phòng có thể đổi thời gian/số mạng và vật phẩm trong sảnh. Boss luôn có giới hạn thời gian, không dùng lựa chọn sinh tồn vô hạn.
 
-Mọi người khởi đầu và hồi sinh với Laser 6 viên. Hết đạn tự nạp sau 1,5 giây; giữ súng, không tự chuyển sang đấm. Có thể nhặt, đổi hoặc ném vũ khí khác. Nhấn H để xem phím hiện tại trong game. Đầu trận được bảo vệ 2 giây; dung nham và hồi sinh tiếp tục dùng luật HP của Fighter.
+Mọi người khởi đầu và hồi sinh với Laser 6 viên. Hết đạn tự nạp sau 1,5 giây; giữ súng, không tự chuyển sang đấm. Có thể nhặt, đổi hoặc ném vũ khí khác, gồm bốn vũ khí cận chiến mới từ nhánh `dev`: kiếm, búa, song dao và thương. Vũ khí cận chiến dùng số lượt đánh hữu hạn, không tự nạp như súng. Chủ phòng có thể chọn giữ hoặc mất vũ khí khi ném; tùy chọn này độc lập với chế độ Boss. Nhấn H để xem phím hiện tại trong game. Đầu trận được bảo vệ 2 giây; dung nham và hồi sinh tiếp tục dùng luật HP của Fighter.
 
 Phím mặc định WASD: **W nhảy, I ngắm lên, A/D di chuyển, S ngắm xuống/rơi nhanh, J bắn, K đánh mạnh, L né/lướt**. Cấu hình WASD cũ đang dùng Space nhảy/W ngắm lên được chuyển một lần sang W nhảy/I ngắm lên khi mở client mới; các phím tùy chỉnh khác được giữ.
 
@@ -33,7 +33,7 @@ Boss Demon Slime sử dụng bộ miễn phí của **chierit**, với animation
 | Quét/chém gần | Vùng đỏ phía trước báo đòn. Khi đòn có hiệu lực, gây 22 HP; một người chỉ bị tính một hit trong lần ra đòn. |
 | Đạn lửa | Boss nhắm vị trí mục tiêu lúc phóng, gây 16 HP khi trúng; có thể né. Đạn không tự đổi hướng để đuổi người chơi. |
 | Gọi nổ | Đánh dấu vị trí người chơi bằng vùng cảnh báo. Sau 1 giây phát nổ, gây 24 HP; rời vùng hoặc nhảy khỏi vùng đánh để tránh. |
-| Nhận sát thương | Tay không, các loại súng, vũ khí ném và kỹ năng của cả năm nhân vật đều có thể đánh boss. Boss không bị khóa trong hitstun bởi từng viên đạn. |
+| Nhận sát thương | Tay không, các loại súng, bốn vũ khí cận chiến, vũ khí ném và kỹ năng của cả năm nhân vật đều có thể đánh boss. Boss không bị khóa trong hitstun bởi từng viên đạn. |
 | Địa hình | Boss đi trên bệ chính đã kiểm tra từ map hiện có; các chiêu tầm xa gây áp lực lên người chơi ở các bệ khác. |
 
 Đòn cận chiến và đạn lửa có thời gian báo trước 0,8 giây ở pha 1, 0,6 giây ở pha 2. Vùng gọi nổ giữ báo trước 1 giây. Khiên hấp thụ một đòn; né và bảo vệ sau hồi sinh được kiểm tra trên server. Người chơi không gây sát thương lên đồng đội.
@@ -75,6 +75,11 @@ Chạy lại kiểm tra đồ họa sau khi có desktop JAR:
 ```
 
 Kết quả đã ghi nhận: **798 kiểm tra hồi quy đạt**, sau đó **17 kiểm tra tập trung cho Boss đạt** sau chỉnh giao diện/hiệu ứng. Kiểm tra đồ họa native đạt cho 2 người ở 1280×720 và 4 người ở 960×540, với 16 ảnh chụp.
+
+Sau khi gộp cập nhật `dev` (`638edb7`), **813 kiểm tra hồi quy đạt**. Bộ test bổ sung kiểm tra bốn vũ khí cận chiến đánh Boss đúng một lần mỗi đòn, không làm choáng/phá khiên đồng đội, và kiểm tra codec giữ độc lập hai tùy chọn Boss/giữ vũ khí khi ném. Các test vũ khí mới đo choáng tại tick va chạm và đặt lại mục tiêu giữa các đòn để không nhầm knockback với lỗi đăng ký hit.
+
+- [Hồi quy bản gộp: 813 kiểm tra](runs/20261022-150432-790-final-gameplay-regression/verification.json).
+- [Build client/server của bản gộp](runs/20261022-boss-dev-merged-build/verification.json).
 
 - [Hồi quy 798 kiểm tra](runs/20261022-142939-937-final-gameplay-regression/verification.json).
 - [Manifest đồ họa và cấu hình chạy](runs/20261022-boss-native/verification.json).

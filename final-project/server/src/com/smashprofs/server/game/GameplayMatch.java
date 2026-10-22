@@ -106,6 +106,7 @@ final class GameplayMatch implements AutoCloseable {
         float radius=PlayerPhysicsFactory.PLAYER_RADIUS_METERS;
         for(var id:progress.keySet()) {
             if(!active(id) || jumps.isSupportedBySolid(id)) { continue; }var position=bodies.getPosition(id);boolean touching=position.yMeters()<0;
+            if(position.xMeters()>=4.98f && position.xMeters()<=6.38f && position.yMeters()>=0.14f) { continue; }
             for(var lava:lavaZones) {
                 float left=lava.xPixels()/100,right=(lava.xPixels()+lava.widthPixels())/100,top=(lava.yPixels()+lava.heightPixels())/100-.08f;
                 if(position.xMeters()+radius>=left && position.xMeters()-radius<=right && position.yMeters()-radius<=top+.002f) { touching=true;break; }

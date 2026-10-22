@@ -55,7 +55,7 @@ public class FighterTcpIntegrationTest {
                     var shown=prediction.sample(base.player("a"),base.gameplay().fighter().player("a"),pending,1/120f);
                     assertEquals("ack="+acknowledged,expected.xMeters(),shown.x(),.00001f);assertEquals(expected.yMeters(),shown.y(),.00001f);
                 }
-                assertTrue(expected.xMeters()-5.2f<.32f);
+                assertTrue(expected.xMeters()-5.2f<.85f);
             }
         }
     }

@@ -17,7 +17,7 @@ public record FighterSnapshot(List<Player> players) {
             if(playerId==null || playerId.isBlank() || !Double.isFinite(damagePercent) || damagePercent<0
                     || !Set.of("IDLE","ATTACK","CHARGE","HITSTUN","TUMBLE","DODGE","RESPAWN_PLATFORM","KO").contains(action)
                     || !Set.of("NONE","NLIGHT","NLIGHT2","NLIGHT3","SLIGHT","DLIGHT","NAIR","SAIR","DAIR","NHEAVY","SHEAVY","DHEAVY","NSIG","SSIG","DSIG","RECOVERY","GROUND_POUND").contains(attack)
-                    || attackId<0 || attackFrame<0 || attackFrame>180 || hitstunTicks<0 || hitstunTicks>45
+                    || attackId<0 || attackFrame<0 || attackFrame>180 || hitstunTicks<0 || hitstunTicks>60
                     || dodgeTicks<0 || dodgeTicks>30 || dodgeCooldownTicks<0 || dodgeCooldownTicks>UnarmedRules.AIR_COOLDOWN
                     || platformTicks<0 || platformTicks>180 || airJumps<0 || airJumps>UnarmedRules.AIR_JUMPS || wallJumps<0 || wallJumps>3 || acknowledgedSequence<0 || acknowledgedClientTick<0 || detail==null) { throw new IllegalArgumentException("Invalid fighter state"); }
         }

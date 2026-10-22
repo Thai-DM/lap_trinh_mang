@@ -77,7 +77,7 @@ public class OnlineRoomScreen implements Screen {
 
     // Game Rules Modal
     private final Table settingsModal;
-    private final SelectBox<String> maxSelect, timeSelect, livesSelect, dropsSelect;
+    private final SelectBox<String> maxSelect, timeSelect, livesSelect, dropsSelect, throwSelect;
     private final TextButton applyRulesBtn, resetRulesBtn;
     private final Label ownershipLabel, draftNoticeLabel;
     private long displayedRules = -1;
@@ -257,6 +257,7 @@ public class OnlineRoomScreen implements Screen {
         timeSelect = lobby.getSettings()!=null && lobby.getSettings().rules().boss()?select("60 giây", "90 giây", "120 giây", "180 giây", "300 giây"):select("Không giới hạn", "60 giây", "90 giây", "120 giây", "180 giây", "300 giây");
         livesSelect = select("1 mạng", "2 mạng", "3 mạng", "5 mạng");
         dropsSelect = select("Tắt", "Thấp · 30s/lần", "Vừa · 15s/lần", "Cao · 8s/lần");
+        throwSelect = select("Ném mất vũ khí (Mặc định)", "Ném giữ lại vũ khí");
 
         applyRulesBtn = ui.comicButton("LƯU LUẬT PHÒNG", "comic-primary", () -> lobby.updateSettings(draft()));
         resetRulesBtn = ui.comicButton("HOÀN TÁC", "comic-white", () -> {
@@ -308,6 +309,11 @@ public class OnlineRoomScreen implements Screen {
         dialog.add(dropsSelect).width(245).height(42).padTop(4).padLeft(16);
         dialog.row();
 
+        dialog.add(ui.small("Cơ chế ném vũ khí", Color.valueOf("B8D8FF"))).colspan(2).left().padTop(10);
+        dialog.row();
+        dialog.add(throwSelect).colspan(2).growX().height(42).padTop(4);
+        dialog.row();
+
         // Ownership info & draftNotice
         dialog.add(ownershipLabel).colspan(2).padTop(14).center();
         dialog.row();
@@ -336,7 +342,8 @@ public class OnlineRoomScreen implements Screen {
             TIMES[timeSelect.getSelectedIndex()+(lobby.getSettings()!=null && lobby.getSettings().rules().boss()?1:0)],
             LIVES[livesSelect.getSelectedIndex()],
             MatchRules.DropRate.values()[dropsSelect.getSelectedIndex()],
-            true, lobby.getSettings()!=null && lobby.getSettings().rules().fighter(),lobby.getSettings()!=null && lobby.getSettings().rules().boss()
+            true, lobby.getSettings()!=null && lobby.getSettings().rules().fighter(),
+            throwSelect.getSelectedIndex() == 1, lobby.getSettings()!=null && lobby.getSettings().rules().boss()
         );
     }
 
@@ -345,6 +352,7 @@ public class OnlineRoomScreen implements Screen {
         timeSelect.setSelectedIndex(Arrays.asList(TIMES).indexOf(rules.matchSeconds())-(rules.boss()?1:0));
         livesSelect.setSelectedIndex(Arrays.asList(LIVES).indexOf(rules.lives()));
         dropsSelect.setSelectedIndex(rules.dropRate().ordinal());
+        throwSelect.setSelectedIndex(rules.keepWeaponOnThrow() ? 1 : 0);
     }
 
     private void toggleSettings() {
@@ -454,7 +462,7 @@ public class OnlineRoomScreen implements Screen {
         }
 
         // Disable settings editing if not host or during countdown
-        for (var box : new SelectBox[]{maxSelect, timeSelect, livesSelect, dropsSelect}) {
+        for (var box : new SelectBox[]{maxSelect, timeSelect, livesSelect, dropsSelect, throwSelect}) {
             box.setDisabled(!host || !joined || settings == null || state.serverPhase().equals("COUNTDOWN"));
         }
         boolean dirty = settings != null && !draft().equals(settings.rules());

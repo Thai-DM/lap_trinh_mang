@@ -170,9 +170,13 @@ public final class OnlineHud implements AutoCloseable {
                 weaponName.setText(CombatIcons.name(local.weapon()));String ammunition=local.ammo()<0?"—":Integer.toString(local.ammo());
                 var cfg=com.smashprofs.game.Helper.KeyBindingConfig.getInstance();
                 String attackKey=fighter?com.smashprofs.game.Helper.KeyBindingConfig.keyName(cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.LIGHT)):"V / Space";
-                ammo.setText(local.weapon().equals("NONE")?attackKey+": đánh":attackKey+": bắn · "+ammunition+" viên");
-                if(gameplay.rules().boss() && !local.weapon().equals("NONE") && local.ammo()==0) { ammo.setText("Đang nạp đạn · 1,5 giây"); }
-                bagWeapon.setText(CombatIcons.name(local.weapon())+(local.weapon().equals("NONE")?"\nChưa nhặt vũ khí":"\nCòn "+ammunition+" viên · "+attackKey+" để dùng"));
+                boolean isMelee = local.weapon().equals("SWORD") || local.weapon().equals("WARHAMMER")
+                        || local.weapon().equals("DUAL_DAGGERS") || local.weapon().equals("SPEAR");
+                String actionVerb = isMelee ? "chém" : "bắn";
+                String unit = isMelee ? "lần" : "viên";
+                ammo.setText(local.weapon().equals("NONE")?attackKey+": đánh":attackKey+": "+actionVerb+" · "+ammunition+" "+unit);
+                if(gameplay.rules().boss() && !isMelee && !local.weapon().equals("NONE") && local.ammo()==0) { ammo.setText("Đang nạp đạn · 1,5 giây"); }
+                bagWeapon.setText(CombatIcons.name(local.weapon())+(local.weapon().equals("NONE")?"\nChưa nhặt vũ khí":"\nCòn "+ammunition+" "+unit+" · "+attackKey+" để dùng"));
                 bagShield.setText(local.shield()?"Khiên · Chặn 1 đòn":"Chưa có khiên");shieldIcon.setColor(1,1,1,local.shield()?1:.25f);
                 String abilityKey=com.smashprofs.game.Helper.KeyBindingConfig.keyName(cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.ABILITY));
                 ability.setText(!local.status().equals("ACTIVE")?abilityKey+" · Tạm khóa":local.ultimateTicks()==0?abilityKey+" · SẴN SÀNG":abilityKey+" · "+((local.ultimateTicks()+59)/60)+" giây");
@@ -181,9 +185,10 @@ public final class OnlineHud implements AutoCloseable {
                     var value=gameplay.fighter().player(localId);
                     if(!local.weapon().equals("NONE")) {
                         String dodgeKey=com.smashprofs.game.Helper.KeyBindingConfig.keyName(cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.DODGE));
-                        unarmedHint.setText(attackKey+" chỉ bắn · "+dodgeKey+" né/lướt · O đổi phím");
+                        unarmedHint.setText(attackKey+" "+actionVerb+" · "+dodgeKey+" né/lướt · O đổi phím");
                     }
-                    airBudget.setText("Né "+(value.dodgeCooldownTicks()==0?"sẵn sàng":String.format(Locale.ROOT,"%.1fs",value.dodgeCooldownTicks()/60f))+" · Nhảy "+value.airJumps()+"/1 · GC "+value.detail().gravityCancelTicks()+" · CD "+value.detail().chaseCharges()+" · Tường "+value.detail().wallActions());
+                    int cooldown=Math.max(value.dodgeCooldownTicks(),value.detail().dashCooldownTicks());
+                    airBudget.setText("Né/Lướt "+(cooldown==0?"sẵn sàng":String.format(Locale.ROOT,"%.1fs",cooldown/60f))+" · Nhảy "+value.airJumps()+"/1 · GC "+value.detail().gravityCancelTicks()+" · CD "+value.detail().chaseCharges()+" · Tường "+value.detail().wallActions());
                     airBudget.setColor(value.detail().wallActions()>=com.smashprofs.common.model.UnarmedRules.WALL_DANGER?OnlineUi.DANGER:value.detail().wallActions()>=com.smashprofs.common.model.UnarmedRules.WALL_WARNING?OnlineUi.GOLD:OnlineUi.TEXT);
                     if(gameplay.boss()!=null) { airBudget.setText("Hợp tác · Né vùng đỏ · Súng tự nạp sau 1,5 giây");airBudget.setColor(OnlineUi.TEXT); }
                     var lines=new StringBuilder();if(showStun) { for(var player:gameplay.fighter().players()) {

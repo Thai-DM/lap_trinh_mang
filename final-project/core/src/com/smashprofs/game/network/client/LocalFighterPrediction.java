@@ -61,8 +61,8 @@ public final class LocalFighterPrediction implements AutoCloseable {
         long previousTick=fighter.acknowledgedClientTick();int simulated=0;
         replay: for(var input:groups.values()) {
             // Attacks/air dodges stay authoritative. Never replay later movement past an unknown combat transition.
-            if(input.meleePressed() || input.fighter().heavyPressed() || input.fighter().dodgePressed()
-                    || input.fighter().dashPressed() && (!grounded || fighter.detail().chaseCharges()>0)) { break replay; }
+            if(input.meleePressed() || input.fighter().heavyPressed()
+                    || (input.fighter().dodgePressed() && input.moveAxis()==0 || !grounded || fighter.detail().chaseCharges()>0) && (input.fighter().dodgePressed() || input.fighter().dashPressed())) { break replay; }
             int steps=(int)Math.min(15,Math.max(1,input.clientTick()>=previousTick?input.clientTick()-previousTick:1));previousTick=input.clientTick();
             for(int step=0;step<steps && simulated<15;step++,simulated++) {
                 if(dropTicks>0) { dropTicks--; }if(wallLock>0) { wallLock--; }if(dashTicks>0) { dashTicks--; }
@@ -83,7 +83,7 @@ public final class LocalFighterPrediction implements AutoCloseable {
                     if(!grounded && wall!=0 && wallLock==0 && wallActions<UnarmedRules.WALL_SLIP) { body.setLinearVelocity(wall*.6f,4.2f);air.reset();wallLock=12;jumping=true;wallActions++; }
                     else if(grounded || air.jump()) { body.setLinearVelocity(v.x,4.2f);if(!grounded) { wallActions++; }jumping=true;grounded=false; }
                 }
-                if(step==0 && input.fighter().dashPressed() && wasGrounded && dashCooldown==0) {
+                if(step==0 && (input.fighter().dashPressed() || input.fighter().dodgePressed() && input.moveAxis()!=0) && wasGrounded && dashCooldown==0) {
                     dashTicks=FighterMovement.DASH_TICKS;dashCooldown=FighterMovement.DASH_COOLDOWN_TICKS;dashVelocity=(input.moveAxis()!=0?Math.signum(input.moveAxis()):authoritative.facingRight()?1:-1)*FighterMovement.DASH_SPEED;
                 }
                 runTicks=grounded && input.moveAxis()!=0?Math.min(18,runTicks+1):0;

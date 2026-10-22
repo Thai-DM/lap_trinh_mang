@@ -23,7 +23,7 @@ public final class ClusterMain {
             }
             case "standalone" -> {
                 var history = new FileMatchHistory(Path.of(config.getProperty("history.dir", "run/standalone-history")));
-                var server = new com.smashprofs.server.network.GameServer("127.0.0.1",
+                var server = new com.smashprofs.server.network.GameServer(config.getProperty("tcp.host", "127.0.0.1").strip(),
                         WorkerRuntime.integer(config, "tcp.port", 9000, 0, 65535),
                         WorkerRuntime.integer(config, "max.connections", 1024, 4, 10000), history);
                 server.start(); var done = new CountDownLatch(1);

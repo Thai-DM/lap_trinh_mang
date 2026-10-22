@@ -58,11 +58,12 @@ public final class OnlineLobbyScreen implements Screen {
         var lucaImg = new Image(new TextureRegion(lucaTex, 0, 0, 100, 100));
 
         // --- Text Fields with Comic styling ---
-        address = new TextField("127.0.0.1", ui.skin, "comic");
+        var savedServer=Gdx.app.getPreferences("online-server");
+        address = new TextField(System.getProperty("smashprofs.server.host",savedServer.getString("host","127.0.0.1")), ui.skin, "comic");
         address.setMaxLength(253);
         address.setAlignment(Align.center);
 
-        port = new TextField("54555", ui.skin, "comic");
+        port = new TextField(System.getProperty("smashprofs.server.port",savedServer.getString("port","54555")), ui.skin, "comic");
         port.setMaxLength(5);
         port.setAlignment(Align.center);
         port.setTextFieldFilter((field, c) -> c >= '0' && c <= '9');
@@ -245,7 +246,7 @@ public final class OnlineLobbyScreen implements Screen {
         c3Bottom.add(pingBadge).growX().height(38);
         c3Bottom.row();
 
-        var c3Desc = ui.small("Cùng máy: 127.0.0.1  ·  LAN: nhập IPv4", Color.valueOf("B8D8FF"));
+        var c3Desc = ui.small("Nhập IP server · Tự nhớ sau khi kết nối", Color.valueOf("B8D8FF"));
         c3Bottom.add(c3Desc).padTop(6).center();
 
         card3.add(c3Bottom).growX().expandY().bottom();
@@ -341,6 +342,8 @@ public final class OnlineLobbyScreen implements Screen {
         if (disposed) { return; }
         var client = model.takeJoinedClient();
         if (client != null) {
+            Gdx.app.getPreferences("online-server").putString("host",address.getText().strip())
+                    .putString("port",port.getText().strip()).flush();
             game.openOnlineLobby(client);
             return;
         }

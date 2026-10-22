@@ -1,5 +1,9 @@
 # Super Smash Profs — Platform Fighter
 
+**Thử TeaVM trên web:** [Kết quả và cách chạy hai trình duyệt](17-TEAVM-PROBE.md). `scripts/web/Run-TeaVm.ps1 -Multiplayer -Boss` mở bản thử dùng map/sprite/Boss gốc và server Java thật qua WebSocket.
+
+**Chơi khác mạng:** [Deploy server lên Azure VM Ubuntu](16-AZURE-DEPLOY.md). Đóng gói bằng `scripts/deploy/Package-Server.ps1`; client dùng `Run-Client.ps1 -ServerHost IP_VM` và nhớ máy chủ sau lần kết nối thành công.
+
 **Chế độ Boss (22/10):** [Hướng dẫn tạo phòng, luật chơi, chiêu boss và kiểm thử](15-BOSS-MODE.md). Chọn **Hợp tác đánh Boss** phía trên nút Tạo trận đấu; đội 2–4 người cùng hạ Demon Slime, có súng và tự nạp đạn.
 
 **Lướt ngắn (19/10):** Dash/Backdash còn 0,1 giây, khoảng nửa quãng cũ. Một lần bấm chỉ một nhịp; giữ nút né/lướt rồi đổi hướng không tự lướt thêm. Né đứng yên trên đất cũng dừng trượt sau 6 tick, vẫn giữ thời gian bảo vệ. [Chi tiết](13-UNARMED-MVP.md) · [Kiểm chứng](runs/20261019-short-dash/verification.json).

@@ -1,5 +1,6 @@
 param([string]$JavaHome='E:\2026-2\lap-trinh-mang\baitap')
 $server=@(
+    'com.smashprofs.server.cluster.StandaloneDeploymentTest',
     'com.smashprofs.server.game.BossModeTest',
     'com.smashprofs.server.room.HostRulesTest',
     'com.smashprofs.server.room.GameRoomLifecycleTest',

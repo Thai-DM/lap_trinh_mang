@@ -25,5 +25,7 @@ public enum MessageType {
     RTT_STATE,
     LOAD_READY,
     REMATCH_REQUEST,
-    REMATCH_STATE
+    REMATCH_STATE,
+    GET_LEADERBOARD,
+    RANKING_SNAPSHOT
 }

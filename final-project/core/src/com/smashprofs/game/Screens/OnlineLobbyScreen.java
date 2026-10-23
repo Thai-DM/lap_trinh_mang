@@ -126,8 +126,16 @@ public final class OnlineLobbyScreen implements Screen {
         titleBox.add(sub).padTop(4);
         header.add(titleBox).expandX().center();
 
-        // 3. Right placeholder matching back button size to ensure title is mathematically centered
-        header.add().size(54, 54).right();
+        // 3. Leaderboard button on the top right
+        var myProf = com.smashprofs.game.profile.PlayerProfile.get();
+        var profBadge = new Table();
+        profBadge.setBackground(ui.comicBox(Color.valueOf("06182B"), OnlineUi.BRAWL_CYAN, 2f, 1, 1));
+        profBadge.pad(4, 10, 4, 10);
+        profBadge.add(ui.small(myProf.getDisplayName(), Color.WHITE)).padRight(6);
+        profBadge.add(ui.small("[" + myProf.getProfileId() + "]", OnlineUi.BRAWL_GOLD));
+        header.add(profBadge).right().padRight(10);
+        var rankBtn = ui.comicButton("BXH", "comic-gold", () -> game.setScreen(new LeaderboardScreen(game, this)));
+        header.add(rankBtn).size(72, 44).right();
 
         root.add(header).growX();
         root.row();
@@ -247,7 +255,11 @@ public final class OnlineLobbyScreen implements Screen {
         c3Bottom.row();
 
         var c3Desc = ui.small("Nhập IP server · Tự nhớ sau khi kết nối", Color.valueOf("B8D8FF"));
-        c3Bottom.add(c3Desc).padTop(6).center();
+        c3Bottom.add(c3Desc).padTop(4).center();
+        c3Bottom.row();
+
+        var viewRankBtn = ui.comicButton("BẢNG XẾP HẠNG ELO", "comic-gold", () -> game.setScreen(new LeaderboardScreen(game, this)));
+        c3Bottom.add(viewRankBtn).growX().height(36).padTop(6);
 
         card3.add(c3Bottom).growX().expandY().bottom();
 

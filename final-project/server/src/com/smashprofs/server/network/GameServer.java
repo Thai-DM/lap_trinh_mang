@@ -4,6 +4,8 @@ import com.smashprofs.server.game.FixedTickScheduler;
 import com.smashprofs.server.game.RankingGateway;
 import com.smashprofs.server.game.MatchResultPublisher;
 import com.smashprofs.server.room.RoomManager;
+import com.smashprofs.server.ranking.LeaderboardBroadcaster;
+import com.smashprofs.server.ranking.RankingService;
 import com.smashprofs.common.protocol.ProtocolV1;
 
 import java.util.Objects;
@@ -48,6 +50,35 @@ public final class GameServer {
                 (connections, rooms) -> protocolTransport("127.0.0.1", 0, 64, connections, rooms),
                 StateBroadcaster.DEFAULT_SNAPSHOTS_PER_SECOND, HeartbeatConfiguration.DEFAULT,
                 System::nanoTime, HeartbeatManager::newExecutor, Objects.requireNonNull(rankingGateway));
+    }
+
+    public static GameServer withRanking(Supplier<FixedTickScheduler> schedulerFactory,
+                                         LongSupplier clock,
+                                         RankingService rankingService,
+                                         LeaderboardBroadcaster broadcaster) {
+        return new GameServer(schedulerFactory, clock,
+                (connections, rooms) -> new TcpServerTransport("127.0.0.1", 0, 64, connections,
+                        new TcpIoConfiguration(JsonTcpMessageCodec::new,
+                                MessageDispatcher.protocolV1(connections, rooms, null, rankingService, broadcaster),
+                                ProtocolV1.MAX_FRAME_BYTES, 5000)),
+                StateBroadcaster.DEFAULT_SNAPSHOTS_PER_SECOND, HeartbeatConfiguration.DEFAULT,
+                System::nanoTime, HeartbeatManager::newExecutor, Objects.requireNonNull(rankingService));
+    }
+
+    public static GameServer withRanking(RankingService rankingService, LeaderboardBroadcaster broadcaster) {
+        return withRanking(FixedTickScheduler::new, System::nanoTime, rankingService, broadcaster);
+    }
+
+    public static GameServer withRanking(String host, int port, int maxConnections,
+                                         RankingService rankingService,
+                                         LeaderboardBroadcaster broadcaster) {
+        return new GameServer(FixedTickScheduler::new, System::nanoTime,
+                (connections, rooms) -> new TcpServerTransport(host, port, maxConnections, connections,
+                        new TcpIoConfiguration(JsonTcpMessageCodec::new,
+                                MessageDispatcher.protocolV1(connections, rooms, null, rankingService, broadcaster),
+                                ProtocolV1.MAX_FRAME_BYTES, 5000)),
+                StateBroadcaster.DEFAULT_SNAPSHOTS_PER_SECOND, HeartbeatConfiguration.DEFAULT,
+                System::nanoTime, HeartbeatManager::newExecutor, Objects.requireNonNull(rankingService));
     }
 
     public GameServer() {

@@ -6,6 +6,11 @@ import com.smashprofs.common.model.PlayerId;
 import com.smashprofs.common.protocol.*;
 import com.smashprofs.server.room.GameRoom;
 import com.smashprofs.server.room.RoomManager;
+import com.smashprofs.common.model.RankingEntry;
+import com.smashprofs.server.ranking.LeaderboardBroadcaster;
+import com.smashprofs.server.ranking.RankingService;
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
 /** Chỉ chuyển wire request vào handler đã tồn tại; không tick, broadcast hoặc đọc JNI. */
@@ -18,13 +23,25 @@ final class ProtocolV1Dispatcher {
     private final PlayerReadyHandler ready;
     private final PlayerInputHandler inputs;
     private final SessionAdmission admission;
+    private final RankingService rankingService;
+    private final LeaderboardBroadcaster leaderboardBroadcaster;
     ProtocolV1Dispatcher(ConnectionManager connections, RoomManager rooms) {
-        this(connections, rooms, null);
+        this(connections, rooms, null, null, null);
     }
     ProtocolV1Dispatcher(ConnectionManager connections, RoomManager rooms, SessionAdmission admission) {
+        this(connections, rooms, admission, null, null);
+    }
+    ProtocolV1Dispatcher(ConnectionManager connections, RoomManager rooms, SessionAdmission admission,
+                         RankingService rankingService) {
+        this(connections, rooms, admission, rankingService, null);
+    }
+    ProtocolV1Dispatcher(ConnectionManager connections, RoomManager rooms, SessionAdmission admission,
+                         RankingService rankingService, LeaderboardBroadcaster leaderboardBroadcaster) {
         this.admission = admission;
         this.connections = connections;
         this.rooms = rooms;
+        this.rankingService = rankingService;
+        this.leaderboardBroadcaster = leaderboardBroadcaster;
         joins = new JoinRoomHandler(connections, rooms);
         ready = new PlayerReadyHandler(connections, rooms);
         inputs = new PlayerInputHandler(connections, rooms);
@@ -59,7 +76,13 @@ final class ProtocolV1Dispatcher {
         }
         ObjectNode payload = message.payload();
         if (message.type() == MessageType.CONNECT) {
-            if (admission == null) { ProtocolV1.fields(payload, requestId,"gameplay"); }
+            if (admission == null) {
+                ProtocolV1.fields(payload, requestId, "gameplay", "profileId", "displayName");
+            }
+            if (payload.has("profileId") || payload.has("displayName")) {
+                var profile = RankingProtocol.parseConnectProfile(payload, requestId);
+                session.setProfile(profile.profileId(), profile.displayName());
+            }
             if(payload.has("gameplay")) {
                 String cap = payload.path("gameplay").asText();
                 if(com.smashprofs.common.model.BossSnapshot.CAPABILITY.equals(cap)) { session.enableBoss(); }
@@ -209,6 +232,21 @@ final class ProtocolV1Dispatcher {
                 ProtocolV1.fields(payload, requestId);
                 if (heartbeat == null || !heartbeat.acknowledge(session, requestId)) { throw error("INVALID_PAYLOAD", requestId); }
                 yield null;
+            }
+            case GET_LEADERBOARD -> {
+                RankingProtocol.validateGetLeaderboard(message);
+                Integer limit = RankingProtocol.parseLimit(payload, requestId);
+                List<RankingEntry> entries = Collections.emptyList();
+                if (rankingService != null) {
+                    entries = rankingService.getLeaderboardEntries();
+                }
+                if (limit != null && limit < entries.size()) {
+                    entries = entries.subList(0, limit);
+                }
+                if (leaderboardBroadcaster != null) {
+                    leaderboardBroadcaster.subscribe(session);
+                }
+                yield RankingProtocol.createSnapshotMessage(requestId, entries);
             }
             case LEAVE_ROOM -> throw error("NOT_IMPLEMENTED", requestId);
             default -> throw error("INVALID_PAYLOAD", requestId); // Client không được gửi server push.

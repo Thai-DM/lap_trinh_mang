@@ -22,6 +22,7 @@ final class ProtocolV1Dispatcher {
     private final JoinRoomHandler joins;
     private final PlayerReadyHandler ready;
     private final PlayerInputHandler inputs;
+    private final MatchmakingService matchmaking;
     private final SessionAdmission admission;
     private final RankingService rankingService;
     private final LeaderboardBroadcaster leaderboardBroadcaster;
@@ -44,6 +45,7 @@ final class ProtocolV1Dispatcher {
         this.leaderboardBroadcaster = leaderboardBroadcaster;
         joins = new JoinRoomHandler(connections, rooms);
         ready = new PlayerReadyHandler(connections, rooms);
+        matchmaking = new MatchmakingService(rooms,joins,ready);
         inputs = new PlayerInputHandler(connections, rooms);
     }
     boolean dispatch(ClientSession session, ProtocolMessage message) {
@@ -99,6 +101,14 @@ final class ProtocolV1Dispatcher {
         if (session.getPlayerId() == null) { throw error("INVALID_SESSION", requestId); }
         if (admission != null) { admission.authorize(session, message); }
         return switch (message.type()) {
+            case FIND_MATCH -> {
+                ProtocolV1.fields(payload,requestId,"mode","characterId");
+                if(admission!=null) { throw error("MATCHMAKING_UNAVAILABLE",requestId); }
+                if(!payload.path("mode").isTextual() || !java.util.Set.of("PVP","BOSS").contains(payload.path("mode").asText())
+                        || !payload.path("characterId").isTextual()) { throw ProtocolV1.invalid(requestId); }
+                var room=matchmaking.find(session,payload.path("mode").asText().equals("BOSS"),payload.path("characterId").asText(),requestId);
+                yield roomState(room.getRoomId(),requestId);
+            }
             case LOAD_READY -> {
                 ProtocolV1.fields(payload,requestId,"roomId");String id=ProtocolV1.roomId(payload,requestId);
                 if(!session.supportsFighter() || !id.equals(session.getRoomId()) || rooms.getRoom(id)==null) { throw error("UNAUTHORIZED_PLAYER",requestId); }
@@ -144,6 +154,7 @@ final class ProtocolV1Dispatcher {
                 ProtocolV1.fields(payload, requestId, "roomId");
                 String roomId = ProtocolV1.roomId(payload, requestId);
                 var target=rooms.getRoom(roomId);
+                if(target!=null && target.isMatchmaking()) { throw error("INVALID_ROOM_STATE",requestId); }
                 if(target!=null && target.getRules().gameplay() && !session.supportsGameplay()) { throw error("GAMEPLAY_CAPABILITY_REQUIRED",requestId); }
                 if(target!=null && target.getRules().boss() && !session.supportsBoss()) { throw error("BOSS_CAPABILITY_REQUIRED",requestId); }
                 if(target!=null && target.getRules().fighter() && !session.supportsFighter()) { throw error("FIGHTER_CAPABILITY_REQUIRED",requestId); }
@@ -172,6 +183,10 @@ final class ProtocolV1Dispatcher {
                 yield settingsState(room,requestId);
             }
             case PLAYER_READY -> {
+                if(session.getRoomId()!=null) {
+                    var current=rooms.getRoom(session.getRoomId());
+                    if(current!=null && current.isMatchmaking()) { throw error("INVALID_ROOM_STATE",requestId); }
+                }
                 ProtocolV1.fields(payload, requestId, "roomId", "characterId", "ready");
                 String roomId = payload.has("roomId") ? ProtocolV1.roomId(payload, requestId) : null;
                 JsonNode character = payload.get("characterId");

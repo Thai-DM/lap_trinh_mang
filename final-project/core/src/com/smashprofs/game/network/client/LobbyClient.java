@@ -41,6 +41,13 @@ public final class LobbyClient implements ConnectionListener, AutoCloseable {
     private volatile ClientMatchSession matchSession;
     private Pending pending;
     private boolean gameplay,bossRoom;
+    private boolean matchmaking;
+    private String matchmakingCharacter,roomId;
+    public boolean isMatchmaking() { return matchmaking; }
+    public synchronized void enableMatchmaking(boolean boss,String character) {
+        if(phase!=Phase.IDLE || !CHARACTERS.contains(character)) { throw new IllegalArgumentException("Choose a valid character before searching"); }
+        enableBossSupport();matchmaking=true;bossRoom=boss;matchmakingCharacter=character;
+    }
     public synchronized void enableBossSupport() { enableFighter();networkClient.enableBossSupport(); }
     public synchronized void enableBoss() { enableBossSupport();bossRoom=true; }
     public record Settings(String hostId,com.smashprofs.common.model.MatchRules rules,int playerCount,long version,long rulesVersion,List<Member> members) {
@@ -61,20 +68,20 @@ public final class LobbyClient implements ConnectionListener, AutoCloseable {
     public synchronized String getRematchStatus() { return rematchStatus; }
     public synchronized boolean markLoaded() {
         if(loadedSent || settings==null || !settings.rules().fighter() || closed) { return false; }
-        loadedSent=networkClient.sendMessage(new ProtocolMessage(MessageType.LOAD_READY,null,ProtocolV1.object().put("roomId",configuration.roomId())));
+        loadedSent=networkClient.sendMessage(new ProtocolMessage(MessageType.LOAD_READY,null,ProtocolV1.object().put("roomId",roomId)));
         return loadedSent;
     }
     public synchronized boolean requestRematch() {
         if(matchSession==null || matchSession.getResult()==null || settings==null || !settings.rules().fighter()) { return false; }
         rematchRequested=networkClient.sendMessage(new ProtocolMessage(MessageType.REMATCH_REQUEST,UUID.randomUUID().toString(),
-                ProtocolV1.object().put("roomId",configuration.roomId()).put("matchId",matchSession.getRoster().matchId())));
+                ProtocolV1.object().put("roomId",roomId).put("matchId",matchSession.getRoster().matchId())));
         if(rematchRequested) { rematchStatus="Đã xin đấu lại · Đang chờ đối thủ"; }return rematchRequested;
     }
     public synchronized void enableFighter() { if(phase!=Phase.IDLE) { throw new IllegalStateException("Negotiate before start"); }gameplay=true;networkClient.enableFighter(); }
     public Settings getSettings() { return settings; }
     public synchronized boolean updateSettings(com.smashprofs.common.model.MatchRules rules) {
         if(!gameplay || phase!=Phase.JOINED || pending!=null || settings==null || !settings.hostId().equals(localId.value())) { return false; }
-        var payload=ProtocolV1.object().put("roomId",configuration.roomId());payload.set("rules",GameplayProtocol.rules(rules));
+        var payload=ProtocolV1.object().put("roomId",roomId);payload.set("rules",GameplayProtocol.rules(rules));
         return request(MessageType.ROOM_SETTINGS_UPDATE,payload,null);
     }
 
@@ -86,6 +93,7 @@ public final class LobbyClient implements ConnectionListener, AutoCloseable {
     /** Existing NetworkClient may be injected for integration tests; the lobby owns its listener/lifecycle. */
     public LobbyClient(LobbyConfiguration configuration, NetworkClient networkClient, Consumer<Snapshot> updates) {
         this.configuration = Objects.requireNonNull(configuration);
+        this.roomId = configuration.roomId();
         this.networkClient = Objects.requireNonNull(networkClient);
         this.updates = Objects.requireNonNull(updates);
         if(com.smashprofs.game.profile.PlayerProfile.hasInstance()) {
@@ -139,34 +147,38 @@ public final class LobbyClient implements ConnectionListener, AutoCloseable {
         if (closed || phase != Phase.CONNECTING) { return; }
         localId = networkClient.getPlayerId();
         if (localId == null) { fail("INVALID_SESSION", "Missing server-issued player identity", false); return; }
-        if (configuration.mode() == LobbyConfiguration.Mode.CREATE) {
-            var payload=ProtocolV1.object().put("roomId",configuration.roomId());if(gameplay) { payload.put("gameplay",true); }
+        if(matchmaking) {
+            request(MessageType.FIND_MATCH,ProtocolV1.object().put("mode",bossRoom?"BOSS":"PVP").put("characterId",matchmakingCharacter),matchmakingCharacter);
+        } else if (configuration.mode() == LobbyConfiguration.Mode.CREATE) {
+            var payload=ProtocolV1.object().put("roomId",roomId);if(gameplay) { payload.put("gameplay",true); }
             if(bossRoom) { payload.put("boss",true); }
             request(MessageType.CREATE_ROOM, payload, null);
         } else { join(); }
     }
 
     private void join() {
-        request(MessageType.JOIN_ROOM, ProtocolV1.object().put("roomId", configuration.roomId()), null);
+        request(MessageType.JOIN_ROOM, ProtocolV1.object().put("roomId", roomId), null);
     }
 
     /** Called explicitly by the local character selection UI, once per accepted/in-flight READY. */
     public synchronized boolean ready(String characterId) {
+        if(matchmaking) { return false; }
         if (closed || phase != Phase.JOINED) { return false; }
         if (characterId == null || !CHARACTERS.contains(characterId)) {
             fail("INVALID_CHARACTER", "Choose a valid character", true);
             return false;
         }
         queuedCharacter = null;
-        return request(MessageType.PLAYER_READY, ProtocolV1.object().put("roomId", configuration.roomId())
+        return request(MessageType.PLAYER_READY, ProtocolV1.object().put("roomId", roomId)
                 .put("characterId", characterId).put("ready", true), characterId);
     }
 
     /** Gameplay lobby can cancel readiness before the server starts the match. */
     public synchronized boolean unready() {
+        if(matchmaking) { return false; }
         if(!gameplay || closed || phase!=Phase.WAITING_FOR_START || pending!=null || selectedCharacter==null) { return false; }
         queuedCharacter = null;
-        return request(MessageType.PLAYER_READY,ProtocolV1.object().put("roomId",configuration.roomId())
+        return request(MessageType.PLAYER_READY,ProtocolV1.object().put("roomId",roomId)
                 .put("characterId",selectedCharacter).put("ready",false),selectedCharacter);
     }
 
@@ -175,6 +187,7 @@ public final class LobbyClient implements ConnectionListener, AutoCloseable {
      * Both the local client and server will synchronize the chosen hero across all room members.
      */
     public synchronized boolean selectCharacter(String characterId) {
+        if(matchmaking) { return false; }
         if (closed || phase != Phase.JOINED) { return false; }
         if (characterId == null || !CHARACTERS.contains(characterId)) {
             return false;
@@ -187,7 +200,7 @@ public final class LobbyClient implements ConnectionListener, AutoCloseable {
             return true;
         }
         selectedCharacter = characterId;
-        return request(MessageType.PLAYER_READY, ProtocolV1.object().put("roomId", configuration.roomId())
+        return request(MessageType.PLAYER_READY, ProtocolV1.object().put("roomId", roomId)
                 .put("characterId", characterId).put("ready", false), characterId);
     }
 
@@ -196,15 +209,16 @@ public final class LobbyClient implements ConnectionListener, AutoCloseable {
         pending = operation;
         phase = switch (type) {
             case CREATE_ROOM -> Phase.CREATING;
-            case JOIN_ROOM -> Phase.JOINING;
+            case JOIN_ROOM, FIND_MATCH -> Phase.JOINING;
             case PLAYER_READY -> (payload.path("ready").asBoolean(true) || phase == Phase.WAITING_FOR_START) ? Phase.READY_PENDING : phase;
             case ROOM_SETTINGS_UPDATE -> Phase.READY_PENDING;
             default -> throw new IllegalArgumentException("Not a lobby request");
         };
         errorCode = null;
         publish(switch (type) {
-            case CREATE_ROOM -> "Creating room " + configuration.roomId();
-            case JOIN_ROOM -> "Joining room " + configuration.roomId();
+            case CREATE_ROOM -> "Creating room " + roomId;
+            case JOIN_ROOM -> "Joining room " + roomId;
+            case FIND_MATCH -> "Đang tìm người chơi cùng chế độ…";
             case ROOM_SETTINGS_UPDATE -> "Updating room rules";
             case PLAYER_READY -> payload.path("ready").asBoolean(true) ? "Confirming readiness..." : (phase == Phase.WAITING_FOR_START ? "Canceling readiness..." : "Selecting character " + characterId);
             default -> "Sending request: " + characterId;
@@ -226,7 +240,7 @@ public final class LobbyClient implements ConnectionListener, AutoCloseable {
             require(message.version() == 1, "Invalid envelope version");
             switch (message.type()) {
                 case REMATCH_STATE -> {
-                    var p=message.payload();require(p.size()==5 && configuration.roomId().equals(text(p,"roomId")) && matchSession!=null
+                    var p=message.payload();require(p.size()==5 && roomId.equals(text(p,"roomId")) && matchSession!=null
                             && matchSession.getResult()!=null && matchSession.getRoster().matchId().equals(text(p,"matchId"))
                             && p.path("votes").isIntegralNumber() && p.path("required").isIntegralNumber() && p.path("started").isBoolean()
                             && p.path("votes").asInt()>0 && p.path("votes").asInt()<=p.path("required").asInt() && p.path("required").asInt()<=4,"Invalid rematch state");
@@ -239,12 +253,16 @@ public final class LobbyClient implements ConnectionListener, AutoCloseable {
                 case ROOM_CREATED -> {
                     if (!correlates(message, MessageType.CREATE_ROOM)) { return; }
                     require(message.payload().size() == 1, "Invalid ROOM_CREATED fields");
-                    require(configuration.roomId().equals(text(message.payload(), "roomId")), "ROOM_CREATED room mismatch");
+                    require(roomId.equals(text(message.payload(), "roomId")), "ROOM_CREATED room mismatch");
                     pending = null;
                     join(); // Creating a room does not imply membership.
                 }
                 case ROOM_STATE -> acceptRoomState(message);
-                case ROOM_SETTINGS_STATE -> acceptSettings(message);
+                case ROOM_SETTINGS_STATE -> {
+                    // The broadcaster may see membership before the FIND_MATCH response is sent.
+                    // Its full settings are also included in the correlated response below.
+                    if(!correlatesPendingFind()) { acceptSettings(message); }
+                }
                 case MATCH_EVENT -> { if(matchSession!=null) { matchSession.acceptEvent(message); } }
                 case RTT_STATE -> { if(matchSession!=null) { matchSession.acceptRtt(message); } }
                 case GAME_START -> acceptStart(message);
@@ -272,9 +290,14 @@ public final class LobbyClient implements ConnectionListener, AutoCloseable {
     }
 
     private void acceptRoomState(ProtocolMessage message) {
-        if (!correlates(message, MessageType.JOIN_ROOM) && !correlates(message, MessageType.PLAYER_READY)) { return; }
+        boolean found=correlates(message,MessageType.FIND_MATCH);
+        if (!found && !correlates(message, MessageType.JOIN_ROOM) && !correlates(message, MessageType.PLAYER_READY)) { return; }
         var payload = message.payload();
-        require(payload.size() == (payload.has("settings")?4:3) && configuration.roomId().equals(text(payload, "roomId")), "ROOM_STATE room mismatch");
+        if(found) {
+            String assigned=text(payload,"roomId");LobbyConfiguration.validateRoomId(assigned);
+            roomId=assigned;
+        }
+        require(payload.size() == (payload.has("settings")?4:3) && roomId.equals(text(payload, "roomId")), "ROOM_STATE room mismatch");
         String roomPhase = text(payload, "phase");
         require(ROOM_PHASES.contains(roomPhase), "Invalid room phase");
         var array = payload.get("players");
@@ -297,7 +320,7 @@ public final class LobbyClient implements ConnectionListener, AutoCloseable {
         }
         var local = roster.stream().filter(p -> p.playerId().equals(localId)).findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Local player missing from ROOM_STATE"));
-        boolean readyResponse = pending.type() == MessageType.PLAYER_READY;
+        boolean readyResponse = pending.type() == MessageType.PLAYER_READY || found;
         Settings acknowledgedRules=payload.has("settings")?readSettings(payload.get("settings")):null;
         if(acknowledgedRules!=null) {
             if(settings==null || acknowledgedRules.version()>=settings.version()) { settings=acknowledgedRules; }
@@ -305,6 +328,10 @@ public final class LobbyClient implements ConnectionListener, AutoCloseable {
         }
         if (readyResponse) {
             require((local.ready() || acknowledgedRules!=null) && pending.characterId().equals(local.characterId()), "READY confirmation mismatch");
+            if(found) {
+                require(local.ready() && acknowledgedRules!=null && acknowledgedRules.rules().fighter()
+                        && acknowledgedRules.rules().maxPlayers()==2 && acknowledgedRules.rules().boss()==bossRoom,"Invalid quick match rules/readiness");
+            }
         }
         members = roster.stream().sorted(Comparator.comparingInt(Member::slotIndex)).toList();
         serverPhase = roomPhase;
@@ -314,7 +341,7 @@ public final class LobbyClient implements ConnectionListener, AutoCloseable {
         phase = readyResponse && local.ready() ? Phase.WAITING_FOR_START : Phase.JOINED;
         if(readyResponse && settings!=null && confirmedReadyRulesVersion<settings.rulesVersion()) { phase=Phase.JOINED; }
         publish(readyResponse ? (local.ready()?"Ready. Waiting for server to start the match":"Not ready. You can change character or room rules.")
-                : "Joined " + configuration.roomId() + ". Choose your character, then press Ready");
+                : "Joined " + roomId + ". Choose your character, then press Ready");
         if (queuedCharacter != null) {
             String next = queuedCharacter;
             queuedCharacter = null;
@@ -323,6 +350,7 @@ public final class LobbyClient implements ConnectionListener, AutoCloseable {
             }
         }
     }
+    private boolean correlatesPendingFind() { return pending!=null && pending.type()==MessageType.FIND_MATCH; }
     private void acceptSettings(ProtocolMessage message) {
         var incoming=readSettings(message.payload());boolean response=correlates(message,MessageType.ROOM_SETTINGS_UPDATE);
         if(settings!=null && incoming.version()<settings.version()) {
@@ -349,7 +377,7 @@ public final class LobbyClient implements ConnectionListener, AutoCloseable {
         } else { publish(statusText); }
     }
     private Settings readSettings(com.fasterxml.jackson.databind.JsonNode p) {
-        require(gameplay && configuration.roomId().equals(text(p,"roomId")),"Unnegotiated settings/room mismatch");
+        require(gameplay && roomId.equals(text(p,"roomId")),"Unnegotiated settings/room mismatch");
         var rules=GameplayProtocol.rules(p.get("rules"));
         require(p.path("version").isIntegralNumber() && p.path("rulesVersion").isIntegralNumber()
                 && p.path("version").asLong()>=1 && p.path("rulesVersion").asLong()>=1
@@ -377,7 +405,7 @@ public final class LobbyClient implements ConnectionListener, AutoCloseable {
     private void acceptStart(ProtocolMessage message) {
         if (phase != Phase.READY_PENDING && phase != Phase.WAITING_FOR_START && phase != Phase.STARTED) { return; }
         var start = GameStartRoster.parse(message.payload());
-        require(configuration.roomId().equals(start.roomId()), "GAME_START room mismatch");
+        require(roomId.equals(start.roomId()), "GAME_START room mismatch");
         var local = start.localPlayer(localId);
         var joined = members.stream().filter(p -> p.playerId().equals(localId)).findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Local player missing from confirmed lobby"));
@@ -431,7 +459,7 @@ public final class LobbyClient implements ConnectionListener, AutoCloseable {
     }
 
     private Snapshot buildSnapshot() {
-        return new Snapshot(phase, localId, configuration.roomId(), serverPhase, members,
+        return new Snapshot(phase, localId, roomId, serverPhase, members,
                 selectedCharacter, match, errorCode, statusText);
     }
 

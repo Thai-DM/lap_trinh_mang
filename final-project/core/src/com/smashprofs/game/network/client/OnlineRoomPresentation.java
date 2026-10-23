@@ -24,6 +24,8 @@ public final class OnlineRoomPresentation {
     public static String error(String code,String fallback) {
         if(code==null) { return fallback; }
         return switch(code) {
+            case "MATCHMAKING_FULL"->"Máy chủ đang đủ trận. Hãy thử tìm lại sau một lát.";
+            case "MATCHMAKING_UNAVAILABLE"->"Máy chủ này chưa hỗ trợ ghép nhanh. Hãy dùng phòng riêng hoặc đổi máy chủ.";
             case "ROOM_NOT_FOUND"->"Không tìm thấy phòng. Kiểm tra mã và địa chỉ máy chủ.";
             case "ROOM_FULL"->"Phòng đã đủ người. Hãy tạo phòng khác hoặc nhờ chủ phòng tăng chỗ.";
             case "CONNECTION_FAILED"->"Không kết nối được máy chủ. Hãy mở server và kiểm tra địa chỉ.";

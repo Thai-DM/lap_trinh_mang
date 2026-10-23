@@ -3,6 +3,7 @@ package com.smashprofs.common.protocol;
 /** Giữ tên v0.1 và bổ sung tên TCP v1; wire dùng tên, không dùng ordinal. */
 public enum MessageType {
     JOIN_ROOM,
+    FIND_MATCH,
     PLAYER_READY,
     PLAYER_INPUT,
     GAME_STATE,

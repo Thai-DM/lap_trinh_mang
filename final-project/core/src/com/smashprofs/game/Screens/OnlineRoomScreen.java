@@ -244,6 +244,7 @@ public class OnlineRoomScreen implements Screen {
         actionBar.row();
 
         readyHint = ui.small("Mỗi người chọn nhân vật rồi bấm Sẵn sàng.", Color.valueOf("E0F0FF"));
+        if(lobby.isMatchmaking()) { settingsBtn.setVisible(false);copyBtn.setVisible(false); }
         actionBar.add(readyHint).center().padTop(4);
         actionBar.row();
 
@@ -428,6 +429,7 @@ public class OnlineRoomScreen implements Screen {
     public void render(float delta) {
         if (disposed) { return; }
         var state = lobby.getSnapshot();
+        if(lobby.isMatchmaking() && state.selectedCharacter()!=null) { selected=state.selectedCharacter(); }
         if ("COUNTDOWN".equals(state.serverPhase()) || state.isMatchStarted()
                 || lobby.getSettings()!=null && lobby.getSettings().rules().fighter() && state.members().size()>=2 && state.members().stream().allMatch(LobbyClient.Member::ready)) {
             game.setScreen(new OnlineLoadingScreen(game, lobby));
@@ -503,9 +505,9 @@ public class OnlineRoomScreen implements Screen {
         }
 
         // Ready Button State
-        readyBtn.setDisabled(settings == null || !joined && !waiting || dirty && host);
+        readyBtn.setDisabled(lobby.isMatchmaking() || settings == null || !joined && !waiting || dirty && host);
         readyBtn.setText(
-            waiting ? "HỦY SẴN SÀNG  [ENTER]" :
+            lobby.isMatchmaking()?"ĐANG GHÉP TRẬN…":waiting ? "HỦY SẴN SÀNG  [ENTER]" :
             state.phase() == LobbyClient.Phase.READY_PENDING ? "ĐANG XÁC NHẬN…" :
             "SẴN SÀNG  [ENTER]"
         );
@@ -595,7 +597,7 @@ public class OnlineRoomScreen implements Screen {
 
         // Ready Hint & Status Text
         readyHint.setText(
-            members.size() < 2 ? "Cần ít nhất 2 người để bắt đầu. Hãy sao chép mã phòng để mời bạn bè!" :
+            lobby.isMatchmaking()?"Đang tìm người chơi thay thế · Đủ hai người sẽ tự vào trận.":members.size() < 2 ? "Cần ít nhất 2 người để bắt đầu. Hãy sao chép mã phòng để mời bạn bè!" :
             waiting ? "Cả phòng sẵn sàng → nạp đấu trường → đếm ngược 3 giây!" :
             dirty && host ? "Bạn đang chỉnh luật: Hãy bấm Lưu luật phòng trước khi bấm Sẵn sàng." :
             settings!=null && settings.rules().boss()?"Cùng hạ boss trước khi hết giờ · Có sẵn súng, tự nạp đạn · Chọn nhân vật rồi Sẵn sàng.":"Mỗi người hãy chọn một nhân vật yêu thích rồi bấm Sẵn sàng."

@@ -1,5 +1,7 @@
 # Super Smash Profs — Platform Fighter
 
+**Ghép trận online:** [PvP 1 đấu 1 / Boss hai người](20-ONLINE-MATCHMAKING.md). Online → Ghép trận nhanh → chọn nhân vật/chế độ → Tìm trận. Đủ hai người cùng tìm thì tự vào trận, có Hủy tìm; vẫn giữ phòng riêng bằng mã.
+
 **Client đầy đủ trên web:** [TeaVM: cách chạy, kiến trúc và hosting](18-TEAVM-WEB-CLIENT.md). Chạy `scripts/web/Run-Web.ps1` để mở menu thật, Local, Online PvP/Boss và bảng ELO từ code `dev`.
 
 **Tự cập nhật Azure:** [Thiết lập GitHub Actions deploy](19-AZURE-AUTO-DEPLOY.md). Push nhánh `feature/teavm-web-test` để test, build và triển khai, kiểm tra HTTPS/WSS và phục hồi bản trước nếu kiểm tra trên VM thất bại. Cần thiết lập hai Actions secrets một lần.

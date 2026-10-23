@@ -15,7 +15,9 @@ public final class BrowserDiagnostics {
     private static String previousWeapon="";
     private static int previousAmmo=-1,previousLives=-1,gunShots;
     public static void update(Game game) {
-        var lobby=game.getLobbyClient();var snap=lobby==null?null:lobby.getSnapshot();
+        var lobby=game.getLobbyClient();
+        if(game.getScreen() instanceof com.smashprofs.game.Screens.OnlineMatchmakingScreen quick) { lobby=quick.getLobbyClient(); }
+        var snap=lobby==null?null:lobby.getSnapshot();
         var session=lobby==null?null:lobby.getMatchSession();
         var state=session==null?null:session.getSnapshotBuffer().getLatestSnapshot();
         var local=state==null?null:state.player(session.getLocalPlayerId().value());

@@ -25,7 +25,7 @@ public final class OnlineLobbyScreen implements Screen {
     private final ShapeRenderer shapes = new ShapeRenderer();
     private final OnlineLobbyFormModel model = new OnlineLobbyFormModel();
     private final TextField address, port, code;
-    private final TextButton create, join, back;
+    private final TextButton create, join, back,quickMatch;
     private final SelectBox<String> gameMode;
     private final Label status, serverBadge;
     private final Texture bgTexture;
@@ -82,6 +82,9 @@ public final class OnlineLobbyScreen implements Screen {
         create = ui.comicButton("TẠO TRẬN ĐẤU", "comic-gold", () -> connect(LobbyConfiguration.Mode.CREATE));
         join = ui.comicButton("VÀO PHÒNG", "comic-primary", () -> connect(LobbyConfiguration.Mode.JOIN));
         back = ui.comicButton("<", "comic-white", this::back);
+        quickMatch=ui.comicButton("GHÉP TRẬN NHANH", "comic-primary", () -> {
+            if(!model.isConnecting()) { game.setScreen(new OnlineMatchmakingScreen(game,address.getText(),port.getText(),gameMode.getSelectedIndex()==1)); }
+        });quickMatch.setName("quick-match");
         create.setName("create-room");join.setName("join-room");back.setName("back");
 
         // --- Custom Nordic diamond texture for title ornaments ---
@@ -95,7 +98,7 @@ public final class OnlineLobbyScreen implements Screen {
         diamondPix.dispose();
         textures.add(diamondTex);
 
-        status = ui.small("Mở server trước, sau đó tạo phòng hoặc nhập mã để chơi cùng bạn bè.", Color.WHITE);
+        status = ui.small("Ghép trận nhanh hoặc tạo phòng riêng để chơi cùng bạn bè.", Color.WHITE);
         serverBadge = ui.small("127.0.0.1:54555", OnlineUi.BRAWL_CYAN);
 
         // --- Root Layout ---
@@ -118,7 +121,7 @@ public final class OnlineLobbyScreen implements Screen {
         var titleBox = new Table();
         var wingsRow = new Table();
         var leftWing = createNordicWing(diamondTex, false);
-        var mainTitle = ui.comicHeading("CUSTOM GAME ROOM", Color.WHITE);
+        var mainTitle = ui.comicHeading("CHƠI ONLINE", Color.WHITE);
         var rightWing = createNordicWing(diamondTex, true);
         wingsRow.add(leftWing).padRight(14);
         wingsRow.add(mainTitle);
@@ -175,6 +178,7 @@ public final class OnlineLobbyScreen implements Screen {
         c1Bottom.setBackground(ui.comicBox(OnlineUi.BRAWL_CYAN, OnlineUi.BRAWL_BORDER, 3.5f, 0, 0));
         c1Bottom.pad(10, 12, 10, 12);
         c1Bottom.add(gameMode).growX().height(34).padBottom(7);c1Bottom.row();
+        c1Bottom.add(quickMatch).growX().height(44).padBottom(6);c1Bottom.row();
         c1Bottom.add(create).growX().height(52);
         c1Bottom.row();
         var c1Desc = ui.small("Tự sinh mã phòng  ·  Tùy chỉnh luật đấu", Color.valueOf("052B28"));
@@ -331,6 +335,7 @@ public final class OnlineLobbyScreen implements Screen {
         port.setDisabled(busy);
         code.setDisabled(busy);
         create.setDisabled(busy);gameMode.setDisabled(busy);
+        quickMatch.setDisabled(busy);
         join.setDisabled(busy);
         back.setDisabled(busy);
         status.setText(model.getStatus());

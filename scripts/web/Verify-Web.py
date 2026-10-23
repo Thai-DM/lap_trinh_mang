@@ -50,9 +50,10 @@ def select(page,name,text):
 
 def main():
     global EVIDENCE
-    parser=argparse.ArgumentParser();parser.add_argument('--boot-only',action='store_true');parser.add_argument('--local-only',action='store_true');parser.add_argument('--pvp',action='store_true');args=parser.parse_args()
+    parser=argparse.ArgumentParser();parser.add_argument('--boot-only',action='store_true');parser.add_argument('--local-only',action='store_true');parser.add_argument('--pvp',action='store_true');parser.add_argument('--matchmaking',action='store_true');args=parser.parse_args()
     if args.local_only: EVIDENCE=ROOT/'docs/gameplay/runs/20261023-web-local'
     if args.pvp: EVIDENCE=ROOT/'docs/gameplay/runs/20261023-web-pvp'
+    if args.matchmaking: EVIDENCE=ROOT/'docs/gameplay/runs/20261023-web-matchmaking'
     EVIDENCE.mkdir(parents=True,exist_ok=True);b.EVIDENCE=EVIDENCE
     run=ROOT/'final-project/build'/('web-verify-'+str(int(time.time()*1000)));run.mkdir(parents=True)
     profile=run/'edge';profile.mkdir()
@@ -93,7 +94,46 @@ def main():
             return page
         host=tab();states['menu']=state(host);host.shot('01-main-menu.png');checks.append('Real shared MainMenuScreen boots in Edge/WebGL')
         print('PASS main menu',flush=True)
-        if args.local_only:
+        if args.matchmaking:
+            def quick(page, boss=False, character='Alex'):
+                page.press('O');wait_state(page,lambda s:s['screen']=='OnlineLobbyScreen')
+                click(page,actor(page,name='quick-match'));wait_state(page,lambda s:s['screen']=='OnlineMatchmakingScreen')
+                select(page,'quick-character',character)
+                if boss: select(page,'quick-mode','Hợp tác Boss')
+            quick(host,character='Luca');host.shot('16-quick-character-select.png')
+            click(host,actor(host,name='find-match'))
+            first=wait_state(host,lambda s:s['phase']=='WAITING_FOR_START');states['waiting_first']=first
+            host.shot('17-waiting-for-opponent.png')
+            click(host,actor(host,name='cancel-matchmaking'));wait_state(host,lambda s:not s['phase'])
+            click(host,actor(host,name='find-match'))
+            second=wait_state(host,lambda s:s['phase']=='WAITING_FOR_START');assert second['room']!=first['room']
+            checks.append('Shared quick-match UI selects a character, waits, cancels and searches again')
+            peer=tab(isolated=True);quick(peer,character='Viktor');click(peer,actor(peer,name='find-match'))
+            host.call('Page.bringToFront');time.sleep(.6);peer.call('Page.bringToFront');time.sleep(.6)
+            a=wait_state(host,lambda s:s['screen']=='PlayScreen' and s['players']==2,45)
+            p=wait_state(peer,lambda s:s['screen']=='PlayScreen' and s['players']==2,45)
+            assert a['matchId']==p['matchId'] and a['room']==p['room'] and a['playerId']!=p['playerId']
+            assert a['bossHp']==-1 and p['bossHp']==-1
+            states['quick_pvp']=a;states['quick_pvp_peer']=p;host.shot('18-quick-pvp.png')
+            checks.append('Two independent browser clients automatically enter the same real PvP match without a room code or Ready click')
+            host.press('D',.2);states['quick_pvp_moved']=state(host)
+            esc(host);wait_state(host,lambda s:s['screen']=='OnlineLobbyScreen');esc(peer);wait_state(peer,lambda s:s['screen']=='OnlineLobbyScreen')
+            click(host,actor(host,name='quick-match'));wait_state(host,lambda s:s['screen']=='OnlineMatchmakingScreen')
+            select(host,'quick-mode','Hợp tác Boss');click(host,actor(host,name='find-match'))
+            waiting_boss=wait_state(host,lambda s:s['phase']=='WAITING_FOR_START')
+            click(peer,actor(peer,name='quick-match'));wait_state(peer,lambda s:s['screen']=='OnlineMatchmakingScreen')
+            click(peer,actor(peer,name='find-match'));waiting_pvp=wait_state(peer,lambda s:s['phase']=='WAITING_FOR_START')
+            assert waiting_boss['room']!=waiting_pvp['room'];checks.append('Boss and PvP searches stay in separate queues')
+            click(peer,actor(peer,name='cancel-matchmaking'));wait_state(peer,lambda s:not s['phase'])
+            select(peer,'quick-mode','Hợp tác Boss');select(peer,'quick-character','Leo');click(peer,actor(peer,name='find-match'))
+            host.call('Page.bringToFront');time.sleep(.6);peer.call('Page.bringToFront');time.sleep(.6)
+            a=wait_state(host,lambda s:s['screen']=='PlayScreen' and s['players']==2 and s['bossHp']>0,45)
+            p=wait_state(peer,lambda s:s['screen']=='PlayScreen' and s['players']==2 and s['bossHp']>0,45)
+            assert a['matchId']==p['matchId'];states['quick_boss']=a;states['quick_boss_peer']=p
+            host.shot('19-quick-boss.png');checks.append('Two browser clients automatically start a real cooperative Boss match')
+            esc(host);wait_state(host,lambda s:s['screen']=='OnlineLobbyScreen');esc(peer);wait_state(peer,lambda s:s['screen']=='OnlineLobbyScreen')
+            checks.append('Leaving both quick matches returns to the shared online lobby')
+        elif args.local_only:
             press(host,' ','Space',32)
             wait_state(host,lambda s:s['screen']=='CharacterSelectScreen');host.shot('12-local-character-select.png')
             click(host,actor(host,name='start-local'));wait_state(host,lambda s:s['screen']=='PlayScreen' and s.get('physicsBodies',0)>0)
@@ -174,7 +214,7 @@ def main():
         errors=[e for page in pages for e in page.events if e.get('method')=='Runtime.exceptionThrown']
         server_text=(EVIDENCE/'gateway.log').read_text(encoding='utf-8',errors='replace')
         assert 'Exception' not in server_text and 'SEVERE' not in server_text,server_text[-4000:]
-        checks.append('No server exceptions during match completion and ranking delivery')
+        checks.append('No server exceptions during the browser run')
         failed=[e['params']['response']['url'] for page in pages for e in page.events if e.get('method')=='Network.responseReceived' and e['params']['response']['status']>=400 and 'favicon' not in e['params']['response']['url']]
         assert not errors,errors;assert not failed,failed
         checks.append('No JavaScript exceptions or failed assets')

@@ -68,7 +68,8 @@ public class Game extends com.badlogic.gdx.Game {
 
 	/** UI transfers an already joined connection; no socket connect/write on the render thread. */
 	public void openOnlineLobby(LobbyClient joined) {
-		if (joined.getSnapshot().phase() != LobbyClient.Phase.JOINED) {
+		if (joined.getSnapshot().phase() != LobbyClient.Phase.JOINED
+                && !(joined.isMatchmaking() && joined.getSnapshot().phase()==LobbyClient.Phase.WAITING_FOR_START)) {
 			throw new IllegalArgumentException("The connection must join a room first");
 		}
 		if (lobbyClient != null) { lobbyClient.close(); }

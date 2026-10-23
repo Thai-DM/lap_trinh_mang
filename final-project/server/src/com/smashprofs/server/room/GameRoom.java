@@ -71,6 +71,14 @@ public final class GameRoom {
     private int minimumPlayers = 2;
     private com.smashprofs.common.model.MatchRules rules = com.smashprofs.common.model.MatchRules.LEGACY;
     private PlayerId host;
+    private boolean matchmaking;
+    public synchronized boolean isMatchmaking() { return matchmaking; }
+    /** Casual quick match uses fixed rules and exactly two participants. */
+    public synchronized void configureMatchmaking(PlayerId creator, boolean boss) {
+        if(boss) { configureBoss(creator); } else { configureGameplay(creator,true); }
+        rules=new com.smashprofs.common.model.MatchRules(2,rules.matchSeconds(),rules.lives(),rules.dropRate(),true,true,rules.keepWeaponOnThrow(),boss);
+        matchmaking=true;
+    }
     private long settingsVersion;
     private long rulesVersion;
     public synchronized long getRulesVersion() { return rulesVersion; }
@@ -88,6 +96,7 @@ public final class GameRoom {
         configureGameplay(creator,true);rules=com.smashprofs.common.model.MatchRules.BOSS;
     }
     public synchronized void updateSettings(PlayerId actor,com.smashprofs.common.model.MatchRules next) {
+        if(matchmaking) { throw new SecurityException("Quick match rules are fixed"); }
         if(!rules.gameplay() || !Objects.equals(host,actor) || getPlayerSlot(actor)==null) { throw new SecurityException("Only room host may update settings"); }
         if(closed || phase==RoomPhase.COUNTDOWN || isMatchLocked()) { throw new IllegalStateException("Rules locked"); }
         if(!next.gameplay() || next.fighter()!=rules.fighter() || next.boss()!=rules.boss() || next.maxPlayers()<getPlayerCount() || next.maxPlayers()<minimumPlayers) { throw new IllegalArgumentException("Invalid mode/capacity"); }

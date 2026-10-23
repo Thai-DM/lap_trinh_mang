@@ -12,14 +12,14 @@ public final class ProtocolV1 {
     public static final int VERSION = 1;
     public static final int MAX_PAYLOAD_BYTES = 1_048_576;
     public static final int MAX_FRAME_BYTES = MAX_PAYLOAD_BYTES + 4;
-    public static final Set<MessageType> MVP_TYPES = Set.of(MessageType.CONNECT, MessageType.CONNECT_ACK,
+    public static final Set<MessageType> MVP_TYPES = Set.of(MessageType.CONNECT, MessageType.CONNECT_ACK, MessageType.FIND_MATCH,
             MessageType.CREATE_ROOM, MessageType.ROOM_CREATED, MessageType.JOIN_ROOM, MessageType.ROOM_STATE,
             MessageType.LEAVE_ROOM, MessageType.PLAYER_READY, MessageType.GAME_START, MessageType.PLAYER_INPUT,
             MessageType.GAME_STATE, MessageType.GAME_END, MessageType.ERROR, MessageType.PING, MessageType.PONG,
             MessageType.ROOM_SETTINGS_UPDATE, MessageType.ROOM_SETTINGS_STATE, MessageType.MATCH_EVENT,MessageType.RTT_STATE,
             MessageType.LOAD_READY,MessageType.REMATCH_REQUEST,MessageType.REMATCH_STATE,
             MessageType.GET_LEADERBOARD, MessageType.RANKING_SNAPSHOT, MessageType.RANKING_UPDATED);
-    public static final Set<MessageType> CORRELATED_REQUESTS = Set.of(MessageType.CONNECT, MessageType.CREATE_ROOM,
+    public static final Set<MessageType> CORRELATED_REQUESTS = Set.of(MessageType.CONNECT, MessageType.CREATE_ROOM, MessageType.FIND_MATCH,
             MessageType.JOIN_ROOM, MessageType.LEAVE_ROOM, MessageType.PLAYER_READY, MessageType.PING, MessageType.ROOM_SETTINGS_UPDATE,MessageType.REMATCH_REQUEST,
             MessageType.GET_LEADERBOARD);
     private ProtocolV1() { }

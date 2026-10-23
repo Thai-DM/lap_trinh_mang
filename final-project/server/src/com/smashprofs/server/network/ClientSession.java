@@ -25,7 +25,7 @@ public final class ClientSession {
     private int rateViolations;
     boolean allowRequest(com.smashprofs.common.protocol.MessageType type) {
         boolean allowed=type==com.smashprofs.common.protocol.MessageType.PLAYER_INPUT?inputRate.allow(1):controlRate.allow(1);
-        if(allowed && type==com.smashprofs.common.protocol.MessageType.CREATE_ROOM) { allowed=createRate.allow(1); }
+        if(allowed && (type==com.smashprofs.common.protocol.MessageType.CREATE_ROOM || type==com.smashprofs.common.protocol.MessageType.FIND_MATCH)) { allowed=createRate.allow(1); }
         if(!allowed) { rateViolations++; } return allowed;
     }
     boolean rateLimitExceededRepeatedly() { return rateViolations>=8; }

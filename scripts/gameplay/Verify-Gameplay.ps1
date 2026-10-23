@@ -1,5 +1,6 @@
 param([string]$JavaHome='E:\2026-2\lap-trinh-mang\baitap')
 $server=@(
+    'com.smashprofs.server.network.MatchmakingTcpTest',
     'com.smashprofs.server.cluster.StandaloneDeploymentTest',
     'com.smashprofs.server.game.BossModeTest',
     'com.smashprofs.server.game.BossRankingIntegrationTest',
@@ -38,6 +39,7 @@ $server=@(
     'com.smashprofs.server.cluster.WorkerMetricsFreshnessTest'
 )
 $client=@(
+    'com.smashprofs.tests.network.MatchmakingClientTest',
     'com.smashprofs.game.network.client.JumpBindingsTest',
     'com.smashprofs.server.game.BossTcpIntegrationTest',
     'com.smashprofs.game.network.client.FighterClientTest',

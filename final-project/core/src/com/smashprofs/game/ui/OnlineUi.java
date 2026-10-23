@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.Batch;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.scenes.scene2d.*;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.*;
@@ -151,6 +152,10 @@ public final class OnlineUi implements AutoCloseable {
             setColor(mainColor.r, mainColor.g, mainColor.b, mainColor.a * parentAlpha);
             super.draw(batch, parentAlpha);
         }
+    }
+    public static void fit(Label l, float maxW) {
+        var gl = new GlyphLayout(l.getStyle().font, l.getText());
+        l.setFontScale(gl.width > maxW ? Math.max(.7f, maxW / gl.width) : 1f);
     }
     public static ChangeListener action(Runnable run) { return new ChangeListener() {
         @Override public void changed(ChangeEvent event,Actor actor) { run.run(); }

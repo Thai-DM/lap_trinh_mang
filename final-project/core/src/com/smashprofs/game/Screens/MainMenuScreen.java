@@ -194,7 +194,9 @@ public class MainMenuScreen implements Screen {
         menuCard.add(localBtn).size(420, 44);
         menuCard.row();
         var localHint = ui.small("2 người chơi đối kháng trên cùng một bàn phím", Color.valueOf("FFE8A3"));
-        menuCard.add(localHint).center().padTop(2).padBottom(6);
+        localHint.setWrap(true);
+        localHint.setAlignment(Align.center);
+        menuCard.add(localHint).width(420).center().padTop(2).padBottom(6);
         menuCard.row();
 
         // Button 2: Chơi Online
@@ -204,8 +206,10 @@ public class MainMenuScreen implements Screen {
         });
         menuCard.add(onlineBtn).size(420, 44);
         menuCard.row();
-        var onlineHint = ui.small("Sảnh đấu trực tuyến qua mạng LAN / Internet (2-4 người)", Color.valueOf("94FFE5"));
-        menuCard.add(onlineHint).center().padTop(2).padBottom(6);
+        var onlineHint = ui.small("Đấu trực tuyến qua mạng LAN / Internet (2-4 người)", Color.valueOf("94FFE5"));
+        onlineHint.setWrap(true);
+        onlineHint.setAlignment(Align.center);
+        menuCard.add(onlineHint).width(420).center().padTop(2).padBottom(6);
         menuCard.row();
 
         // Button 3: Bảng Xếp Hạng
@@ -216,7 +220,9 @@ public class MainMenuScreen implements Screen {
         menuCard.add(rankBtn).size(420, 44);
         menuCard.row();
         var rankHint = ui.small("Top cao thủ, điểm Elo và lịch sử tỉ lệ thắng", Color.valueOf("FFE8A3"));
-        menuCard.add(rankHint).center().padTop(2).padBottom(6);
+        rankHint.setWrap(true);
+        rankHint.setAlignment(Align.center);
+        menuCard.add(rankHint).width(420).center().padTop(2).padBottom(6);
         menuCard.row();
 
         // Button 4: Cài đặt phím
@@ -354,7 +360,7 @@ public class MainMenuScreen implements Screen {
             playSound();
             openProfile();
         });
-        badge.add(btn).size(105, 34);
+        badge.add(btn).minWidth(125).height(34);
 
         return badge;
     }
@@ -568,6 +574,7 @@ public class MainMenuScreen implements Screen {
             } else {
                 btn.setText("[ " + KeyBindingConfig.keyName(cfg.getKey(action)) + " ]");
             }
+            OnlineUi.fit(btn.getLabel(), 106);
         }
     }
 
@@ -619,7 +626,7 @@ public class MainMenuScreen implements Screen {
                 refreshKeyButtons();
             });
             actionButtons.put(actionLeft, btnLeft);
-            grid.add(btnLeft).width(125).height(38).padRight(28);
+            grid.add(btnLeft).minWidth(125).height(38).padRight(28);
 
             // Col 2 (right)
             if (i + half < actions.length) {
@@ -634,7 +641,7 @@ public class MainMenuScreen implements Screen {
                     refreshKeyButtons();
                 });
                 actionButtons.put(actionRight, btnRight);
-                grid.add(btnRight).width(125).height(38);
+                grid.add(btnRight).minWidth(125).height(38);
             }
             grid.row().padTop(6);
         }
@@ -664,9 +671,9 @@ public class MainMenuScreen implements Screen {
             closeSettings();
         });
 
-        footer.add(wasdBtn).width(180).height(42).padRight(12);
-        footer.add(arrowsBtn).width(160).height(42).padRight(12);
-        footer.add(saveBtn).width(180).height(42);
+        footer.add(wasdBtn).minWidth(180).height(42).padRight(12);
+        footer.add(arrowsBtn).minWidth(160).height(42).padRight(12);
+        footer.add(saveBtn).minWidth(180).height(42);
         dialog.add(footer).center().padTop(4);
 
         overlay.add(dialog).center();

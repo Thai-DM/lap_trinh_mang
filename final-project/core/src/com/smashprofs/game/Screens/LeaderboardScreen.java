@@ -126,7 +126,7 @@ public class LeaderboardScreen implements Screen {
         var barRow1 = new Table();
 
         var backBtn = ui.comicButton("< QUAY LẠI  [ESC]", "comic-white", this::goBack);
-        barRow1.add(backBtn).size(150, 36).left();
+        barRow1.add(backBtn).minWidth(205).height(36).left();
 
         var myProf = com.smashprofs.game.profile.PlayerProfile.get();
         var profBadge = new Table();
@@ -138,7 +138,7 @@ public class LeaderboardScreen implements Screen {
         barRow1.add(profBadge).expandX().center();
 
         var refreshBtn = ui.comicButton("LÀM MỚI  [F5]", "comic-primary", this::fetchLeaderboard);
-        barRow1.add(refreshBtn).size(140, 36).right();
+        barRow1.add(refreshBtn).minWidth(170).height(36).right();
 
         controlBar.add(barRow1).growX().padBottom(6);
         controlBar.row();
@@ -376,7 +376,9 @@ public class LeaderboardScreen implements Screen {
 
             var nameRow = new Table();
             nameRow.left();
-            nameRow.add(ui.small(displayName.toUpperCase(Locale.ROOT), (rank == 1) ? OnlineUi.BRAWL_GOLD : (isMe ? Color.valueOf("35F3B7") : Color.WHITE))).left();
+            var nameLabel = ui.small(displayName.toUpperCase(Locale.ROOT), (rank == 1) ? OnlineUi.BRAWL_GOLD : (isMe ? Color.valueOf("35F3B7") : Color.WHITE));
+            nameLabel.setEllipsis(true);
+            nameRow.add(nameLabel).width(isMe ? 220 : 280).left();
             if (isMe) {
                 var meBadge = new Table();
                 meBadge.setBackground(ui.comicBox(Color.valueOf("00FFA2"), OnlineUi.BRAWL_BORDER, 1.5f, 0, 0));
@@ -386,7 +388,9 @@ public class LeaderboardScreen implements Screen {
             }
             nameTable.add(nameRow).left();
             nameTable.row();
-            nameTable.add(ui.small("ID: " + entry.playerId().value(), isMe ? OnlineUi.BRAWL_GOLD : Color.valueOf("6E8BAA"))).left();
+            var idLabel = ui.small("ID: " + entry.playerId().value(), isMe ? OnlineUi.BRAWL_GOLD : Color.valueOf("6E8BAA"));
+            idLabel.setEllipsis(true);
+            nameTable.add(idLabel).width(280).left();
             playerCol.add(nameTable).left().expandX();
 
             row.add(playerCol).width(340).left().padLeft(12);

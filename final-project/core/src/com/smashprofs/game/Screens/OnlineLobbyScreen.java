@@ -93,6 +93,7 @@ public final class OnlineLobbyScreen implements Screen {
 
         status = ui.small("Mở server trước, sau đó tạo phòng hoặc nhập mã để chơi cùng bạn bè.", Color.WHITE);
         serverBadge = ui.small("127.0.0.1:54555", OnlineUi.BRAWL_CYAN);
+        serverBadge.setEllipsis(true);
 
         // --- Root Layout ---
         var root = new Table();
@@ -249,7 +250,7 @@ public final class OnlineLobbyScreen implements Screen {
         pingBadge.setBackground(ui.comicBox(Color.valueOf("051426"), OnlineUi.BRAWL_BORDER, 2, 1, 1));
         pingBadge.pad(4, 10, 4, 10);
         pingBadge.add(ui.small("MÁY CHỦ: ", Color.valueOf("94B8E6"))).padRight(4);
-        pingBadge.add(serverBadge);
+        pingBadge.add(serverBadge).width(288);
         c3Bottom.add(pingBadge).growX().height(38);
         c3Bottom.row();
 

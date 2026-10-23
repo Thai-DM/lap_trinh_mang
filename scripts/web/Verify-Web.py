@@ -50,11 +50,12 @@ def select(page,name,text):
 
 def main():
     global EVIDENCE
-    parser=argparse.ArgumentParser();parser.add_argument('--boot-only',action='store_true');parser.add_argument('--local-only',action='store_true');parser.add_argument('--pvp',action='store_true');parser.add_argument('--matchmaking',action='store_true');parser.add_argument('--lobby-layout',action='store_true');args=parser.parse_args()
+    parser=argparse.ArgumentParser();parser.add_argument('--boot-only',action='store_true');parser.add_argument('--local-only',action='store_true');parser.add_argument('--pvp',action='store_true');parser.add_argument('--matchmaking',action='store_true');parser.add_argument('--lobby-layout',action='store_true');parser.add_argument('--ranking-profile',action='store_true');args=parser.parse_args()
     if args.local_only: EVIDENCE=ROOT/'docs/gameplay/runs/20261023-web-local'
     if args.pvp: EVIDENCE=ROOT/'docs/gameplay/runs/20261023-web-pvp'
     if args.matchmaking: EVIDENCE=ROOT/'docs/gameplay/runs/20261023-web-matchmaking'
     if args.lobby_layout: EVIDENCE=ROOT/'docs/gameplay/runs/20261023-online-lobby-layout'
+    if args.ranking_profile: EVIDENCE=ROOT/'docs/gameplay/runs/20261023-ranking-profile'
     EVIDENCE.mkdir(parents=True,exist_ok=True);b.EVIDENCE=EVIDENCE
     run=ROOT/'final-project/build'/('web-verify-'+str(int(time.time()*1000)));run.mkdir(parents=True)
     profile=run/'edge';profile.mkdir()
@@ -62,6 +63,16 @@ def main():
     lib=ROOT/'final-project/web/build/gateway/lib'
     server=ThreadingHTTPServer(('127.0.0.1',0),partial(b.QuietHandler,directory=str(WEB)));Thread(target=server.serve_forever,daemon=True).start()
     gateway_log=(EVIDENCE/'gateway.log').open('w',encoding='utf-8')
+    if args.ranking_profile:
+        # Test-only existing database, including a legacy UUID and a maximal Vietnamese name.
+        with sqlite3.connect(run/'ranking.db') as db:
+            db.execute('CREATE TABLE players(profile_id TEXT PRIMARY KEY,rating REAL NOT NULL,wins INTEGER NOT NULL,losses INTEGER NOT NULL,draws INTEGER NOT NULL,total_matches INTEGER NOT NULL)')
+            db.execute('CREATE TABLE guest_profiles(profile_id TEXT PRIMARY KEY,token_hash TEXT NOT NULL UNIQUE,display_name TEXT NOT NULL)')
+            for i in range(14):
+                identity=f'guest_00000000-0000-4000-a000-{i:012d}' if i else 'acb416da-3b8f-4c28-a42e-0c6b555e08f8'
+                db.execute('INSERT INTO players VALUES(?,?,?,?,?,?)',(identity,2000-i*16,10,5,0,15))
+                if i:
+                    db.execute('INSERT INTO guest_profiles VALUES(?,?,?)',(identity,f'{i:064x}',('Nguyễn Hoàng Chiến Binh Đấu Trường Việt Nam '*2)[:64] if i==1 else f'Chiến binh {i}'))
     gateway=subprocess.Popen([str(java),'-Xmx192m','-Dfile.encoding=UTF-8',f'-Dweb.origins=http://127.0.0.1:{server.server_port}','-cp',str(lib/'*'),'com.smashprofs.web.GameGateway','0',str(run/'ranking.db')],cwd=ROOT,stdout=gateway_log,stderr=subprocess.STDOUT)
     browser_log=(EVIDENCE/'browser.stderr.log').open('w',encoding='utf-8')
     browser=subprocess.Popen([str(b.EDGE),'--headless=new','--no-first-run','--no-default-browser-check','--disable-background-networking',
@@ -176,6 +187,48 @@ def main():
             host.shot('19-quick-boss.png');checks.append('Two browser clients automatically start a real cooperative Boss match')
             esc(host);wait_state(host,lambda s:s['screen']=='OnlineLobbyScreen');esc(peer);wait_state(peer,lambda s:s['screen']=='OnlineLobbyScreen')
             checks.append('Leaving both quick matches returns to the shared online lobby')
+        elif args.ranking_profile:
+            import re
+            def guest_id(page):
+                return page.evaluate("(()=>{let m=Object.values(localStorage).join(' ').match(/guest_[0-9a-f-]{36}/);return m?m[0]:null})()")
+            def open_ranking(page):
+                page.press('B');wait_state(page,lambda s:s['screen']=='LeaderboardScreen')
+                wait_state(page,lambda s:any(a.get('name')=='ranking-status' and a['text'].startswith('Đã cập nhật') for a in s['ui']))
+                return guest_id(page)
+            original=open_ranking(host);assert original and re.fullmatch(r'guest_[0-9a-f-]{36}',original)
+            assert any(a['text']=='BẢNG XẾP HẠNG' for a in state(host)['ui'])
+            assert 'Khách' in actor(host,name='ranking-name-1')['text']
+            assert 'Nguyễn' in actor(host,name='ranking-name-2')['text']
+            for width,height in [(1280,720),(960,540),(1024,768)]:
+                host.call('Emulation.setDeviceMetricsOverride',dict(width=width,height=height,deviceScaleFactor=1,mobile=False));time.sleep(.4)
+                scale=min(width/1280,height/720)
+                name=actor(host,name='ranking-name-2');elo=actor(host,name='ranking-elo-2')
+                assert name['x']+name['width']*scale/2<=elo['x']-elo['width']*scale/2+1,(name,elo)
+                for control_name in ['ranking-back','ranking-refresh','ranking-profile','ranking-endpoint','ranking-server-settings']:
+                    a=actor(host,name=control_name)
+                    assert a['x']-a['width']*scale/2>=-1 and a['x']+a['width']*scale/2<=width+1,(control_name,a)
+                first=actor(host,name='ranking-row-1');viewport=actor(host,name='ranking-scroll')
+                assert first['y']<viewport['y'],'Rows must start at the top instead of the middle'
+                host.shot(f'30-ranking-{width}x{height}.png');states[f'ranking_{width}']=state(host)
+            checks.append('Vietnamese long names and legacy UUIDs stay inside aligned columns at three viewport sizes; list starts at top')
+            host.call('Emulation.setDeviceMetricsOverride',dict(width=1280,height=720,deviceScaleFactor=1,mobile=False))
+            scroll=actor(host,name='ranking-scroll');before=actor(host,name='ranking-row-1')['y']
+            host.call('Input.dispatchMouseEvent',dict(type='mouseMoved',x=scroll['x'],y=scroll['y']))
+            host.call('Input.dispatchMouseEvent',dict(type='mouseWheel',x=scroll['x'],y=scroll['y'],deltaX=0,deltaY=700));time.sleep(.6)
+            assert actor(host,name='ranking-row-1')['y']<before-10,'Mouse wheel must actually scroll the result rows'
+            host.shot('31-ranking-scrolled.png');checks.append('Leaderboard with fourteen entries scrolls inside its card')
+            click(host,actor(host,name='ranking-refresh'));wait_state(host,lambda s:any(a.get('name')=='ranking-status' and a['text'].startswith('Đã cập nhật') for a in s['ui']))
+            assert guest_id(host)==original
+            host.call('Page.reload');wait_state(host,lambda s:s['screen']=='MainMenuScreen',45)
+            assert open_ranking(host)==original;checks.append('Refreshing ranking and reloading the page preserve the authenticated guest profile')
+            same=tab();assert open_ranking(same)==original;checks.append('A new tab in the same browser reuses the same guest profile')
+            isolated=tab(isolated=True);assert open_ranking(isolated)!=original;checks.append('An isolated browser gets a separate guest identity')
+            with sqlite3.connect((run/'ranking.db').as_uri()+'?mode=ro',uri=True) as db:
+                assert db.execute('SELECT count(*) FROM guest_profiles WHERE profile_id=?',(original,)).fetchone()[0]==1
+                assert db.execute('SELECT count(*) FROM ranking_sessions WHERE profile_id=?',(original,)).fetchone()[0]>=4
+                assert db.execute('SELECT count(*) FROM players').fetchone()[0]==14
+            checks.append('Repeated ranking connections bind to one SQLite guest profile without creating fake ranking entries')
+            states['guest_profile_id']=original
         elif args.local_only:
             press(host,' ','Space',32)
             wait_state(host,lambda s:s['screen']=='CharacterSelectScreen');host.shot('12-local-character-select.png')
@@ -190,13 +243,13 @@ def main():
             host.press('C');host.shot('02-keybindings.png');esc(host);checks.append('Shared keybinding settings open and close')
             host.press('P');host.shot('03-profile.png')
             fields=[a for a in state(host)['ui'] if a['type']=='TextField']
-            fill(host,next(a for a in fields if not a['text'].startswith('player_')),'TeaVM Host')
+            fill(host,actor(host,name='profile-display-name'),'TeaVM Host')
             click(host,actor(host,text='LƯU HỒ SƠ',kind='TextButton'))
             host.call('Page.navigate',dict(url=base));wait_state(host,lambda s:s['screen']=='MainMenuScreen',45)
             assert any(a['text']=='TeaVM Host' for a in state(host)['ui'])
             checks.append('Shared profile saves to browser storage and survives a page reload')
             host.press('B');wait_state(host,lambda s:s['screen']=='LeaderboardScreen')
-            wait_state(host,lambda s:any('Server' in a['text'] and ('trống' in a['text'] or 'thành công' in a['text']) for a in s['ui']),20)
+            wait_state(host,lambda s:any(a.get('name')=='ranking-status' and ('Chưa có' in a['text'] or 'Đã cập nhật' in a['text']) for a in s['ui']),20)
             host.shot('04-leaderboard.png');checks.append('Real GET_LEADERBOARD through WebSocket and SQLite ranking service');esc(host)
             host.press('O');wait_state(host,lambda s:s['screen']=='OnlineLobbyScreen');host.shot('05-online-lobby.png')
             if not args.pvp: select(host,'game-mode','Hợp tác đánh Boss')
@@ -230,7 +283,9 @@ def main():
             press(host,' ','Space',32,.15)
             jumped=wait_state(host,lambda s:s.get('jumpInputs',0)>0 and s.get('jumpRise',0)>.03,10);states['jumped']=jumped
             checks.append('Space jumps using latest dev bindings, observed in authoritative snapshots')
-            origin=state(host)['x'];host.press('D',.15);time.sleep(.2);moved=state(host);assert abs(moved['x']-origin)>.02,(origin,moved)
+            origin=state(host)['x'];host.key('D',True)
+            try: moved=wait_state(host,lambda s:s['screen']=='PlayScreen' and abs(s['x']-origin)>.05,8)
+            finally: host.key('D',False)
             states['moved']=moved;checks.append('Real A/D input with shared prediction and server snapshots')
             press(host,'Tab','Tab',9);host.shot('10-inventory.png');press(host,'Tab','Tab',9);checks.append('Shared HUD/inventory renders')
             host.press('H');host.shot('11-controls-help.png');host.press('H')
@@ -254,6 +309,17 @@ def main():
             states['ranking_records']=records
             checks.append('Completed match persists once into SQLite; co-op keeps competitive Elo unchanged')
             esc(host);wait_state(host,lambda s:s['screen']=='OnlineLobbyScreen');checks.append('Leave match closes connection and returns to shared lobby')
+            click(host,actor(host,name='leaderboard'));wait_state(host,lambda s:s['screen']=='LeaderboardScreen')
+            wait_state(host,lambda s:any(a.get('name')=='ranking-status' and a['text'].startswith('Đã cập nhật') for a in s['ui']))
+            assert any((a.get('name') or '').startswith('ranking-name-') and a['text']=='BẠN · TeaVM Host' for a in state(host)['ui'])
+            persistent_id=host.evaluate("Object.values(localStorage).join(' ').match(/guest_[0-9a-f-]{36}/)[0]")
+            assert persistent_id in [row[0] for row in records]
+            host.shot('16-persistent-ranking.png');states['persistent_profile_id']=persistent_id
+            host.call('Page.reload');wait_state(host,lambda s:s['screen']=='MainMenuScreen',45)
+            host.press('B');wait_state(host,lambda s:s['screen']=='LeaderboardScreen')
+            wait_state(host,lambda s:any((a.get('name') or '').startswith('ranking-name-') and a['text']=='BẠN · TeaVM Host' for a in s['ui']))
+            assert host.evaluate("Object.values(localStorage).join(' ').match(/guest_[0-9a-f-]{36}/)[0]")==persistent_id
+            checks.append('A real finished match credits the persistent guest, and reloading highlights the same named ranking entry')
         errors=[e for page in pages for e in page.events if e.get('method')=='Runtime.exceptionThrown']
         server_text=(EVIDENCE/'gateway.log').read_text(encoding='utf-8',errors='replace')
         assert 'Exception' not in server_text and 'SEVERE' not in server_text,server_text[-4000:]

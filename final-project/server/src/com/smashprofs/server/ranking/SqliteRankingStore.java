@@ -77,7 +77,61 @@ public class SqliteRankingStore implements RankingStore, AutoCloseable {
             stmt.execute("""
                 CREATE INDEX IF NOT EXISTS idx_players_rating ON players (rating DESC);
             """);
+            stmt.execute("""
+                CREATE TABLE IF NOT EXISTS guest_profiles (
+                    profile_id TEXT PRIMARY KEY,
+                    token_hash TEXT NOT NULL UNIQUE,
+                    display_name TEXT NOT NULL
+                )
+            """);
+            // Keep the authenticated binding beyond socket closure and server restart:
+            // a disconnected participant can still finish a queued authoritative match.
+            stmt.execute("""
+                CREATE TABLE IF NOT EXISTS ranking_sessions (
+                    session_player_id TEXT PRIMARY KEY,
+                    profile_id TEXT NOT NULL
+                )
+            """);
         }
+    }
+
+    @Override public synchronized GuestIdentity connectGuest(String token,String name,String sessionId) {
+        try {
+            GuestIdentity identity;
+            if(token==null) {
+                identity=GuestIdentity.create();
+                try(var stmt=connection.prepareStatement("INSERT INTO guest_profiles VALUES (?, ?, ?)")) {
+                    stmt.setString(1,identity.profileId());stmt.setString(2,GuestIdentity.hash(identity.token()));stmt.setString(3,name);stmt.executeUpdate();
+                }
+            } else {
+                try(var stmt=connection.prepareStatement("SELECT profile_id FROM guest_profiles WHERE token_hash=?")) {
+                    stmt.setString(1,GuestIdentity.hash(token));
+                    try(var rows=stmt.executeQuery()) {
+                        if(!rows.next()) { throw new IllegalArgumentException("Unknown guest credential"); }
+                        identity=new GuestIdentity(rows.getString(1),token);
+                    }
+                }
+                try(var stmt=connection.prepareStatement("UPDATE guest_profiles SET display_name=? WHERE profile_id=?")) {
+                    stmt.setString(1,name);stmt.setString(2,identity.profileId());stmt.executeUpdate();
+                }
+            }
+            try(var stmt=connection.prepareStatement("INSERT INTO ranking_sessions VALUES (?, ?) ON CONFLICT(session_player_id) DO UPDATE SET profile_id=excluded.profile_id")) {
+                stmt.setString(1,sessionId);stmt.setString(2,identity.profileId());stmt.executeUpdate();
+            }
+            return identity;
+        } catch(SQLException failure) { throw new IllegalStateException("Guest profile storage unavailable",failure); }
+    }
+    @Override public synchronized String rankingProfile(String sessionId) {
+        try(var stmt=connection.prepareStatement("SELECT profile_id FROM ranking_sessions WHERE session_player_id=?")) {
+            stmt.setString(1,sessionId);
+            try(var rows=stmt.executeQuery()) { return rows.next()?rows.getString(1):sessionId; }
+        } catch(SQLException failure) { throw new IllegalStateException("Guest profile storage unavailable",failure); }
+    }
+    @Override public synchronized String displayName(String profileId) {
+        try(var stmt=connection.prepareStatement("SELECT display_name FROM guest_profiles WHERE profile_id=?")) {
+            stmt.setString(1,profileId);
+            try(var rows=stmt.executeQuery()) { return rows.next()?rows.getString(1):profileId; }
+        } catch(SQLException failure) { throw new IllegalStateException("Guest profile storage unavailable",failure); }
     }
 
     @Override

@@ -79,11 +79,18 @@ final class ProtocolV1Dispatcher {
         ObjectNode payload = message.payload();
         if (message.type() == MessageType.CONNECT) {
             if (admission == null) {
-                ProtocolV1.fields(payload, requestId, "gameplay", "profileId", "displayName");
+                ProtocolV1.fields(payload, requestId, "gameplay", "profileId", "displayName", "guestProfile", "profileToken");
             }
-            if (payload.has("profileId") || payload.has("displayName")) {
+            if (session.getPlayerId()==null && (payload.has("profileId") || payload.has("displayName"))) {
                 var profile = RankingProtocol.parseConnectProfile(payload, requestId);
                 session.setProfile(profile.profileId(), profile.displayName());
+            }
+            boolean guest=payload.has("guestProfile") && ProtocolV1.bool(payload,"guestProfile",requestId);
+            if(payload.has("profileToken") && (!guest || !payload.path("profileToken").isTextual()
+                    || !payload.path("profileToken").asText().matches("[0-9a-f]{64}"))) { throw ProtocolV1.invalid(requestId); }
+            if(guest && (admission!=null || rankingService==null)) {
+                if(payload.has("profileToken")) { throw error("GUEST_PROFILE_UNAVAILABLE",requestId); }
+                guest=false;
             }
             if(payload.has("gameplay")) {
                 String cap = payload.path("gameplay").asText();
@@ -93,10 +100,23 @@ final class ProtocolV1Dispatcher {
                 else { throw ProtocolV1.invalid(requestId); }
             }
             // CONNECT lặp giữ nguyên ID; không lấy PlayerId/IP/port từ client.
-            if (admission != null) { session.bindPlayer(admission.connect(session, message)); }
-            else if (session.getPlayerId() == null) { session.bindPlayer(new PlayerId(UUID.randomUUID().toString())); }
-            return new ProtocolMessage(MessageType.CONNECT_ACK, requestId,
-                    ProtocolV1.object().put("playerId", session.getPlayerId().value()));
+            PlayerId player=admission!=null?admission.connect(session,message):session.getPlayerId();
+            if(player==null) { player=new PlayerId(UUID.randomUUID().toString()); }
+            var ack=ProtocolV1.object().put("playerId",player.value());
+            if(guest) {
+                if(session.getGuestIdentity()==null) {
+                    if(session.getPlayerId()!=null) { throw error("INVALID_SESSION",requestId); }
+                    String name=session.getDisplayName()==null?"Chiến binh":session.getDisplayName();
+                    try {
+                        var identity=rankingService.getStore().connectGuest(payload.has("profileToken")?payload.path("profileToken").asText():null,
+                                name,player.value());
+                        session.setGuestIdentity(identity);session.setProfile(identity.profileId(),name);
+                    } catch(IllegalArgumentException invalid) { throw error("INVALID_PROFILE_TOKEN",requestId); }
+                }
+                ack.put("profileId",session.getGuestIdentity().profileId()).put("profileToken",session.getGuestIdentity().token());
+            }
+            session.bindPlayer(player);
+            return new ProtocolMessage(MessageType.CONNECT_ACK, requestId,ack);
         }
         if (session.getPlayerId() == null) { throw error("INVALID_SESSION", requestId); }
         if (admission != null) { admission.authorize(session, message); }

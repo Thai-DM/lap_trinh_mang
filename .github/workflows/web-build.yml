@@ -26,7 +26,7 @@ jobs:
           java-version: '17'
       - name: Build authoritative Java server
         working-directory: final-project
-        run: bash ./gradlew :server:test --tests com.smashprofs.server.game.BossRankingIntegrationTest --tests com.smashprofs.server.game.BossTargetingTest --tests com.smashprofs.server.network.MatchmakingTcpTest :server:installCluster --no-daemon '-Dorg.gradle.jvmargs=-Xmx512m'
+        run: bash ./gradlew :server:test --tests com.smashprofs.server.ranking.GuestProfileTest --tests com.smashprofs.server.ranking.RankingEndToEndTcpTest --tests com.smashprofs.server.game.BossRankingIntegrationTest --tests com.smashprofs.server.game.BossTargetingTest --tests com.smashprofs.server.network.MatchmakingTcpTest :server:installCluster --no-daemon '-Dorg.gradle.jvmargs=-Xmx512m'
       - name: Validate and compile shared client to JavaScript
         working-directory: final-project
         run: bash ./gradlew -p web test buildWeb prepareGateway --no-daemon '-Dorg.gradle.jvmargs=-Xmx512m'

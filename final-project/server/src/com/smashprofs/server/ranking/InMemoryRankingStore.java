@@ -22,6 +22,21 @@ public final class InMemoryRankingStore implements RankingStore {
 
     /** Tập hợp các matchId đã được xử lý để chống trùng. */
     private final Set<String> processedMatches = ConcurrentHashMap.newKeySet();
+    private final Map<String,String> credentials=new ConcurrentHashMap<>(),names=new ConcurrentHashMap<>(),sessions=new ConcurrentHashMap<>();
+
+    @Override public synchronized GuestIdentity connectGuest(String token,String name,String sessionId) {
+        GuestIdentity identity;
+        if(token==null) {
+            identity=GuestIdentity.create();credentials.put(GuestIdentity.hash(identity.token()),identity.profileId());
+        } else {
+            String id=credentials.get(GuestIdentity.hash(token));
+            if(id==null) { throw new IllegalArgumentException("Unknown guest credential"); }
+            identity=new GuestIdentity(id,token);
+        }
+        names.put(identity.profileId(),name);sessions.put(sessionId,identity.profileId());return identity;
+    }
+    @Override public String rankingProfile(String sessionId) { return sessions.getOrDefault(sessionId,sessionId); }
+    @Override public String displayName(String profileId) { return names.getOrDefault(profileId,profileId); }
 
     /**
      * {@inheritDoc}

@@ -37,6 +37,9 @@ public final class ClientSession {
     private volatile String roomId;
     private volatile String profileId;
     private volatile String displayName;
+    private com.smashprofs.server.ranking.GuestIdentity guestIdentity;
+    synchronized com.smashprofs.server.ranking.GuestIdentity getGuestIdentity() { return guestIdentity; }
+    synchronized void setGuestIdentity(com.smashprofs.server.ranking.GuestIdentity value) { guestIdentity=value; }
     private volatile boolean connected = true;
 
     public ClientSession(String sessionId, SessionChannel channel) {

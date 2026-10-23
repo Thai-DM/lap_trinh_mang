@@ -79,6 +79,11 @@ public class RankingService implements RankingGateway {
 
         lock.lock();
         try {
+            result=resolveProfiles(result);
+            // Several tabs using one guest profile must never produce self-ranked Elo.
+            if(result.participants().stream().map(p->p.playerId()).distinct().count()!=result.participants().size()) {
+                LOGGER.warning("Ignoring match between duplicate guest profiles");return;
+            }
             // Đọc hồ sơ hiện tại của các người chơi tham gia từ store
             Map<String, PlayerRecord> currentRecords = new HashMap<>();
             for (AuthoritativeMatchResult.ParticipantResult p : result.participants()) {
@@ -179,7 +184,15 @@ public class RankingService implements RankingGateway {
      * @return danh sách RankingEntry bất biến
      */
     public List<RankingEntry> getLeaderboardEntries() {
-        return toRankingEntries(getLeaderboard());
+        return toRankingEntries(getLeaderboard()).stream().map(e->new RankingEntry(e.rank(),e.playerId(),
+                store.displayName(e.playerId().value()),e.wins(),e.losses(),e.totalMatches(),e.winRate(),e.rating())).toList();
+    }
+
+    private AuthoritativeMatchResult resolveProfiles(AuthoritativeMatchResult result) {
+        var participants=result.participants().stream().map(p->new AuthoritativeMatchResult.ParticipantResult(
+                new PlayerId(store.rankingProfile(p.playerId().value())),p.slotIndex(),p.characterId(),p.finalHp(),p.eliminated())).toList();
+        PlayerId winner=result.winnerId()==null?null:new PlayerId(store.rankingProfile(result.winnerId().value()));
+        return new AuthoritativeMatchResult(result.matchId(),result.roomId(),result.finishedAtTick(),winner,result.finishReason(),participants,result.gameplay());
     }
 
     /**

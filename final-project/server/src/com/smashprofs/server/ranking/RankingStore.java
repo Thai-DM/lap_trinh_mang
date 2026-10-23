@@ -15,6 +15,13 @@ import java.util.Optional;
  */
 public interface RankingStore extends AutoCloseable {
 
+    /** Optional guest persistence; legacy ranking stores can remain read/result-only. */
+    default GuestIdentity connectGuest(String token,String displayName,String sessionPlayerId) {
+        throw new UnsupportedOperationException("Guest profiles unavailable");
+    }
+    default String rankingProfile(String sessionPlayerId) { return sessionPlayerId; }
+    default String displayName(String profileId) { return profileId; }
+
     /**
      * Trạng thái kết quả sau khi lưu một trận đấu.
      */

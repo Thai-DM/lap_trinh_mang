@@ -1,0 +1,10 @@
+﻿{
+    "date":  "2026-10-23T17:25:42.4106245+07:00",
+    "status":  "PASS",
+    "label":  "final-guest-profile",
+    "heapMiB":  128,
+    "suites":  [
+                   "com.smashprofs.server.ranking.GuestProfileTest",
+                   "com.smashprofs.game.profile.PlayerProfilePersistenceTest"
+               ]
+}

@@ -62,6 +62,7 @@ public class NetworkClient {
         if(connected.get() || mockProtocol) { throw new IllegalStateException("Set profile before connecting"); }
         if(profileId!=null && !profileId.isBlank()) { connectPayload.put("profileId",profileId); }
         if(name!=null && !name.isBlank()) { connectPayload.put("displayName",name); }
+        if(com.smashprofs.game.profile.PlayerProfile.hasInstance()) { com.smashprofs.game.profile.PlayerProfile.get().prepareConnection(connectPayload,host,port); }
     }
     public synchronized void enableGameplay() {
         if(connected.get() || mockProtocol) { throw new IllegalStateException("Negotiate before connecting"); }
@@ -324,12 +325,14 @@ public class NetworkClient {
         if (message.type() == MessageType.CONNECT_ACK) {
             var payload = message.payload();
             var id = payload.get("playerId");
-            if (message.requestId() == null || payload.size() != 1 || id == null || !id.isTextual() || id.textValue().isBlank()
+            boolean guest=connectPayload.path("guestProfile").asBoolean(false);
+            if (message.requestId() == null || (payload.size()!=1 && !(guest && payload.size()==3)) || id == null || !id.isTextual() || id.textValue().isBlank()
                     || (playerId == null && !connectRequestId.equals(message.requestId()))
                     || (playerId != null && !playerId.value().equals(id.textValue()))) {
                 throw new IOException("Invalid CONNECT_ACK identity or correlation");
             }
             if (playerId == null) {
+                if(guest && payload.size()==3) { com.smashprofs.game.profile.PlayerProfile.get().acceptConnection(payload,host,port); }
                 playerId = new PlayerId(id.textValue());
                 socket.setSoTimeout(0); // Idle connections remain alive through server PING/PONG.
                 handshakeCompleted = true;

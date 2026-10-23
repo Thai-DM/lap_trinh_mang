@@ -344,7 +344,7 @@ public class MainMenuScreen implements Screen {
 
         var textCol = new Table();
         profileDisplayLabel = ui.small(profile.getDisplayName(), Color.WHITE);
-        profileIdLabel = ui.small("ID: " + profile.getProfileId(), OnlineUi.BRAWL_GOLD);
+        profileIdLabel = ui.small("ID: " + profile.getShortServerProfileId(), OnlineUi.BRAWL_GOLD);
         textCol.add(profileDisplayLabel).left();
         textCol.row();
         textCol.add(profileIdLabel).left();
@@ -408,16 +408,18 @@ public class MainMenuScreen implements Screen {
         form.add(ui.small("TÊN HIỂN THỊ (DISPLAY NAME):", OnlineUi.BRAWL_CYAN));
         form.row();
         profileNameField = new TextField(PlayerProfile.get().getDisplayName(), ui.skin, "comic");
+        profileNameField.setMaxLength(64);profileNameField.setName("profile-display-name");
         form.add(profileNameField).growX().height(36).padBottom(8);
         form.row();
 
-        form.add(ui.small("MÃ ĐỊNH DANH (PROFILE ID):", OnlineUi.BRAWL_GOLD));
+        form.add(ui.small("MÃ HỒ SƠ (TỰ ĐỘNG LƯU):", OnlineUi.BRAWL_GOLD));
         form.row();
-        profileIdField = new TextField(PlayerProfile.get().getProfileId(), ui.skin, "comic");
+        profileIdField = new TextField(PlayerProfile.get().getCurrentServerProfileId(), ui.skin, "comic");
+        profileIdField.setDisabled(true);profileIdField.setName("profile-server-id");
         form.add(profileIdField).growX().height(36).padBottom(4);
         form.row();
 
-        var idHint = ui.small("* Dùng ID này để cộng điểm ELO vào database khi thi đấu.", OnlineUi.MUTED);
+        var idHint = ui.small("Mở lại cùng trình duyệt để tiếp tục tích lũy điểm.", OnlineUi.MUTED);
         form.add(idHint).padBottom(12);
         form.row();
 
@@ -432,7 +434,7 @@ public class MainMenuScreen implements Screen {
         });
         btnRow.add(saveBtn).size(165, 42).padRight(12);
 
-        var logoutBtn = ui.comicButton("ĐĂNG XUẤT", "comic-gold", () -> {
+        var logoutBtn = ui.comicButton("HỒ SƠ MỚI", "comic-gold", () -> {
             playSound();
             logoutProfile();
         });
@@ -489,7 +491,7 @@ public class MainMenuScreen implements Screen {
         if (profileOverlay != null) {
             var profile = PlayerProfile.get();
             profileNameField.setText(profile.getDisplayName());
-            profileIdField.setText(profile.getProfileId());
+            profileIdField.setText(profile.getCurrentServerProfileId());
             selectedAvatar = profile.getAvatar();
             updateAllAvatarCards();
             profileOverlay.setVisible(true);
@@ -505,12 +507,8 @@ public class MainMenuScreen implements Screen {
     private void saveProfile() {
         var profile = PlayerProfile.get();
         String name = profileNameField.getText().trim();
-        String id = profileIdField.getText().trim();
         if (!name.isEmpty()) {
             profile.setDisplayName(name);
-        }
-        if (!id.isEmpty()) {
-            profile.setProfileId(id);
         }
         profile.setAvatar(selectedAvatar);
         profile.save();
@@ -522,7 +520,7 @@ public class MainMenuScreen implements Screen {
         var profile = PlayerProfile.get();
         profile.resetToNew();
         profileNameField.setText(profile.getDisplayName());
-        profileIdField.setText(profile.getProfileId());
+        profileIdField.setText(profile.getCurrentServerProfileId());
         selectedAvatar = profile.getAvatar();
         updateAllAvatarCards();
         updateProfileBadge();
@@ -534,7 +532,7 @@ public class MainMenuScreen implements Screen {
             profileDisplayLabel.setText(profile.getDisplayName());
         }
         if (profileIdLabel != null) {
-            profileIdLabel.setText("ID: " + profile.getProfileId());
+            profileIdLabel.setText("ID: " + profile.getShortServerProfileId());
         }
         if (profileAvatarImage != null) {
             profileAvatarImage.setDrawable(new TextureRegionDrawable(getAvatarRegion(profile.getAvatar())));

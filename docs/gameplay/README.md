@@ -1,5 +1,7 @@
 # Super Smash Profs — Platform Fighter
 
+**Bảng xếp hạng và hồ sơ:** [Bố cục gọn, tên tiếng Việt và giữ điểm khi mở lại game](22-PERSISTENT-GUEST-RANKING.md). Server cấp hồ sơ khách được lưu trên trình duyệt, nhiều phiên cộng vào cùng hồ sơ; mã kết nối gameplay vẫn riêng biệt.
+
 **AI Boss:** Boss ưu tiên đuổi người đang sống có HP thấp nhất, giữ mục tiêu khi bằng HP và bám nhanh hơn ở pha 2. [Chi tiết truy đuổi và chiêu](15-BOSS-MODE.md).
 
 **Sảnh online:** [Ba lựa chọn chơi và hộp đổi máy chủ riêng](21-ONLINE-LOBBY-LAYOUT.md). Địa chỉ WSS dài không làm tràn khung; ghép nhanh, tạo phòng và nhập mã tách thành ba thẻ.

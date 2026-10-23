@@ -34,6 +34,7 @@ public final class NetworkClient {
         if(connecting||closed) { throw new IllegalStateException("Set profile before connect"); }
         if(profileId!=null && !profileId.isBlank()) { connectPayload.put("profileId",profileId); }
         if(name!=null && !name.isBlank()) { connectPayload.put("displayName",name); }
+        if(com.smashprofs.game.profile.PlayerProfile.hasInstance()) { com.smashprofs.game.profile.PlayerProfile.get().prepareConnection(connectPayload,host,port); }
     }
     public boolean isFighterEnabled() { return fighter; }
     public boolean isMockProtocol() { return false; }
@@ -64,7 +65,9 @@ public final class NetworkClient {
             boolean ack=false;
             if(type==MessageType.CONNECT_ACK) {
                 var p=message.payload();
-                if(playerId!=null || !requestId.equals(id)||p.size()!=1||!p.path("playerId").isTextual()) { throw new IllegalArgumentException("Unexpected CONNECT_ACK"); }
+                boolean guest=connectPayload.path("guestProfile").asBoolean(false);
+                if(playerId!=null || !requestId.equals(id)||(p.size()!=1 && !(guest && p.size()==3))||!p.path("playerId").isTextual()) { throw new IllegalArgumentException("Unexpected CONNECT_ACK"); }
+                if(guest && p.size()==3) { com.smashprofs.game.profile.PlayerProfile.get().acceptConnection(p,host,port); }
                 playerId=new PlayerId(p.path("playerId").asText());ack=true;
             } else if(type==MessageType.PING) {
                 if(playerId==null||!message.payload().isEmpty()||!sendMessage(new ProtocolMessage(MessageType.PONG,id,ProtocolV1.object()))) { throw new IllegalArgumentException("Invalid heartbeat"); }

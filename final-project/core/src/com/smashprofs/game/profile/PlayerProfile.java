@@ -10,7 +10,8 @@ import java.util.Random;
  *
  * <p>Lưu trữ và đồng bộ:
  * <ul>
- *   <li>{@code profileId}: Mã định danh tài khoản duy nhất (dùng để lưu và tích lũy điểm ELO vào SQLite).</li>
+ *   <li>{@code profileId}: Mã cục bộ trước khi kết nối, không dùng để xác thực quyền sở hữu điểm.</li>
+ *   <li>Khóa hồ sơ khách do server cấp được lưu riêng theo endpoint để tiếp tục tích lũy điểm.</li>
  *   <li>{@code displayName}: Tên hiển thị của người chơi trong phòng đấu và trên Bảng xếp hạng.</li>
  *   <li>{@code avatar}: Chiến binh đại diện ("Alex", "Leo", "Luca").</li>
  * </ul>
@@ -29,6 +30,39 @@ public class PlayerProfile {
     private String profileId;
     private String displayName;
     private String avatar;
+
+    /** Guest credentials are scoped to the server, and never included in public profile labels. */
+    private String serverKey(String host,int port) { return "server:"+host.trim()+":"+(host.startsWith("ws://") || host.startsWith("wss://")?0:port)+":"; }
+    public synchronized String getCurrentServerProfileId() {
+        if(Gdx.app==null) { return profileId; }
+        var prefs=Gdx.app.getPreferences("online-server");
+        String host=System.getProperty("smashprofs.server.host",prefs.getString("host","127.0.0.1"));
+        int port;
+        try { port=Integer.parseInt(System.getProperty("smashprofs.server.port",prefs.getString("port","54555"))); }
+        catch(NumberFormatException invalid) { port=54555; }
+        return getServerProfileId(host,port);
+    }
+    public synchronized String getShortServerProfileId() {
+        String id=getCurrentServerProfileId();return id.length()<=18?id:id.substring(0,10)+"…"+id.substring(id.length()-4);
+    }
+    public synchronized void prepareConnection(com.fasterxml.jackson.databind.node.ObjectNode payload,String host,int port) {
+        if(Gdx.app==null) { return; }
+        var prefs=Gdx.app.getPreferences(PREF_NAME);String key=serverKey(host,port);
+        payload.put("guestProfile",true);
+        String token=prefs.getString(key+"token","");
+        if(!token.isBlank()) { payload.put("profileToken",token); }
+    }
+    public synchronized void acceptConnection(com.fasterxml.jackson.databind.JsonNode payload,String host,int port) {
+        if(Gdx.app==null) { return; }
+        if(!payload.path("profileId").isTextual() || !payload.path("profileToken").isTextual()) { throw new IllegalArgumentException("Invalid guest profile response"); }
+        String id=payload.path("profileId").asText(),token=payload.path("profileToken").asText();
+        if(!id.matches("guest_[0-9a-f-]{36}") || !token.matches("[0-9a-f]{64}")) { throw new IllegalArgumentException("Invalid guest profile response"); }
+        var prefs=Gdx.app.getPreferences(PREF_NAME);String key=serverKey(host,port);
+        prefs.putString(key+"id",id).putString(key+"token",token).flush();
+    }
+    public synchronized String getServerProfileId(String host,int port) {
+        return Gdx.app==null?profileId:Gdx.app.getPreferences(PREF_NAME).getString(serverKey(host,port)+"id",profileId);
+    }
 
     public PlayerProfile() {
         load();
@@ -93,6 +127,7 @@ public class PlayerProfile {
      * Đăng xuất / Tạo mới hồ sơ: Đổi sang ID ngẫu nhiên mới và đặt tên mới.
      */
     public synchronized void resetToNew() {
+        if(Gdx.app!=null) { Gdx.app.getPreferences(PREF_NAME).clear(); }
         this.profileId = generateDefaultProfileId();
         this.displayName = "Chiến Binh " + (10 + new Random().nextInt(90));
         this.avatar = "Alex";

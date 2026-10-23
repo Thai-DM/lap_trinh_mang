@@ -3,6 +3,7 @@ $server=@(
     'com.smashprofs.server.network.MatchmakingTcpTest',
     'com.smashprofs.server.cluster.StandaloneDeploymentTest',
     'com.smashprofs.server.game.BossModeTest',
+    'com.smashprofs.server.game.BossTargetingTest',
     'com.smashprofs.server.game.BossRankingIntegrationTest',
     'com.smashprofs.server.room.HostRulesTest',
     'com.smashprofs.server.room.GameRoomLifecycleTest',

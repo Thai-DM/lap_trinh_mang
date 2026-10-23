@@ -1,0 +1,11 @@
+﻿{
+    "date":  "2026-10-23T16:57:09.0123460+07:00",
+    "status":  "PASS",
+    "label":  "boss-low-hp-targeting",
+    "heapMiB":  128,
+    "suites":  [
+                   "com.smashprofs.server.game.BossTargetingTest",
+                   "com.smashprofs.server.game.BossModeTest",
+                   "com.smashprofs.server.game.BossRankingIntegrationTest"
+               ]
+}

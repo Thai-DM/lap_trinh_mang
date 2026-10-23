@@ -7,6 +7,7 @@ import java.util.*;
 /** Kinematic boss on a validated platform. All decisions, hit tests and timers belong to the simulation owner. */
 final class BossEngine {
     static final float HALF_WIDTH=.30f,HEIGHT=.72f;
+    private static final float FOLLOW_DISTANCE=.65f,WALK_SPEED=.70f,ENRAGED_WALK_SPEED=.95f;
     final GameplayMatch game;
     final float maxHp,left,right;
     float x,y,hp;
@@ -18,6 +19,7 @@ final class BossEngine {
     private final Set<PlayerId> cleaveHits=new HashSet<>();
     private final List<Hazard> hazards=new ArrayList<>();
     private final MapCollisionDefinition geometry;
+    private PlayerId chaseTarget,attackTarget;
 
     BossEngine(GameplayMatch game,MapCollisionDefinition geometry) {
         this.game=game;this.geometry=geometry;maxHp=1000+250*(game.progress.size()-2);hp=maxHp;
@@ -47,10 +49,13 @@ final class BossEngine {
         if(action.equals("IDLE")||action.equals("WALK")) {
             var target=target();
             if(target!=null) {
-                float dx=game.bodies.getPosition(target).xMeters()-x;facingRight=dx>=0;
-                if(Math.abs(dx)>.65f) { x=Math.max(left,Math.min(right,x+Math.signum(dx)*(phase==1?.55f:.8f)/60));action="WALK"; }
-                else { action="IDLE"; }
-            }
+                float dx=game.bodies.getPosition(target).xMeters()-x;
+                if(Math.abs(dx)>.02f) { facingRight=dx>0; }
+                float step=Math.min((phase==1?WALK_SPEED:ENRAGED_WALK_SPEED)/60,Math.max(0,Math.abs(dx)-FOLLOW_DISTANCE));
+                float next=Math.max(left,Math.min(right,x+Math.signum(dx)*step));
+                // Do not slide past the target or play a walk animation against the platform edge.
+                action=Math.abs(next-x)>.000001f?"WALK":"IDLE";x=next;
+            } else { action="IDLE"; }
         }
         if(action.equals("ACTIVE") && attack.equals("CLEAVE")) {
             for(var id:game.progress.keySet()) {
@@ -64,13 +69,18 @@ final class BossEngine {
         }
     }
     private PlayerId target() {
-        return game.progress.keySet().stream().filter(game::active).min(Comparator.<PlayerId>comparingDouble(id->{
+        // HP is authoritative; lives, distance and client identity never override a lower HP target.
+        // Keep an equally wounded current target, then use distance/ID for a deterministic first choice.
+        chaseTarget=game.progress.keySet().stream().filter(game::active).min(Comparator.<PlayerId>comparingDouble(id->game.state.getPlayer(id).getHp())
+                .thenComparingInt(id->id.equals(chaseTarget)?0:1).thenComparingDouble(id->{
             var p=game.bodies.getPosition(id);return Math.abs(p.xMeters()-x);
         }).thenComparing(PlayerId::value)).orElse(null);
+        return chaseTarget;
     }
     private void prepare() {
         var target=target();
         if(target==null) { change("IDLE",15);return; }
+        attackTarget=target;
         var p=game.bodies.getPosition(target);facingRight=p.xMeters()>=x;attackId++;cleaveHits.clear();
         attack=Math.abs(p.xMeters()-x)<.85f && pattern%3!=2?"CLEAVE":pattern%2==0?"FIREBALL":"ERUPTION";pattern++;
         change("TELEGRAPH",phase==1?48:36);
@@ -92,7 +102,8 @@ final class BossEngine {
         return ground;
     }
     private void fire() {
-        var target=target();if(target==null) { return; }
+        // Preserve the target announced by the windup; choose again on the next pursuit cycle.
+        var target=attackTarget;if(target==null || !game.active(target)) { return; }
         var p=game.bodies.getPosition(target);float dx=p.xMeters()-x,dy=p.yMeters()-(y+.35f);
         double angle=Math.atan2(dy,dx);int count=phase==1?1:3;
         for(int i=0;i<count && hazards.size()<BossSnapshot.MAX_HAZARDS;i++) {

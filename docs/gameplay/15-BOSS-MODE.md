@@ -1,6 +1,6 @@
 # Chế độ hợp tác đánh Boss
 
-Cập nhật 22/10/2026.
+Cập nhật AI 23/10/2026: boss ưu tiên đuổi người còn ít HP nhất.
 
 ## Chạy và chơi
 
@@ -29,9 +29,11 @@ Boss Demon Slime sử dụng bộ miễn phí của **chierit**, với animation
 | Đặc điểm | Cách hoạt động |
 | --- | --- |
 | HP | 1.000 / 1.250 / 1.500 cho đội 2 / 3 / 4 người, chốt lúc bắt đầu trận. |
+| Truy đuổi | Chọn người đang sống có HP hiện tại thấp nhất, không xét số mạng còn lại. HP bằng nhau thì giữ mục tiêu đang đuổi; lần chọn đầu xét khoảng cách rồi ID để nhất quán. Khi người khác ít HP hơn, boss đổi mục tiêu trong nhịp di chuyển/chuẩn bị chiêu tiếp theo. |
+| Di chuyển | Đi 0,70 m/s ở pha 1, 0,95 m/s ở pha 2; dừng cách mục tiêu 0,65 m. Không vượt mép sàn an toàn hoặc đi xuyên qua mục tiêu. Chạm mép thì đứng lại thay vì phát animation đi tại chỗ. |
 | Pha 2 | Bắt đầu khi HP còn tối đa 50%; boss tăng nhịp hành động và phóng ba đạn lửa thay vì một. |
 | Quét/chém gần | Vùng đỏ phía trước báo đòn. Khi đòn có hiệu lực, gây 22 HP; một người chỉ bị tính một hit trong lần ra đòn. |
-| Đạn lửa | Boss nhắm vị trí mục tiêu lúc phóng, gây 16 HP khi trúng; có thể né. Đạn không tự đổi hướng để đuổi người chơi. |
+| Đạn lửa | Chốt người bị nhắm khi báo chiêu, lấy vị trí người đó lúc phóng, gây 16 HP khi trúng; có thể né. Nếu người bị nhắm đã chết/đang hồi sinh thì bỏ lượt bắn đó. Không bẻ chiêu sang đồng đội khác giữa lúc báo đòn; đạn đã phóng không tự đổi hướng. |
 | Gọi nổ | Đánh dấu vị trí người chơi bằng vùng cảnh báo. Sau 1 giây phát nổ, gây 24 HP; rời vùng hoặc nhảy khỏi vùng đánh để tránh. |
 | Nhận sát thương | Tay không, các loại súng, bốn vũ khí cận chiến, vũ khí ném và kỹ năng của cả năm nhân vật đều có thể đánh boss. Boss không bị khóa trong hitstun bởi từng viên đạn. |
 | Địa hình | Boss đi trên bệ chính đã kiểm tra từ map hiện có; các chiêu tầm xa gây áp lực lên người chơi ở các bệ khác. |
@@ -63,6 +65,15 @@ Asset gốc và giấy phép: [assets/boss/README.md](../../final-project/assets
 ```
 
 `BossModeTest` kiểm tra roster riêng, súng khởi đầu/tự nạp, chống friendly fire, bốn vũ khí và vật ném, năm kỹ năng nhân vật, các chiêu boss, chuyển pha, giới hạn hazard, codec, HP, timeout và các trường hợp kết thúc cùng tick.
+
+`BossTargetingTest` bổ sung 10 kiểm tra: ưu tiên HP thay vì khoảng cách/số mạng,
+đổi mục tiêu khi HP thay đổi, giữ mục tiêu khi hòa HP, bỏ người chết/hồi sinh/hết
+mạng, mép sàn, khoảng dừng, khóa mục tiêu đạn lửa khi báo chiêu và tốc độ pha 2.
+31 kiểm tra tập trung Boss/targeting/ranking đã qua sau cập nhật AI.
+Toàn bộ **840 kiểm tra hồi quy qua**. Evidence:
+[Boss targeting](runs/20261023-165656-832-boss-low-hp-targeting/verification.json),
+[hồi quy](runs/20261023-165811-268-final-gameplay-regression/verification.json),
+[kết quả JUnit](runs/20261023-165811-268-final-gameplay-regression/tests.log).
 
 `BossTcpIntegrationTest` chạy 2 và 4 client qua TCP thật: kiểm tra capability, loading gate, sát thương boss, kết quả chung và reset khi đấu lại. `GameplayClusterIntegrationTest` kiểm tra thêm phòng Boss qua control plane và worker.
 

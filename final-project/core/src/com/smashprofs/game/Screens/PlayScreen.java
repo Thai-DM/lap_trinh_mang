@@ -447,6 +447,7 @@ public class PlayScreen implements Screen {
     @Override
     public void show() {
         if (onlineScreen != null) { onlineScreen.show(); }
+        else { Gdx.input.setInputProcessor(null); }
     }
 
     /**

@@ -1,0 +1,107 @@
+name: Build and deploy TeaVM game
+on:
+  workflow_dispatch:
+  push:
+    branches: [dev, feature/teavm-web-test]
+  pull_request:
+    paths: ['final-project/**', 'scripts/web/**', '.github/workflows/web-build.yml']
+permissions:
+  contents: read
+concurrency:
+  group: teavm-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test deployment health checks
+        run: python3 -m unittest discover -s scripts/web/tests -v
+      - name: Test release switch and rollback
+        run: bash scripts/web/tests/test-deploy.sh
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Build authoritative Java server
+        working-directory: final-project
+        run: bash ./gradlew :server:test --tests com.smashprofs.server.game.BossRankingIntegrationTest :server:installCluster --no-daemon '-Dorg.gradle.jvmargs=-Xmx512m'
+      - name: Validate and compile shared client to JavaScript
+        working-directory: final-project
+        run: bash ./gradlew -p web test buildWeb prepareGateway --no-daemon '-Dorg.gradle.jvmargs=-Xmx512m'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: web-client-${{ github.sha }}
+          path: final-project/web/build/dist/webapp/
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: java-game-gateway-${{ github.sha }}
+          path: final-project/web/build/gateway/lib/
+          if-no-files-found: error
+      - name: Package release
+        env:
+          RELEASE_ID: ${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          mkdir -p release/webapp release/lib release/ops
+          cp -a final-project/web/build/dist/webapp/. release/webapp/
+          cp -a final-project/web/build/gateway/lib/. release/lib/
+          cp scripts/web/Check-Deployment.py release/ops/
+          printf '{"revision":"%s","release":"%s"}\n' "$GITHUB_SHA" "$RELEASE_ID" > release/webapp/version.json
+          tar -czf smashprofs-release.tgz -C release webapp lib ops
+      - uses: actions/upload-artifact@v4
+        with:
+          name: azure-release-${{ github.sha }}
+          path: smashprofs-release.tgz
+          if-no-files-found: error
+  deploy:
+    needs: build
+    if: github.ref == 'refs/heads/feature/teavm-web-test' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    concurrency:
+      group: smashprofs-azure-production
+      cancel-in-progress: false
+    env:
+      DEPLOY_HOST: ${{ vars.AZURE_HOST || '20.195.25.203' }}
+      DEPLOY_USER: ${{ vars.AZURE_USER || 'azureuser' }}
+      GAME_DOMAIN: ${{ vars.GAME_DOMAIN || 'smashprofs-thai.southeastasia.cloudapp.azure.com' }}
+      RELEASE_ID: ${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: azure-release-${{ github.sha }}
+      - name: Configure SSH
+        env:
+          PRIVATE_KEY: ${{ secrets.AZURE_SSH_PRIVATE_KEY }}
+          KNOWN_HOSTS: ${{ secrets.AZURE_SSH_KNOWN_HOSTS }}
+        run: |
+          if [[ -z "$PRIVATE_KEY" || -z "$KNOWN_HOSTS" ]]; then
+            echo '::error::Add AZURE_SSH_PRIVATE_KEY and AZURE_SSH_KNOWN_HOSTS in repository Actions secrets. See docs/gameplay/19-AZURE-AUTO-DEPLOY.md.'
+            exit 1
+          fi
+          [[ "$DEPLOY_HOST" =~ ^[a-zA-Z0-9.-]+$ && "$DEPLOY_USER" =~ ^[a-z_][a-z0-9_-]*$ && "$GAME_DOMAIN" =~ ^[a-zA-Z0-9.-]+$ ]]
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_deploy
+          printf '%s\n' "$KNOWN_HOSTS" | tr -d '\r' > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/id_deploy ~/.ssh/known_hosts
+          ssh-keygen -y -P '' -f ~/.ssh/id_deploy > /dev/null
+      - name: Upload and deploy release
+        run: |
+          ssh_options=(-i "$HOME/.ssh/id_deploy" -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=15 -o ServerAliveInterval=15)
+          remote="$DEPLOY_USER@$DEPLOY_HOST"
+          ssh "${ssh_options[@]}" "$remote" "mkdir -p /home/$DEPLOY_USER/smashprofs-incoming/$RELEASE_ID"
+          scp "${ssh_options[@]}" smashprofs-release.tgz scripts/web/Deploy-Azure.sh "$remote:/home/$DEPLOY_USER/smashprofs-incoming/$RELEASE_ID/"
+          ssh "${ssh_options[@]}" "$remote" "sudo -n bash /home/$DEPLOY_USER/smashprofs-incoming/$RELEASE_ID/Deploy-Azure.sh /home/$DEPLOY_USER/smashprofs-incoming/$RELEASE_ID/smashprofs-release.tgz $RELEASE_ID $GAME_DOMAIN"
+      - name: Check public website
+        run: |
+          curl --fail --silent --show-error --retry 3 --retry-all-errors --max-time 20 \
+            "https://$GAME_DOMAIN/version.json?release=$RELEASE_ID" -o deployed-version.json
+          python3 -c 'import json,os; assert json.load(open("deployed-version.json"))["release"] == os.environ["RELEASE_ID"], "Public website serves a different release"'
+          echo "### Published https://$GAME_DOMAIN" >> "$GITHUB_STEP_SUMMARY"
+          echo "Revision: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+      - name: Remove runner SSH key
+        if: always()
+        run: rm -f ~/.ssh/id_deploy

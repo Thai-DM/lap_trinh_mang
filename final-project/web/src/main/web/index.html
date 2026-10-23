@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Super Smash Profs</title>
+  <style>
+    *{box-sizing:border-box}body{margin:0;background:#07182c;color:#eff8ff;font:16px system-ui;overflow:hidden}
+    #canvas{display:block;border:0;outline:0}#loading{position:fixed;inset:0;display:grid;place-content:center;text-align:center;background:#07182c;z-index:2}
+    #loading[hidden]{display:none}h1{color:#35f3b7}#failure{position:fixed;inset:20%;padding:24px;background:#10243d;border:2px solid #ffce45;z-index:3;overflow:auto}
+    #failure[hidden]{display:none}
+  </style>
+</head>
+<body oncontextmenu="return false">
+  <div id="loading"><h1>SUPER SMASH PROFS</h1><p>Đang tải trò chơi và tài nguyên…</p><small>Lần đầu sẽ tải hình ảnh và âm thanh.</small></div>
+  <div id="failure" hidden><h2>Không thể mở trò chơi</h2><p id="failure-message"></p><button onclick="location.reload()">Thử lại</button></div>
+  <canvas id="canvas" tabindex="0" aria-label="Super Smash Profs — dùng bàn phím và chuột để chơi"></canvas>
+  <script>
+    function showFailure(reason){document.getElementById('loading').hidden=true;document.getElementById('failure').hidden=false;document.getElementById('failure-message').textContent=String(reason)}
+    addEventListener('error',e=>{if(e.message)showFailure(e.message)});
+    addEventListener('unhandledrejection',e=>showFailure(e.reason));
+    addEventListener('load',()=>{if(typeof main==='function')main();else showFailure('Không tải được game.js. Hãy tải lại trang.');});
+  </script>
+  <script src="web-config.js"></script>
+  <script src="game.js" charset="utf-8"></script>
+</body>
+</html>

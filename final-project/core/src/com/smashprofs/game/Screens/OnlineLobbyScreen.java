@@ -69,17 +69,20 @@ public final class OnlineLobbyScreen implements Screen {
         port.setTextFieldFilter((field, c) -> c >= '0' && c <= '9');
 
         code = new TextField("", ui.skin, "comic");
+        address.setName("server-host");port.setName("server-port");code.setName("room-code");
         code.setMaxLength(64);
         code.setMessageText("MÃ PHÒNG (VD: ABCD)");
         code.setAlignment(Align.center);
         code.setTextFieldFilter((field, c) -> Character.isLetterOrDigit(c) && c < 128 || c == '-' || c == '_');
 
         gameMode=new SelectBox<>(ui.skin);
+        gameMode.setName("game-mode");
         gameMode.setItems("Đối kháng PvP", "Hợp tác đánh Boss");
         // --- Action Buttons ---
         create = ui.comicButton("TẠO TRẬN ĐẤU", "comic-gold", () -> connect(LobbyConfiguration.Mode.CREATE));
         join = ui.comicButton("VÀO PHÒNG", "comic-primary", () -> connect(LobbyConfiguration.Mode.JOIN));
         back = ui.comicButton("<", "comic-white", this::back);
+        create.setName("create-room");join.setName("join-room");back.setName("back");
 
         // --- Custom Nordic diamond texture for title ornaments ---
         var diamondPix = new Pixmap(17, 16, Pixmap.Format.RGBA8888);

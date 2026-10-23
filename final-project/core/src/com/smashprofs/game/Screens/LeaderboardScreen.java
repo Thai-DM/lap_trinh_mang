@@ -16,17 +16,16 @@ import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
-import com.smashprofs.common.model.PlayerId;
 import com.smashprofs.common.model.RankingEntry;
-import com.smashprofs.common.protocol.JsonFrameCodec;
+import com.smashprofs.game.network.client.NetworkClient;
+import com.smashprofs.game.network.client.ConnectionListener;
+import com.smashprofs.common.protocol.NetworkPacket;
 import com.smashprofs.common.protocol.MessageType;
 import com.smashprofs.common.protocol.ProtocolMessage;
 import com.smashprofs.common.protocol.RankingProtocol;
 import com.smashprofs.game.ui.OnlineUi;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -39,7 +38,7 @@ import java.util.Locale;
  *   <li>Hiển thị Top cao thủ, thứ hạng ELO, tổng số trận, số trận thắng/thua và tỉ lệ thắng.</li>
  *   <li>Huy hiệu vinh danh đặc biệt cho TOP 1 (Vàng), TOP 2 (Bạc), TOP 3 (Đồng).</li>
  *   <li>Kết nối TCP bất đồng bộ tới server để lấy danh sách thời gian thực qua giao thức RANKING_SNAPSHOT.</li>
- *   <li>Tự động hiển thị danh sách mẫu nếu server chưa bật để đảm bảo giao diện luôn sống động.</li>
+ *   <li>Hiển thị trạng thái trống hoặc lỗi kết nối khi chưa có dữ liệu từ máy chủ.</li>
  *   <li>Hỗ trợ phím tắt F5 (Làm mới) và ESC (Quay lại).</li>
  * </ul>
  */
@@ -63,7 +62,10 @@ public class LeaderboardScreen implements Screen {
     private final Label statusLabel;
     private final Table tableContainer;
 
-    private boolean disposed;
+    private volatile boolean disposed;
+    private NetworkClient rankingConnection;
+    private volatile long fetchGeneration;
+    private long fetchStarted;
 
     public LeaderboardScreen(Game game) {
         this(game, false);
@@ -151,12 +153,12 @@ public class LeaderboardScreen implements Screen {
 
         var serverConfig = new Table();
         serverConfig.add(ui.small("MÁY CHỦ: ", OnlineUi.MUTED)).padRight(4);
-        hostField = new TextField("127.0.0.1", ui.skin, "comic");
+        hostField = new TextField(System.getProperty("smashprofs.server.host","127.0.0.1"), ui.skin, "comic");
         hostField.setAlignment(Align.center);
         serverConfig.add(hostField).width(115).height(32).padRight(6);
 
         serverConfig.add(ui.small(":", OnlineUi.MUTED)).padRight(6);
-        portField = new TextField("54555", ui.skin, "comic");
+        portField = new TextField(System.getProperty("smashprofs.server.port","54555"), ui.skin, "comic");
         portField.setAlignment(Align.center);
         serverConfig.add(portField).width(85).height(32);
 
@@ -201,7 +203,7 @@ public class LeaderboardScreen implements Screen {
         stage.addActor(root);
 
         // Hiển thị dữ liệu mẫu trước để giao diện có nội dung ngay
-        showSampleData();
+        tableContainer.add(ui.small("Đang lấy bảng xếp hạng từ máy chủ…",OnlineUi.MUTED)).pad(30);
 
         // Sau đó gửi yêu cầu TCP bất đồng bộ lấy dữ liệu thật từ Server
         fetchLeaderboard();
@@ -233,51 +235,56 @@ public class LeaderboardScreen implements Screen {
             port = 54555;
         }
 
-        final int targetPort = port;
-        new Thread(() -> {
-            try (Socket socket = new Socket()) {
-                socket.connect(new InetSocketAddress(host, targetPort), 2500);
-                socket.setSoTimeout(3000);
-
-                JsonFrameCodec codec = new JsonFrameCodec();
-
-                // 1. Gửi CONNECT kèm thông tin hồ sơ của bạn
-                var myProf = com.smashprofs.game.profile.PlayerProfile.get();
-                ProtocolMessage connectMsg = RankingProtocol.createConnectMessage("conn-leaderboard-ui", myProf.getProfileId(), myProf.getDisplayName());
-                socket.getOutputStream().write(codec.encode(connectMsg));
-                socket.getOutputStream().flush();
-
-                ProtocolMessage connectAck = codec.readNext(socket.getInputStream());
-                if (connectAck == null || connectAck.type() != MessageType.CONNECT_ACK) {
-                    throw new IOException("Không nhận được CONNECT_ACK từ máy chủ");
+        long generation=++fetchGeneration;
+        fetchStarted=System.nanoTime();
+        if(rankingConnection!=null) { rankingConnection.disconnect(); }
+        var connection=new NetworkClient(host,port,null);
+        rankingConnection=connection;
+        var profile=com.smashprofs.game.profile.PlayerProfile.get();
+        connection.setConnectProfile(profile.getProfileId(),profile.getDisplayName());
+        connection.setListener(new ConnectionListener() {
+            private boolean received;
+            @Override public void onConnected() {
+                if(!connection.sendMessage(RankingProtocol.createGetLeaderboardMessage("req-ui-top",50))) {
+                    connection.disconnect();
                 }
-
-                // 2. Gửi GET_LEADERBOARD
-                ProtocolMessage request = RankingProtocol.createGetLeaderboardMessage("req-ui-top", 50);
-                socket.getOutputStream().write(codec.encode(request));
-                socket.getOutputStream().flush();
-
-                ProtocolMessage response = codec.readNext(socket.getInputStream());
-                if (response != null && response.type() == MessageType.RANKING_SNAPSHOT) {
-                    List<RankingEntry> entries = RankingProtocol.parseSnapshot(response);
-                    Gdx.app.postRunnable(() -> onDataReceived(entries));
-                } else {
-                    throw new IOException("Phản hồi không hợp lệ từ máy chủ");
-                }
-            } catch (Exception e) {
-                Gdx.app.postRunnable(() -> onConnectionFailed(e.getMessage()));
             }
-        }, "Leaderboard-TCP-Fetcher").start();
+            @Override public void onPacketReceived(NetworkPacket ignored) { }
+            @Override public void onProtocolMessageReceived(ProtocolMessage response) {
+                if(response.type()==MessageType.ERROR) {
+                    received=true;
+                    String reason=response.payload().path("message").asText("Ranking unavailable");
+                    Gdx.app.postRunnable(()->{ if(!disposed && generation==fetchGeneration) { onConnectionFailed(reason); } });
+                    connection.disconnect();return;
+                }
+                if(response.type()!=MessageType.RANKING_SNAPSHOT) { return; }
+                try {
+                    List<RankingEntry> entries=RankingProtocol.parseSnapshot(response);received=true;
+                    Gdx.app.postRunnable(()->{ if(!disposed && generation==fetchGeneration) { onDataReceived(entries); } });
+                    connection.disconnect();
+                } catch(RuntimeException invalid) { connection.disconnect(); }
+            }
+            @Override public void onDisconnected(String reason) {
+                if(!received) { Gdx.app.postRunnable(()->{ if(!disposed && generation==fetchGeneration) { onConnectionFailed(reason); } }); }
+            }
+        });
+        new Thread(()->{
+            try { if(disposed || generation!=fetchGeneration) { return; }connection.connect(); }
+            catch(IOException|RuntimeException failure) { Gdx.app.postRunnable(()->{ if(!disposed && generation==fetchGeneration) { onConnectionFailed(failure.getMessage()); } }); }
+            finally { if(disposed || generation!=fetchGeneration) { connection.disconnect(); } }
+        },"Leaderboard-Connect").start();
     }
 
     private void onDataReceived(List<RankingEntry> entries) {
         if (disposed) {
             return;
         }
+        rankingConnection=null;
         if (entries == null || entries.isEmpty()) {
             statusLabel.setText("● Đã kết nối Server (Dữ liệu BXH hiện đang trống, hãy đấu 1 trận để ghi điểm!)");
             statusLabel.setColor(Color.valueOf("FFE066"));
-            showSampleData();
+            tableContainer.clearChildren();
+            tableContainer.add(ui.small("Chưa có trận đấu được ghi nhận.",OnlineUi.MUTED)).pad(30);
         } else {
             statusLabel.setText("● Đã kết nối Server — Tải thành công " + entries.size() + " cao thủ!");
             statusLabel.setColor(Color.valueOf("35F3B7"));
@@ -289,23 +296,11 @@ public class LeaderboardScreen implements Screen {
         if (disposed) {
             return;
         }
-        statusLabel.setText("○ Chưa bật server (127.0.0.1:54555) — Đang hiển thị bảng mẫu. Bật server và ấn [F5]!");
+        rankingConnection=null;
+        statusLabel.setText("Không lấy được bảng xếp hạng — kiểm tra máy chủ và bấm F5.");
         statusLabel.setColor(Color.valueOf("FFC800"));
-        showSampleData();
-    }
-
-    /**
-     * Dữ liệu mẫu đẹp mắt khi chưa mở Server hoặc DB mới tinh.
-     */
-    private void showSampleData() {
-        List<RankingEntry> sample = new ArrayList<>();
-        sample.add(new RankingEntry(1, new PlayerId("p-alex-master"), "Alex The Dominator", 28, 3, 31, 90.3, 1420));
-        sample.add(new RankingEntry(2, new PlayerId("p-luca-king"), "Luca Shadow Assassin", 24, 6, 30, 80.0, 1365));
-        sample.add(new RankingEntry(3, new PlayerId("p-leo-smash"), "Leo Blade Master", 19, 8, 27, 70.4, 1280));
-        sample.add(new RankingEntry(4, new PlayerId("p-maurice-tank"), "Maurice Stone Breaker", 15, 11, 26, 57.7, 1190));
-        sample.add(new RankingEntry(5, new PlayerId("p-viktor-sniper"), "Viktor Storm Caller", 12, 14, 26, 46.2, 1110));
-        sample.add(new RankingEntry(6, new PlayerId("p-novice-fighter"), "Tân Binh Đấu Trường", 5, 8, 13, 38.5, 980));
-        renderEntries(sample);
+        tableContainer.clearChildren();
+        tableContainer.add(ui.small(error==null?"Mất kết nối máy chủ.":error,OnlineUi.MUTED)).pad(30);
     }
 
     /**
@@ -423,6 +418,10 @@ public class LeaderboardScreen implements Screen {
 
     @Override
     public void render(float delta) {
+        if(rankingConnection!=null && System.nanoTime()-fetchStarted>8_000_000_000L) {
+            var timedOut=rankingConnection;rankingConnection=null;fetchGeneration++;
+            timedOut.disconnect();onConnectionFailed("Máy chủ không trả lời trong 8 giây.");
+        }
         // Phím tắt bàn phím
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             goBack();
@@ -475,6 +474,8 @@ public class LeaderboardScreen implements Screen {
     public void dispose() {
         if (!disposed) {
             disposed = true;
+            fetchGeneration++;
+            if(rankingConnection!=null) { rankingConnection.disconnect();rankingConnection=null; }
             stage.dispose();
             batch.dispose();
             shapes.dispose();

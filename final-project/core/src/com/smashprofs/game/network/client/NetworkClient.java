@@ -58,6 +58,11 @@ public class NetworkClient {
     private com.fasterxml.jackson.databind.node.ObjectNode connectPayload = ProtocolV1.object();
     private volatile boolean fighterEnabled;
     public boolean isFighterEnabled() { return fighterEnabled; }
+    public synchronized void setConnectProfile(String profileId, String name) {
+        if(connected.get() || mockProtocol) { throw new IllegalStateException("Set profile before connecting"); }
+        if(profileId!=null && !profileId.isBlank()) { connectPayload.put("profileId",profileId); }
+        if(name!=null && !name.isBlank()) { connectPayload.put("displayName",name); }
+    }
     public synchronized void enableGameplay() {
         if(connected.get() || mockProtocol) { throw new IllegalStateException("Negotiate before connecting"); }
         connectPayload.put("gameplay",com.smashprofs.common.protocol.GameplayProtocol.CAPABILITY);

@@ -239,6 +239,7 @@ public class OnlineRoomScreen implements Screen {
         // ================= BOTTOM ACTION BAR =================
         var actionBar = new Table();
         readyBtn = ui.comicButton("SẴN SÀNG  [ENTER]", "comic-primary", this::toggleReady);
+        readyBtn.setName("ready");settingsBtn.setName("room-settings");
         actionBar.add(readyBtn).width(360).height(48).center();
         actionBar.row();
 
@@ -258,8 +259,10 @@ public class OnlineRoomScreen implements Screen {
         livesSelect = select("1 mạng", "2 mạng", "3 mạng", "5 mạng");
         dropsSelect = select("Tắt", "Thấp · 30s/lần", "Vừa · 15s/lần", "Cao · 8s/lần");
         throwSelect = select("Ném mất vũ khí (Mặc định)", "Ném giữ lại vũ khí");
+        maxSelect.setName("max-players");timeSelect.setName("match-time");livesSelect.setName("lives");dropsSelect.setName("drops");throwSelect.setName("throw-rule");
 
         applyRulesBtn = ui.comicButton("LƯU LUẬT PHÒNG", "comic-primary", () -> lobby.updateSettings(draft()));
+        applyRulesBtn.setName("save-rules");
         resetRulesBtn = ui.comicButton("HOÀN TÁC", "comic-white", () -> {
             if (lobby.getSettings() != null) {
                 sync(lobby.getSettings().rules());
@@ -603,7 +606,7 @@ public class OnlineRoomScreen implements Screen {
             case READY_PENDING -> "Đang chờ máy chủ xác nhận trạng thái…";
             case WAITING_FOR_START -> "Bạn đã sẵn sàng! Đang đợi những người chơi còn lại…";
             case ERROR, DISCONNECTED -> "Mất kết nối với máy chủ. Bấm Rời phòng để thử lại.";
-            default -> settings!=null && settings.rules().fighter()?"A/D di chuyển · W nhảy · J đánh/bắn · K đánh mạnh · L né/lướt · E nhặt · Q ném · Tab túi":
+            default -> settings!=null && settings.rules().fighter()?"A/D di chuyển · Space nhảy · W/S ngắm · J đánh/bắn · K đánh mạnh · L né/lướt · E nhặt · Q ném · Tab túi":
                     "A/D di chuyển · W nhảy · S dậm · V/Space tấn công · F tuyệt chiêu · Ctrl đỡ đòn";
         };
         statusLabel.setText(message);

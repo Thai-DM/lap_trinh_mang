@@ -142,6 +142,7 @@ public class CharacterSelectScreen implements Screen {
         right2.scaleBy(2f);
 
         playButton = new Image(loadTexture("mainmenu/buttons/playButtonInactive.png"));
+        playButton.setName("start-local");
         p1ctrls = new Image(loadTexture("ui/ctrlsP1.png"));
         p2ctrls = new Image(loadTexture("ui/ctrlsP2.png"));
         // Set control hints to "Gamepad" if every player has a connected gamepad.
@@ -175,24 +176,22 @@ public class CharacterSelectScreen implements Screen {
             }
         });
 
-        playButton.addListener(new InputListener() {
+        playButton.addListener(new ClickListener() {
             @Override
             public void enter(InputEvent event, float x, float y, int pointer, Actor actor) {
 
                 //playButton = new Image(playButtonActive);
                 playButton.setDrawable(new SpriteDrawable(new Sprite(loadTexture("mainmenu/buttons/playButtonActive.png"))));
-                if (Gdx.input.isButtonJustPressed(0)) {
-                    if (lobby != null) { return; } // Production waits for server GAME_START.
-                    soundManager.playSound("sounds/minecraft_click.mp3");
-                    log.info("PlayerOne selected the character " + getSelectedPlayerOne());
-                    log.info("PlayerTwo selected the character " + getSelectedPlayerTwo());
-                    game.setScreen(new PlayScreen((com.smashprofs.game.Game) game));
-                }
             }
 
             @Override
             public void exit(InputEvent event, float x, float y, int pointer, Actor actor) {
                 playButton.setDrawable(new SpriteDrawable(new Sprite(loadTexture("mainmenu/buttons/playButtonInactive.png"))));
+            }
+            @Override public void clicked(InputEvent event,float x,float y) {
+                if(lobby!=null) { return; }
+                soundManager.playSound("sounds/minecraft_click.mp3");
+                game.setScreen(new PlayScreen((com.smashprofs.game.Game)game));
             }
         });
 

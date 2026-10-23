@@ -51,7 +51,15 @@ public final class RatingEngine {
 
         Map<String, PlayerRecord> result = new HashMap<>();
 
-        if (matchResult.isDraw()) {
+        if (matchResult.gameplay()!=null && matchResult.gameplay().rules().boss()) {
+            // Co-op has a team outcome and intentionally no individual winner.
+            // Record the outcome without applying competitive pairwise Elo to teammates.
+            boolean won=matchResult.finishReason()==AuthoritativeMatchResult.FinishReason.BOSS_DEFEATED;
+            for(ParticipantResult p:participants) {
+                String id=p.playerId().value();var current=getOrInitial(currentRecords,id);
+                result.put(id,won?current.afterWin():current.afterLoss());
+            }
+        } else if (matchResult.isDraw()) {
             // Hòa: chỉ cập nhật stats, rating giữ nguyên
             for (ParticipantResult p : participants) {
                 String id = p.playerId().value();

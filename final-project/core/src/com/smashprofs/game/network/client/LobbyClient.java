@@ -88,6 +88,10 @@ public final class LobbyClient implements ConnectionListener, AutoCloseable {
         this.configuration = Objects.requireNonNull(configuration);
         this.networkClient = Objects.requireNonNull(networkClient);
         this.updates = Objects.requireNonNull(updates);
+        if(com.smashprofs.game.profile.PlayerProfile.hasInstance()) {
+            var profile=com.smashprofs.game.profile.PlayerProfile.get();
+            networkClient.setConnectProfile(profile.getProfileId(),profile.getDisplayName());
+        }
         networkClient.setListener(this);
         snapshot = buildSnapshot();
     }

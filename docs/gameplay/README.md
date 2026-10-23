@@ -1,5 +1,9 @@
 # Super Smash Profs — Platform Fighter
 
+**Client đầy đủ trên web:** [TeaVM: cách chạy, kiến trúc và hosting](18-TEAVM-WEB-CLIENT.md). Chạy `scripts/web/Run-Web.ps1` để mở menu thật, Local, Online PvP/Boss và bảng ELO từ code `dev`.
+
+**Tự cập nhật Azure:** [Thiết lập GitHub Actions deploy](19-AZURE-AUTO-DEPLOY.md). Push nhánh `feature/teavm-web-test` để test, build và triển khai, kiểm tra HTTPS/WSS và phục hồi bản trước nếu kiểm tra trên VM thất bại. Cần thiết lập hai Actions secrets một lần.
+
 **Thử TeaVM trên web:** [Kết quả và cách chạy hai trình duyệt](17-TEAVM-PROBE.md). `scripts/web/Run-TeaVm.ps1 -Multiplayer -Boss` mở bản thử dùng map/sprite/Boss gốc và server Java thật qua WebSocket.
 
 **Chơi khác mạng:** [Deploy server lên Azure VM Ubuntu](16-AZURE-DEPLOY.md). Đóng gói bằng `scripts/deploy/Package-Server.ps1`; client dùng `Run-Client.ps1 -ServerHost IP_VM` và nhớ máy chủ sau lần kết nối thành công.

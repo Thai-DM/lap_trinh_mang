@@ -1,0 +1,1872 @@
+{
+  "status": "PASS",
+  "date": "2026-10-23",
+  "checks": [
+    "Gateway rejects an origin outside the configured exact allowlist",
+    "Real shared MainMenuScreen boots in Edge/WebGL",
+    "Azure WSS address cannot expand or overlap lobby controls at 1280x720, 960x540 and 1024x768",
+    "Server modal bounds very long addresses and blocks background actions",
+    "Enter applies server settings without accidentally joining a room",
+    "Create private room and open quick matchmaking remain functional after layout changes",
+    "No server exceptions during the browser run",
+    "No JavaScript exceptions or failed assets"
+  ],
+  "states": {
+    "menu": {
+      "screen": "MainMenuScreen",
+      "phase": "",
+      "room": "",
+      "playerId": "",
+      "matchId": "",
+      "players": 0,
+      "x": 0,
+      "y": 0,
+      "hp": 0,
+      "tick": 0,
+      "bossHp": -1,
+      "error": "",
+      "ui": [
+        {
+          "type": "Label",
+          "text": "SUPER SMASH PROFS  ·  MULTINETWORK EDITION",
+          "name": null,
+          "x": 234.5000034943223,
+          "y": 82.49998456332833,
+          "width": 377,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chiến Binh 23",
+          "name": null,
+          "x": 1055.000015720725,
+          "y": 72.49998432118446,
+          "width": 102,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ID: player_4367",
+          "name": null,
+          "x": 1061.5000158175826,
+          "y": 91.49998478125781,
+          "width": 115,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "HỒ SƠ [P]",
+          "name": null,
+          "x": 1183.5000176355243,
+          "y": 81.99998455122113,
+          "width": 105,
+          "height": 34,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "HỒ SƠ [P]",
+          "name": null,
+          "x": 1183.5000176355243,
+          "y": 82.49998456332833,
+          "width": 97,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ĐẤU TRƯỜNG ĐỐI KHÁNG ĐỈNH CAO  ·  SUPER SMASH PROFS",
+          "name": null,
+          "x": 640.0000095367432,
+          "y": 191.4999872026965,
+          "width": 466,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "CHIẾN BINH",
+          "name": null,
+          "x": 259.00000385940075,
+          "y": 490.4999944427982,
+          "width": 90,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ALEX",
+          "name": null,
+          "x": 258.50000385195017,
+          "y": 521.4999951934442,
+          "width": 77,
+          "height": 39,
+          "disabled": false
+        },
+        {
+          "type": "ComicHeading",
+          "text": "CHỌN CHẾ ĐỘ CHƠI",
+          "name": null,
+          "x": 640.0000095367432,
+          "y": 271.49998913984746,
+          "width": 308,
+          "height": 39,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "CHƠI LOCAL  [SPACE]",
+          "name": null,
+          "x": 640.0000095367432,
+          "y": 320.9999903384596,
+          "width": 420,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "CHƠI LOCAL  [SPACE]",
+          "name": null,
+          "x": 639.5000095292926,
+          "y": 321.4999903505668,
+          "width": 401,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "2 người chơi đối kháng trên cùng một bàn phím",
+          "name": null,
+          "x": 639.5000095292926,
+          "y": 354.4999911496416,
+          "width": 363,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "CHƠI ONLINE  [O]",
+          "name": null,
+          "x": 640.0000095367432,
+          "y": 391.9999920576811,
+          "width": 420,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "CHƠI ONLINE  [O]",
+          "name": null,
+          "x": 639.5000095292926,
+          "y": 392.4999920697883,
+          "width": 401,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Sảnh đấu trực tuyến qua mạng LAN / Internet (2-4 người)",
+          "name": null,
+          "x": 640.0000095367432,
+          "y": 425.49999286886305,
+          "width": 434,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "BẢNG XẾP HẠNG  [B]",
+          "name": null,
+          "x": 640.0000095367432,
+          "y": 462.99999377690256,
+          "width": 420,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "BẢNG XẾP HẠNG  [B]",
+          "name": null,
+          "x": 639.5000095292926,
+          "y": 463.49999378900975,
+          "width": 401,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Top cao thủ, điểm Elo và lịch sử tỉ lệ thắng",
+          "name": null,
+          "x": 640.0000095367432,
+          "y": 496.4999945880845,
+          "width": 322,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "CÀI ĐẶT PHÍM  [C]",
+          "name": null,
+          "x": 640.0000095367432,
+          "y": 530.9999954234809,
+          "width": 420,
+          "height": 38,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "CÀI ĐẶT PHÍM  [C]",
+          "name": null,
+          "x": 639.5000095292926,
+          "y": 531.4999954355881,
+          "width": 401,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "THOÁT GAME  [ESC]",
+          "name": null,
+          "x": 640.0000095367432,
+          "y": 573.9999964646995,
+          "width": 420,
+          "height": 36,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "THOÁT GAME  [ESC]",
+          "name": null,
+          "x": 639.5000095292926,
+          "y": 574.4999964768067,
+          "width": 401,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ĐẤU THỦ",
+          "name": null,
+          "x": 1021.0000152140856,
+          "y": 490.4999944427982,
+          "width": 70,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "LEO",
+          "name": null,
+          "x": 1020.500015206635,
+          "y": 521.4999951934442,
+          "width": 53,
+          "height": 39,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "THỜI GIAN ĐÃ CHƠI: ",
+          "name": null,
+          "x": 338.50000504404306,
+          "y": 648.4999982686713,
+          "width": 157,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "0 min 0 sek",
+          "name": null,
+          "x": 459.000006839633,
+          "y": 648.4999982686713,
+          "width": 84,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "   ·   ",
+          "name": null,
+          "x": 525.5000078305602,
+          "y": 648.4999982686713,
+          "width": 25,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "SỐ TRẬN ĐÃ ĐẤU: ",
+          "name": null,
+          "x": 619.0000092238188,
+          "y": 648.4999982686713,
+          "width": 138,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "0",
+          "name": null,
+          "x": 691.500010304153,
+          "y": 648.4999982686713,
+          "width": 7,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "   ·   ",
+          "name": null,
+          "x": 719.5000107213855,
+          "y": 648.4999982686713,
+          "width": 25,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "DEV TEAM: ",
+          "name": null,
+          "x": 786.0000117123127,
+          "y": 648.4999982686713,
+          "width": 84,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Leo · Maurice · Alex · Luca",
+          "name": null,
+          "x": 923.5000137612224,
+          "y": 648.4999982686713,
+          "width": 191,
+          "height": 19,
+          "disabled": false
+        }
+      ]
+    },
+    "lobby_1280x720": {
+      "screen": "OnlineLobbyScreen",
+      "phase": "",
+      "room": "",
+      "playerId": "",
+      "matchId": "",
+      "players": 0,
+      "x": 0,
+      "y": 0,
+      "hp": 0,
+      "tick": 0,
+      "bossHp": -1,
+      "error": "",
+      "ui": [
+        {
+          "type": "TextButton",
+          "text": "< VỀ MENU",
+          "name": "back",
+          "x": 115.00000171363354,
+          "y": 47.999983727931976,
+          "width": 150,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "< VỀ MENU",
+          "name": null,
+          "x": 114.50000170618296,
+          "y": 48.49998374003917,
+          "width": 131,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "ComicHeading",
+          "text": "CHƠI ONLINE",
+          "name": null,
+          "x": 573.0000085383654,
+          "y": 48.49998374003917,
+          "width": 204,
+          "height": 39,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chiến Binh 23",
+          "name": null,
+          "x": 1051.0000156611204,
+          "y": 48.49998374003917,
+          "width": 190,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "BXH",
+          "name": "leaderboard",
+          "x": 1201.0000178962946,
+          "y": 47.999983727931976,
+          "width": 78,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "BXH",
+          "name": null,
+          "x": 1200.500017888844,
+          "y": 48.49998374003917,
+          "width": 59,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "CHẾ ĐỘ CHƠI",
+          "name": null,
+          "x": 306.5000045672059,
+          "y": 110.49998524133116,
+          "width": 99,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "SelectBox",
+          "text": "Đối kháng PvP",
+          "name": "game-mode",
+          "x": 520.0000077486038,
+          "y": 109.99998522922397,
+          "width": 300,
+          "height": 38,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chọn chế độ trước khi ghép hoặc tạo phòng",
+          "name": null,
+          "x": 856.5000127628446,
+          "y": 110.49998524133116,
+          "width": 333,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "ComicHeading",
+          "text": "GHÉP TRẬN",
+          "name": null,
+          "x": 259.50000386685133,
+          "y": 223.99998798966408,
+          "width": 179,
+          "height": 40,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Tìm đối thủ hoặc đồng đội online.\nĐủ hai người là tự vào trận.",
+          "name": null,
+          "x": 260.0000038743019,
+          "y": 424.99999285675585,
+          "width": 300,
+          "height": 50,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "GHÉP TRẬN NHANH",
+          "name": "quick-match",
+          "x": 260.0000038743019,
+          "y": 554.9999960046262,
+          "width": 336,
+          "height": 50,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "GHÉP TRẬN NHANH",
+          "name": null,
+          "x": 259.50000386685133,
+          "y": 555.4999960167333,
+          "width": 317,
+          "height": 31,
+          "disabled": false
+        },
+        {
+          "type": "ComicHeading",
+          "text": "TẠO PHÒNG",
+          "name": null,
+          "x": 639.5000095292926,
+          "y": 223.99998798966408,
+          "width": 189,
+          "height": 40,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chơi cùng bạn bè, tự chỉnh luật.\nGửi mã phòng để mời mọi người.",
+          "name": null,
+          "x": 640.0000095367432,
+          "y": 424.99999285675585,
+          "width": 300,
+          "height": 50,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "TẠO PHÒNG RIÊNG",
+          "name": "create-room",
+          "x": 640.0000095367432,
+          "y": 554.9999960046262,
+          "width": 336,
+          "height": 50,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "TẠO PHÒNG RIÊNG",
+          "name": null,
+          "x": 639.5000095292926,
+          "y": 555.4999960167333,
+          "width": 317,
+          "height": 31,
+          "disabled": false
+        },
+        {
+          "type": "ComicHeading",
+          "text": "VÀO PHÒNG",
+          "name": null,
+          "x": 1020.0000151991844,
+          "y": 223.99998798966408,
+          "width": 192,
+          "height": 40,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Đã có mã từ bạn bè?\nNhập mã bên dưới để tham gia.",
+          "name": null,
+          "x": 1020.0000151991844,
+          "y": 424.99999285675585,
+          "width": 300,
+          "height": 50,
+          "disabled": false
+        },
+        {
+          "type": "TextField",
+          "text": "",
+          "name": "room-code",
+          "x": 1020.0000151991844,
+          "y": 499.9999946728349,
+          "width": 336,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "VÀO PHÒNG",
+          "name": "join-room",
+          "x": 1020.0000151991844,
+          "y": 554.9999960046262,
+          "width": 336,
+          "height": 50,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "VÀO PHÒNG",
+          "name": null,
+          "x": 1019.5000151917338,
+          "y": 555.4999960167333,
+          "width": 317,
+          "height": 31,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ESC: Về menu",
+          "name": null,
+          "x": 117.50000175088644,
+          "y": 676.4999989466742,
+          "width": 155,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chọn cách chơi. Ghép nhanh không cần mã phòng.",
+          "name": null,
+          "x": 622.5000092759728,
+          "y": 675.999998934567,
+          "width": 831,
+          "height": 42,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "ĐỔI MÁY CHỦ",
+          "name": "server-settings",
+          "x": 1145.0000170618296,
+          "y": 675.999998934567,
+          "width": 190,
+          "height": 40,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ĐỔI MÁY CHỦ",
+          "name": null,
+          "x": 1144.500017054379,
+          "y": 676.4999989466742,
+          "width": 171,
+          "height": 25,
+          "disabled": false
+        }
+      ]
+    },
+    "lobby_960x540": {
+      "screen": "OnlineLobbyScreen",
+      "phase": "",
+      "room": "",
+      "playerId": "",
+      "matchId": "",
+      "players": 0,
+      "x": 0,
+      "y": 0,
+      "hp": 0,
+      "tick": 0,
+      "bossHp": -1,
+      "error": "",
+      "ui": [
+        {
+          "type": "TextButton",
+          "text": "< VỀ MENU",
+          "name": "back",
+          "x": 86.25000128522515,
+          "y": 35.99998779594898,
+          "width": 150,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "< VỀ MENU",
+          "name": null,
+          "x": 85.87500127963722,
+          "y": 36.37498780502938,
+          "width": 131,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "ComicHeading",
+          "text": "CHƠI ONLINE",
+          "name": null,
+          "x": 429.750006403774,
+          "y": 36.37498780502938,
+          "width": 204,
+          "height": 39,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chiến Binh 23",
+          "name": null,
+          "x": 788.2500117458403,
+          "y": 36.37498780502938,
+          "width": 190,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "BXH",
+          "name": "leaderboard",
+          "x": 900.750013422221,
+          "y": 35.99998779594898,
+          "width": 78,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "BXH",
+          "name": null,
+          "x": 900.375013416633,
+          "y": 36.37498780502938,
+          "width": 59,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "CHẾ ĐỘ CHƠI",
+          "name": null,
+          "x": 229.87500342540443,
+          "y": 82.87498893099837,
+          "width": 99,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "SelectBox",
+          "text": "Đối kháng PvP",
+          "name": "game-mode",
+          "x": 390.00000581145287,
+          "y": 82.49998892191797,
+          "width": 300,
+          "height": 38,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chọn chế độ trước khi ghép hoặc tạo phòng",
+          "name": null,
+          "x": 642.3750095721334,
+          "y": 82.87498893099837,
+          "width": 333,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "ComicHeading",
+          "text": "GHÉP TRẬN",
+          "name": null,
+          "x": 194.6250029001385,
+          "y": 167.99999099224806,
+          "width": 179,
+          "height": 40,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Tìm đối thủ hoặc đồng đội online.\nĐủ hai người là tự vào trận.",
+          "name": null,
+          "x": 195.00000290572643,
+          "y": 318.7499946425669,
+          "width": 300,
+          "height": 50,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "GHÉP TRẬN NHANH",
+          "name": "quick-match",
+          "x": 195.00000290572643,
+          "y": 416.2499970034696,
+          "width": 336,
+          "height": 50,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "GHÉP TRẬN NHANH",
+          "name": null,
+          "x": 194.6250029001385,
+          "y": 416.62499701255,
+          "width": 317,
+          "height": 31,
+          "disabled": false
+        },
+        {
+          "type": "ComicHeading",
+          "text": "TẠO PHÒNG",
+          "name": null,
+          "x": 479.62500714696944,
+          "y": 167.99999099224806,
+          "width": 189,
+          "height": 40,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chơi cùng bạn bè, tự chỉnh luật.\nGửi mã phòng để mời mọi người.",
+          "name": null,
+          "x": 480.0000071525574,
+          "y": 318.7499946425669,
+          "width": 300,
+          "height": 50,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "TẠO PHÒNG RIÊNG",
+          "name": "create-room",
+          "x": 480.0000071525574,
+          "y": 416.2499970034696,
+          "width": 336,
+          "height": 50,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "TẠO PHÒNG RIÊNG",
+          "name": null,
+          "x": 479.62500714696944,
+          "y": 416.62499701255,
+          "width": 317,
+          "height": 31,
+          "disabled": false
+        },
+        {
+          "type": "ComicHeading",
+          "text": "VÀO PHÒNG",
+          "name": null,
+          "x": 765.0000113993883,
+          "y": 167.99999099224806,
+          "width": 192,
+          "height": 40,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Đã có mã từ bạn bè?\nNhập mã bên dưới để tham gia.",
+          "name": null,
+          "x": 765.0000113993883,
+          "y": 318.7499946425669,
+          "width": 300,
+          "height": 50,
+          "disabled": false
+        },
+        {
+          "type": "TextField",
+          "text": "",
+          "name": "room-code",
+          "x": 765.0000113993883,
+          "y": 374.99999600462615,
+          "width": 336,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "VÀO PHÒNG",
+          "name": "join-room",
+          "x": 765.0000113993883,
+          "y": 416.2499970034696,
+          "width": 336,
+          "height": 50,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "VÀO PHÒNG",
+          "name": null,
+          "x": 764.6250113938004,
+          "y": 416.62499701255,
+          "width": 317,
+          "height": 31,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ESC: Về menu",
+          "name": null,
+          "x": 88.12500131316483,
+          "y": 507.3749992100056,
+          "width": 155,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chọn cách chơi. Ghép nhanh không cần mã phòng.",
+          "name": null,
+          "x": 466.87500695697963,
+          "y": 506.99999920092523,
+          "width": 831,
+          "height": 42,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "ĐỔI MÁY CHỦ",
+          "name": "server-settings",
+          "x": 858.7500127963722,
+          "y": 506.99999920092523,
+          "width": 190,
+          "height": 40,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ĐỔI MÁY CHỦ",
+          "name": null,
+          "x": 858.3750127907842,
+          "y": 507.3749992100056,
+          "width": 171,
+          "height": 25,
+          "disabled": false
+        }
+      ]
+    },
+    "lobby_1024x768": {
+      "screen": "OnlineLobbyScreen",
+      "phase": "",
+      "room": "",
+      "playerId": "",
+      "matchId": "",
+      "players": 0,
+      "x": 0,
+      "y": 0,
+      "hp": 0,
+      "tick": 0,
+      "bossHp": -1,
+      "error": "",
+      "ui": [
+        {
+          "type": "TextButton",
+          "text": "< VỀ MENU",
+          "name": "back",
+          "x": 92.00000137090683,
+          "y": 134.39998698234558,
+          "width": 150,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "< VỀ MENU",
+          "name": null,
+          "x": 91.60000136494637,
+          "y": 134.79998699203134,
+          "width": 131,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "ComicHeading",
+          "text": "CHƠI ONLINE",
+          "name": null,
+          "x": 458.4000068306923,
+          "y": 134.79998699203134,
+          "width": 204,
+          "height": 39,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chiến Binh 23",
+          "name": null,
+          "x": 840.8000125288963,
+          "y": 134.79998699203134,
+          "width": 190,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "BXH",
+          "name": "leaderboard",
+          "x": 960.8000143170357,
+          "y": 134.39998698234558,
+          "width": 78,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "BXH",
+          "name": null,
+          "x": 960.4000143110752,
+          "y": 134.79998699203134,
+          "width": 59,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "CHẾ ĐỘ CHƠI",
+          "name": null,
+          "x": 245.20000365376472,
+          "y": 184.39998819306493,
+          "width": 99,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "SelectBox",
+          "text": "Đối kháng PvP",
+          "name": "game-mode",
+          "x": 416.00000619888306,
+          "y": 183.99998818337917,
+          "width": 300,
+          "height": 38,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chọn chế độ trước khi ghép hoặc tạo phòng",
+          "name": null,
+          "x": 685.2000102102757,
+          "y": 184.39998819306493,
+          "width": 333,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "ComicHeading",
+          "text": "GHÉP TRẬN",
+          "name": null,
+          "x": 207.60000309348106,
+          "y": 275.19999039173126,
+          "width": 179,
+          "height": 40,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Tìm đối thủ hoặc đồng đội online.\nĐủ hai người là tự vào trận.",
+          "name": null,
+          "x": 208.00000309944153,
+          "y": 435.9999942854047,
+          "width": 300,
+          "height": 50,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "GHÉP TRẬN NHANH",
+          "name": "quick-match",
+          "x": 208.00000309944153,
+          "y": 539.9999968037009,
+          "width": 336,
+          "height": 50,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "GHÉP TRẬN NHANH",
+          "name": null,
+          "x": 207.60000309348106,
+          "y": 540.3999968133867,
+          "width": 317,
+          "height": 31,
+          "disabled": false
+        },
+        {
+          "type": "ComicHeading",
+          "text": "TẠO PHÒNG",
+          "name": null,
+          "x": 511.60000762343407,
+          "y": 275.19999039173126,
+          "width": 189,
+          "height": 40,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chơi cùng bạn bè, tự chỉnh luật.\nGửi mã phòng để mời mọi người.",
+          "name": null,
+          "x": 512.0000076293945,
+          "y": 435.9999942854047,
+          "width": 300,
+          "height": 50,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "TẠO PHÒNG RIÊNG",
+          "name": "create-room",
+          "x": 512.0000076293945,
+          "y": 539.9999968037009,
+          "width": 336,
+          "height": 50,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "TẠO PHÒNG RIÊNG",
+          "name": null,
+          "x": 511.60000762343407,
+          "y": 540.3999968133867,
+          "width": 317,
+          "height": 31,
+          "disabled": false
+        },
+        {
+          "type": "ComicHeading",
+          "text": "VÀO PHÒNG",
+          "name": null,
+          "x": 816.0000121593475,
+          "y": 275.19999039173126,
+          "width": 192,
+          "height": 40,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Đã có mã từ bạn bè?\nNhập mã bên dưới để tham gia.",
+          "name": null,
+          "x": 816.0000121593475,
+          "y": 435.9999942854047,
+          "width": 300,
+          "height": 50,
+          "disabled": false
+        },
+        {
+          "type": "TextField",
+          "text": "",
+          "name": "room-code",
+          "x": 816.0000121593475,
+          "y": 495.9999957382679,
+          "width": 336,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "VÀO PHÒNG",
+          "name": "join-room",
+          "x": 816.0000121593475,
+          "y": 539.9999968037009,
+          "width": 336,
+          "height": 50,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "VÀO PHÒNG",
+          "name": null,
+          "x": 815.6000121533871,
+          "y": 540.3999968133867,
+          "width": 317,
+          "height": 31,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ESC: Về menu",
+          "name": null,
+          "x": 94.00000140070915,
+          "y": 637.1999991573393,
+          "width": 155,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chọn cách chơi. Ghép nhanh không cần mã phòng.",
+          "name": null,
+          "x": 498.0000074207783,
+          "y": 636.7999991476536,
+          "width": 831,
+          "height": 42,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "ĐỔI MÁY CHỦ",
+          "name": "server-settings",
+          "x": 916.0000136494637,
+          "y": 636.7999991476536,
+          "width": 190,
+          "height": 40,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ĐỔI MÁY CHỦ",
+          "name": null,
+          "x": 915.6000136435032,
+          "y": 637.1999991573393,
+          "width": 171,
+          "height": 25,
+          "disabled": false
+        }
+      ]
+    },
+    "server_settings": {
+      "screen": "OnlineLobbyScreen",
+      "phase": "",
+      "room": "",
+      "playerId": "",
+      "matchId": "",
+      "players": 0,
+      "x": 0,
+      "y": 0,
+      "hp": 0,
+      "tick": 0,
+      "bossHp": -1,
+      "error": "",
+      "ui": [
+        {
+          "type": "TextButton",
+          "text": "< VỀ MENU",
+          "name": "back",
+          "x": 115.00000171363354,
+          "y": 47.999983727931976,
+          "width": 150,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "< VỀ MENU",
+          "name": null,
+          "x": 114.50000170618296,
+          "y": 48.49998374003917,
+          "width": 131,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "ComicHeading",
+          "text": "CHƠI ONLINE",
+          "name": null,
+          "x": 573.0000085383654,
+          "y": 48.49998374003917,
+          "width": 204,
+          "height": 39,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chiến Binh 23",
+          "name": null,
+          "x": 1051.0000156611204,
+          "y": 48.49998374003917,
+          "width": 190,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "BXH",
+          "name": "leaderboard",
+          "x": 1201.0000178962946,
+          "y": 47.999983727931976,
+          "width": 78,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "BXH",
+          "name": null,
+          "x": 1200.500017888844,
+          "y": 48.49998374003917,
+          "width": 59,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "CHẾ ĐỘ CHƠI",
+          "name": null,
+          "x": 306.5000045672059,
+          "y": 110.49998524133116,
+          "width": 99,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "SelectBox",
+          "text": "Đối kháng PvP",
+          "name": "game-mode",
+          "x": 520.0000077486038,
+          "y": 109.99998522922397,
+          "width": 300,
+          "height": 38,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chọn chế độ trước khi ghép hoặc tạo phòng",
+          "name": null,
+          "x": 856.5000127628446,
+          "y": 110.49998524133116,
+          "width": 333,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "ComicHeading",
+          "text": "GHÉP TRẬN",
+          "name": null,
+          "x": 259.50000386685133,
+          "y": 223.99998798966408,
+          "width": 179,
+          "height": 40,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Tìm đối thủ hoặc đồng đội online.\nĐủ hai người là tự vào trận.",
+          "name": null,
+          "x": 260.0000038743019,
+          "y": 424.99999285675585,
+          "width": 300,
+          "height": 50,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "GHÉP TRẬN NHANH",
+          "name": "quick-match",
+          "x": 260.0000038743019,
+          "y": 554.9999960046262,
+          "width": 336,
+          "height": 50,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "GHÉP TRẬN NHANH",
+          "name": null,
+          "x": 259.50000386685133,
+          "y": 555.4999960167333,
+          "width": 317,
+          "height": 31,
+          "disabled": false
+        },
+        {
+          "type": "ComicHeading",
+          "text": "TẠO PHÒNG",
+          "name": null,
+          "x": 639.5000095292926,
+          "y": 223.99998798966408,
+          "width": 189,
+          "height": 40,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chơi cùng bạn bè, tự chỉnh luật.\nGửi mã phòng để mời mọi người.",
+          "name": null,
+          "x": 640.0000095367432,
+          "y": 424.99999285675585,
+          "width": 300,
+          "height": 50,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "TẠO PHÒNG RIÊNG",
+          "name": "create-room",
+          "x": 640.0000095367432,
+          "y": 554.9999960046262,
+          "width": 336,
+          "height": 50,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "TẠO PHÒNG RIÊNG",
+          "name": null,
+          "x": 639.5000095292926,
+          "y": 555.4999960167333,
+          "width": 317,
+          "height": 31,
+          "disabled": false
+        },
+        {
+          "type": "ComicHeading",
+          "text": "VÀO PHÒNG",
+          "name": null,
+          "x": 1020.0000151991844,
+          "y": 223.99998798966408,
+          "width": 192,
+          "height": 40,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Đã có mã từ bạn bè?\nNhập mã bên dưới để tham gia.",
+          "name": null,
+          "x": 1020.0000151991844,
+          "y": 424.99999285675585,
+          "width": 300,
+          "height": 50,
+          "disabled": false
+        },
+        {
+          "type": "TextField",
+          "text": "",
+          "name": "room-code",
+          "x": 1020.0000151991844,
+          "y": 499.9999946728349,
+          "width": 336,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "VÀO PHÒNG",
+          "name": "join-room",
+          "x": 1020.0000151991844,
+          "y": 554.9999960046262,
+          "width": 336,
+          "height": 50,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "VÀO PHÒNG",
+          "name": null,
+          "x": 1019.5000151917338,
+          "y": 555.4999960167333,
+          "width": 317,
+          "height": 31,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ESC: Về menu",
+          "name": null,
+          "x": 117.50000175088644,
+          "y": 676.4999989466742,
+          "width": 155,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chọn cách chơi. Ghép nhanh không cần mã phòng.",
+          "name": null,
+          "x": 622.5000092759728,
+          "y": 675.999998934567,
+          "width": 831,
+          "height": 42,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "ĐỔI MÁY CHỦ",
+          "name": "server-settings",
+          "x": 1145.0000170618296,
+          "y": 675.999998934567,
+          "width": 190,
+          "height": 40,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ĐỔI MÁY CHỦ",
+          "name": null,
+          "x": 1144.500017054379,
+          "y": 676.4999989466742,
+          "width": 171,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "ComicHeading",
+          "text": "MÁY CHỦ",
+          "name": null,
+          "x": 402.5000059977174,
+          "y": 252.4999886797741,
+          "width": 145,
+          "height": 39,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Địa chỉ đã được điền sẵn. Chỉ đổi khi bạn dùng máy chủ riêng.",
+          "name": null,
+          "x": 640.0000095367432,
+          "y": 306.9999899994582,
+          "width": 620,
+          "height": 46,
+          "disabled": false
+        },
+        {
+          "type": "TextField",
+          "text": "wss://aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc.example.com/ws",
+          "name": "server-host",
+          "x": 640.0000095367432,
+          "y": 360.9999913070351,
+          "width": 620,
+          "height": 46,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "wss://aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc.example.com/ws",
+          "name": "server-endpoint-preview",
+          "x": 640.0000095367432,
+          "y": 408.99999246932566,
+          "width": 620,
+          "height": 30,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "XONG",
+          "name": "close-server-settings",
+          "x": 860.0000128149986,
+          "y": 464.99999382533133,
+          "width": 180,
+          "height": 46,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "XONG",
+          "name": null,
+          "x": 859.500012807548,
+          "y": 465.4999938374385,
+          "width": 161,
+          "height": 27,
+          "disabled": false
+        }
+      ]
+    },
+    "created_room": {
+      "screen": "OnlineRoomScreen",
+      "phase": "JOINED",
+      "room": "G6CNVN",
+      "playerId": "8dc26951-fd61-4b90-af67-11cbb7f3f55c",
+      "matchId": "",
+      "players": 0,
+      "x": 0,
+      "y": 0,
+      "hp": 0,
+      "tick": 0,
+      "bossHp": -1,
+      "error": "",
+      "ui": [
+        {
+          "type": "TextButton",
+          "text": "< RỜI PHÒNG",
+          "name": null,
+          "x": 106.00000157952309,
+          "y": 75.99998440593481,
+          "width": 156,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "< RỜI PHÒNG",
+          "name": null,
+          "x": 105.5000015720725,
+          "y": 76.499984418042,
+          "width": 137,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "⚙ CÀI ĐẶT LUẬT [X]",
+          "name": "room-settings",
+          "x": 294.500004388392,
+          "y": 75.99998440593481,
+          "width": 201,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "⚙ CÀI ĐẶT LUẬT [X]",
+          "name": null,
+          "x": 294.0000043809414,
+          "y": 76.499984418042,
+          "width": 182,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "PHÒNG #G6CNVN   ·   3 MẠNG   ·   120s   ·   TỐI ĐA 4 NGƯỜI",
+          "name": null,
+          "x": 688.0000102519989,
+          "y": 76.499984418042,
+          "width": 440,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "1/4 NGƯỜI",
+          "name": null,
+          "x": 1031.5000153705478,
+          "y": 76.499984418042,
+          "width": 79,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "SAO CHÉP MÃ",
+          "name": null,
+          "x": 1171.5000174567103,
+          "y": 75.99998440593481,
+          "width": 161,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "SAO CHÉP MÃ",
+          "name": null,
+          "x": 1171.0000174492598,
+          "y": 76.499984418042,
+          "width": 142,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "CHỌN NHÂN VẬT CỦA BẠN",
+          "name": null,
+          "x": 639.5000095292926,
+          "y": 117.49998541083187,
+          "width": 207,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Alex",
+          "name": null,
+          "x": 381.0000056773424,
+          "y": 210.49998766276985,
+          "width": 34,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Maurice",
+          "name": null,
+          "x": 510.0000075995922,
+          "y": 210.49998766276985,
+          "width": 60,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Luca",
+          "name": null,
+          "x": 639.000009521842,
+          "y": 210.49998766276985,
+          "width": 32,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Leo",
+          "name": null,
+          "x": 768.5000114515424,
+          "y": 210.49998766276985,
+          "width": 25,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Viktor",
+          "name": null,
+          "x": 897.5000133737922,
+          "y": 210.49998766276985,
+          "width": 47,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "P1 · BẠN ★",
+          "name": null,
+          "x": 180.5000026896596,
+          "y": 418.49999269936234,
+          "width": 65,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ALEX",
+          "name": null,
+          "x": 180.5000026896596,
+          "y": 448.49999342579395,
+          "width": 77,
+          "height": 39,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "DMG",
+          "name": null,
+          "x": 99.00000147521496,
+          "y": 479.49999417643994,
+          "width": 36,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "DEF",
+          "name": null,
+          "x": 202.50000301748514,
+          "y": 479.49999417643994,
+          "width": 27,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "SPD",
+          "name": null,
+          "x": 98.50000146776438,
+          "y": 500.49999468494207,
+          "width": 29,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "DEX",
+          "name": null,
+          "x": 203.00000302493572,
+          "y": 500.49999468494207,
+          "width": 30,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "CHƯA SẴN SÀNG",
+          "name": null,
+          "x": 180.5000026896596,
+          "y": 533.4999954840168,
+          "width": 129,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "P2  ·  TRỐNG",
+          "name": null,
+          "x": 487.0000072568655,
+          "y": 437.4999931594357,
+          "width": 92,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ĐANG CHỜ...",
+          "name": null,
+          "x": 486.5000072494149,
+          "y": 467.4999938858673,
+          "width": 199,
+          "height": 39,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ĐANG CHỜ NGƯỜI",
+          "name": null,
+          "x": 486.5000072494149,
+          "y": 512.4999949755147,
+          "width": 141,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "P3  ·  TRỐNG",
+          "name": null,
+          "x": 793.0000118166208,
+          "y": 437.4999931594357,
+          "width": 92,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ĐANG CHỜ...",
+          "name": null,
+          "x": 792.5000118091702,
+          "y": 467.4999938858673,
+          "width": 199,
+          "height": 39,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ĐANG CHỜ NGƯỜI",
+          "name": null,
+          "x": 792.5000118091702,
+          "y": 512.4999949755147,
+          "width": 141,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "P4  ·  TRỐNG",
+          "name": null,
+          "x": 1099.0000163763762,
+          "y": 437.4999931594357,
+          "width": 92,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ĐANG CHỜ...",
+          "name": null,
+          "x": 1098.5000163689256,
+          "y": 467.4999938858673,
+          "width": 199,
+          "height": 39,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ĐANG CHỜ NGƯỜI",
+          "name": null,
+          "x": 1098.5000163689256,
+          "y": 512.4999949755147,
+          "width": 141,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "SẴN SÀNG  [ENTER]",
+          "name": "ready",
+          "x": 640.0000095367432,
+          "y": 602.9999971669167,
+          "width": 360,
+          "height": 48,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "SẴN SÀNG  [ENTER]",
+          "name": null,
+          "x": 639.5000095292926,
+          "y": 603.4999971790239,
+          "width": 341,
+          "height": 29,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Cần ít nhất 2 người để bắt đầu. Hãy sao chép mã phòng để mời bạn bè!",
+          "name": null,
+          "x": 640.0000095367432,
+          "y": 640.4999980749562,
+          "width": 538,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "A/D di chuyển · Space nhảy · W/S ngắm · J đánh/bắn · K đánh mạnh · L né/lướt · E nhặt · Q ném · Tab túi",
+          "name": null,
+          "x": 640.0000095367432,
+          "y": 661.4999985834584,
+          "width": 778,
+          "height": 19,
+          "disabled": false
+        }
+      ]
+    }
+  }
+}

@@ -1,5 +1,7 @@
 # Super Smash Profs — Platform Fighter
 
+**Sảnh online:** [Ba lựa chọn chơi và hộp đổi máy chủ riêng](21-ONLINE-LOBBY-LAYOUT.md). Địa chỉ WSS dài không làm tràn khung; ghép nhanh, tạo phòng và nhập mã tách thành ba thẻ.
+
 **Ghép trận online:** [PvP 1 đấu 1 / Boss hai người](20-ONLINE-MATCHMAKING.md). Online → Ghép trận nhanh → chọn nhân vật/chế độ → Tìm trận. Đủ hai người cùng tìm thì tự vào trận, có Hủy tìm; vẫn giữ phòng riêng bằng mã.
 
 **Client đầy đủ trên web:** [TeaVM: cách chạy, kiến trúc và hosting](18-TEAVM-WEB-CLIENT.md). Chạy `scripts/web/Run-Web.ps1` để mở menu thật, Local, Online PvP/Boss và bảng ELO từ code `dev`.

@@ -50,10 +50,11 @@ def select(page,name,text):
 
 def main():
     global EVIDENCE
-    parser=argparse.ArgumentParser();parser.add_argument('--boot-only',action='store_true');parser.add_argument('--local-only',action='store_true');parser.add_argument('--pvp',action='store_true');parser.add_argument('--matchmaking',action='store_true');args=parser.parse_args()
+    parser=argparse.ArgumentParser();parser.add_argument('--boot-only',action='store_true');parser.add_argument('--local-only',action='store_true');parser.add_argument('--pvp',action='store_true');parser.add_argument('--matchmaking',action='store_true');parser.add_argument('--lobby-layout',action='store_true');args=parser.parse_args()
     if args.local_only: EVIDENCE=ROOT/'docs/gameplay/runs/20261023-web-local'
     if args.pvp: EVIDENCE=ROOT/'docs/gameplay/runs/20261023-web-pvp'
     if args.matchmaking: EVIDENCE=ROOT/'docs/gameplay/runs/20261023-web-matchmaking'
+    if args.lobby_layout: EVIDENCE=ROOT/'docs/gameplay/runs/20261023-online-lobby-layout'
     EVIDENCE.mkdir(parents=True,exist_ok=True);b.EVIDENCE=EVIDENCE
     run=ROOT/'final-project/build'/('web-verify-'+str(int(time.time()*1000)));run.mkdir(parents=True)
     profile=run/'edge';profile.mkdir()
@@ -94,7 +95,49 @@ def main():
             return page
         host=tab();states['menu']=state(host);host.shot('01-main-menu.png');checks.append('Real shared MainMenuScreen boots in Edge/WebGL')
         print('PASS main menu',flush=True)
-        if args.matchmaking:
+        if args.lobby_layout:
+            host.press('O');wait_state(host,lambda s:s['screen']=='OnlineLobbyScreen')
+            assert any(a['text']=='CHƠI ONLINE' for a in state(host)['ui']), 'Vietnamese lobby title lost its accents'
+            assert actor(host,name='game-mode')['text']=='Đối kháng PvP'
+            click(host,actor(host,name='server-settings'))
+            original=actor(host,name='server-host')['text']
+            azure='wss://smashprofs-thai.southeastasia.cloudapp.azure.com/ws'
+            fill(host,actor(host,name='server-host'),azure);click(host,actor(host,name='close-server-settings'))
+            names=['quick-match','create-room','join-room','room-code','game-mode','server-settings','back','leaderboard']
+            for width,height in [(1280,720),(960,540),(1024,768)]:
+                host.call('Emulation.setDeviceMetricsOverride',dict(width=width,height=height,deviceScaleFactor=1,mobile=False));time.sleep(.4)
+                current=state(host);scale=min(width/1280,height/720)
+                assert not any(a.get('name')=='server-host' for a in current['ui'])
+                boxes=[]
+                for name in names:
+                    a=actor(host,name=name);half_w=a['width']*scale/2;half_h=a['height']*scale/2
+                    box=(a['x']-half_w,a['y']-half_h,a['x']+half_w,a['y']+half_h)
+                    assert box[0]>=-1 and box[1]>=-1 and box[2]<=width+1 and box[3]<=height+1,(name,box,width,height)
+                    for other_name,other in boxes:
+                        assert min(box[2],other[2])-max(box[0],other[0])<=1 or min(box[3],other[3])-max(box[1],other[1])<=1,(name,other_name,box,other)
+                    boxes.append((name,box))
+                states[f'lobby_{width}x{height}']=current;host.shot(f'20-lobby-{width}x{height}.png')
+            checks.append('Azure WSS address cannot expand or overlap lobby controls at 1280x720, 960x540 and 1024x768')
+            host.call('Emulation.setDeviceMetricsOverride',dict(width=1280,height=720,deviceScaleFactor=1,mobile=False));time.sleep(.3)
+            click(host,actor(host,name='server-settings'))
+            assert actor(host,name='server-host')['text']==azure
+            long_address='wss://' + '.'.join(['a'*63,'b'*63,'c'*63]) + '.example.com/ws'
+            fill(host,actor(host,name='server-host'),long_address)
+            field=actor(host,name='server-host');assert field['text']==long_address
+            assert field['width']==620 and field['x']-field['width']/2>=0 and field['x']+field['width']/2<=1280
+            states['server_settings']=state(host);host.shot('21-bounded-server-settings.png')
+            # Clicking the covered Create button must hit the modal backdrop, not create a room.
+            click(host,actor(host,name='create-room'));assert actor(host,name='server-host')['text']==long_address
+            assert not state(host)['phase'];checks.append('Server modal bounds very long addresses and blocks background actions')
+            fill(host,actor(host,name='server-host'),original);enter(host)
+            assert not any(a.get('name')=='server-host' for a in state(host)['ui'])
+            checks.append('Enter applies server settings without accidentally joining a room')
+            click(host,actor(host,name='create-room'));wait_state(host,lambda s:s['screen']=='OnlineRoomScreen' and s['room'])
+            states['created_room']=state(host);esc(host);wait_state(host,lambda s:s['screen']=='OnlineLobbyScreen')
+            click(host,actor(host,name='quick-match'));wait_state(host,lambda s:s['screen']=='OnlineMatchmakingScreen')
+            esc(host);wait_state(host,lambda s:s['screen']=='OnlineLobbyScreen')
+            checks.append('Create private room and open quick matchmaking remain functional after layout changes')
+        elif args.matchmaking:
             def quick(page, boss=False, character='Alex'):
                 page.press('O');wait_state(page,lambda s:s['screen']=='OnlineLobbyScreen')
                 click(page,actor(page,name='quick-match'));wait_state(page,lambda s:s['screen']=='OnlineMatchmakingScreen')

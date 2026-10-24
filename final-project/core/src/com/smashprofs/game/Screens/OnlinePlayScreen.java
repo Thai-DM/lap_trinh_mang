@@ -23,7 +23,13 @@ final class OnlinePlayScreen implements Screen {
     private final Map<String, Sprite> players = new LinkedHashMap<>();
     private final Map<Long, Sprite> projectiles = new LinkedHashMap<>();
     private final SpriteBatch batch = new SpriteBatch();
-    private final BitmapFont identityFont = new BitmapFont();
+    private static final float NAME_SCALE=.0075f,NAME_OFFSET_Y=.34f,NAME_OUTLINE=.008f;
+    private static final float[][] NAME_OUTLINE_STEPS={{-1,0},{1,0},{0,-1},{0,1},{-1,-1},{1,-1},{-1,1},{1,1}};
+    private static final Color NAME_OUTLINE_COLOR=new Color(0,0,0,.85f);
+    private final BitmapFont nameFont = new BitmapFont(Gdx.files.internal("ui/online/small.fnt"));
+    private final Map<String,String> displayNames=new HashMap<>();
+    private final Map<String,Color> nameColors=new HashMap<>();
+    private final Map<String,Float> nameWidths=new HashMap<>();
     private final OrthographicCamera camera = new OrthographicCamera();
     private final FitViewport viewport = new FitViewport(12, 4, camera);
     private final TiledMap map;
@@ -90,7 +96,14 @@ final class OnlinePlayScreen implements Screen {
             players.put(member.playerId().value(), assets.player(member.characterId()));
         }
         hud = new OnlineHud(batch, session.getRoster(), session.getLocalPlayerId().value(),session.isFighter());
-        identityFont.getData().setScale(0.008f);
+        nameFont.setUseIntegerPositions(false);nameFont.getData().setScale(NAME_SCALE);
+        nameFont.getRegion().getTexture().setFilter(Texture.TextureFilter.Linear,Texture.TextureFilter.Linear);
+        var measure=new com.badlogic.gdx.graphics.g2d.GlyphLayout();
+        for(var member:session.getRoster().players()) {
+            String id=member.playerId().value();
+            displayNames.put(id,member.displayName());nameColors.put(id,com.smashprofs.game.ui.PlayerNameStyle.color(member.slotIndex()));
+            measure.setText(nameFont,member.displayName());nameWidths.put(id,measure.width);
+        }
     }
     @Override public void show() { Gdx.input.setInputProcessor(null); }
     @Override public void render(float delta) {
@@ -269,9 +282,16 @@ final class OnlinePlayScreen implements Screen {
                 var equipment=gameplay.player(p.playerId());
                 if(!equipment.weapon().equals("NONE")) { combatIcons.draw(batch,equipment.weapon(),p.x()+(p.facingRight()?.08f:-.08f),p.y()+.045f,.23f,.16f,0,!p.facingRight()); }
             }
-            identityFont.setColor(view.local() ? Color.CYAN : Color.WHITE);
-            identityFont.draw(batch, view.local() ? "YOU" : "Slot " + p.slotIndex(), p.x() - 0.125f, p.y() + 0.32f);
         }
+        for(var view:renderedPlayers) {
+            var p=view.state();String id=p.playerId();var name=displayNames.get(id);
+            if(name==null || gameplay!=null && !gameplay.player(id).status().equals("ACTIVE")) { continue; }
+            float x=p.x()-nameWidths.get(id)/2f,y=p.y()+NAME_OFFSET_Y;
+            nameFont.setColor(NAME_OUTLINE_COLOR);
+            for(var step:NAME_OUTLINE_STEPS) { nameFont.draw(batch,name,x+step[0]*NAME_OUTLINE,y+step[1]*NAME_OUTLINE); }
+            nameFont.setColor(nameColors.get(id));nameFont.draw(batch,name,x,y);
+        }
+        nameFont.setColor(Color.WHITE);
         if(gameplay!=null) {
             for(var item:gameplay.items()) { combatIcons.draw(batch,item.type(),item.x(),item.y()+.02f*(float)Math.sin(animationTime*3+item.id()),.22f,.22f,0,false); }
             for(var shot:gameplay.shots()) {
@@ -547,7 +567,7 @@ final class OnlinePlayScreen implements Screen {
         if (disposed) { return; } disposed = true;
         presentation.close(); players.clear(); projectiles.clear();
         if(prediction!=null) { prediction.close(); }
-        hud.close();combatIcons.close();tiles.dispose();arena.close();identityFont.dispose();shapes.dispose();readySound.dispose();hitSound.dispose();koSound.dispose();explosionTexture.dispose();stompSound.dispose(); batch.dispose();
+        hud.close();combatIcons.close();tiles.dispose();arena.close();nameFont.dispose();shapes.dispose();readySound.dispose();hitSound.dispose();koSound.dispose();explosionTexture.dispose();stompSound.dispose(); batch.dispose();
         // LobbyClient/Game own the session, listener and TCP connection; this screen never closes them.
     }
 }

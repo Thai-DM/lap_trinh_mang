@@ -58,7 +58,7 @@ public final class OnlineHud implements AutoCloseable {
             var portrait=new com.badlogic.gdx.graphics.Texture(com.badlogic.gdx.Gdx.files.internal(OnlineVisualCatalog.character(member.characterId()).stand()));portraits.add(portrait);
             var region=new com.badlogic.gdx.graphics.g2d.TextureRegion(portrait,0,0,100,100);
             table.add(new Image(region)).size(30).padRight(5);var info=new Table();info.defaults().left();table.add(info).grow();
-            var title=ui.small("P"+(member.slotIndex()+1)+" "+member.characterId());title.setColor(id.equals(localId)?OnlineUi.ACCENT:OnlineUi.TEXT);
+            var title=ui.small("P"+(member.slotIndex()+1)+" "+member.displayName());title.setColor(id.equals(localId)?OnlineUi.ACCENT:OnlineUi.TEXT);
             info.add(title).expandX();info.add(card.lives).right();info.row();
             info.add(card.bar).colspan(2).growX().height(4).padTop(3);info.row();
             info.add(card.hp).padTop(3);info.add(card.ping).right().padTop(3);

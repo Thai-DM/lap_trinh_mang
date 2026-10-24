@@ -55,4 +55,47 @@ public class PlatformDropThroughTest {
                 new PlatformAssembly.Surface(1.3f,1.95f,.5f),new PlatformAssembly.Surface(0,1,2));
         assertEquals(Set.of(0,1,2),PlatformAssembly.connected(surfaces,0));
     }
+    // --- Tests for small (narrow) one-way platforms (id 54, 48, 45, 31, 53) ---
+    /** id 54: widthPixels~15.98 (< 30 old threshold, >= 8 new) - must be recognised as one-way. */
+    @Test public void narrowPlatformId54IsOneWay() {
+        assertTrue("id 54 (w~16px) must satisfy oneWay heuristic",
+            com.smashprofs.server.game.physics.FighterPhysics.oneWay(
+                new com.smashprofs.server.game.physics.MapCollisionDefinition.CollisionRectangle(54,344,103,16,24)));
+    }
+    /** id 48: widthPixels~16.1 - must be recognised as one-way. */
+    @Test public void narrowPlatformId48IsOneWay() {
+        assertTrue("id 48 (w~16px) must satisfy oneWay heuristic",
+            com.smashprofs.server.game.physics.FighterPhysics.oneWay(
+                new com.smashprofs.server.game.physics.MapCollisionDefinition.CollisionRectangle(48,712,121,16,16)));
+    }
+    /** id 45: widthPixels=24 - was 24<30 old, must now pass new threshold >=8. */
+    @Test public void narrowPlatformId45IsOneWay() {
+        assertTrue("id 45 (w=24px) must satisfy oneWay heuristic",
+            com.smashprofs.server.game.physics.FighterPhysics.oneWay(
+                new com.smashprofs.server.game.physics.MapCollisionDefinition.CollisionRectangle(45,728,127,24,17)));
+    }
+    /** id 31: widthPixels~24 - must be recognised as one-way. */
+    @Test public void narrowPlatformId31IsOneWay() {
+        assertTrue("id 31 (w~24px) must satisfy oneWay heuristic",
+            com.smashprofs.server.game.physics.FighterPhysics.oneWay(
+                new com.smashprofs.server.game.physics.MapCollisionDefinition.CollisionRectangle(31,768,64,24,16)));
+    }
+    /** id 53: widthPixels~24 - must be recognised as one-way. */
+    @Test public void narrowPlatformId53IsOneWay() {
+        assertTrue("id 53 (w~24px) must satisfy oneWay heuristic",
+            com.smashprofs.server.game.physics.FighterPhysics.oneWay(
+                new com.smashprofs.server.game.physics.MapCollisionDefinition.CollisionRectangle(53,400,144,24,24)));
+    }
+    /** Platforms below the 65%-height cutoff must NOT be treated as one-way (regression guard). */
+    @Test public void lowPlatformIsNotOneWay() {
+        assertFalse("low-altitude wide rect must not be one-way",
+            com.smashprofs.server.game.physics.FighterPhysics.oneWay(
+                new com.smashprofs.server.game.physics.MapCollisionDefinition.CollisionRectangle(99,0,0,200,8)));
+    }
+    /** Very thin (< 8px) rects must NOT be treated as one-way even if they pass other checks. */
+    @Test public void tooNarrowPlatformIsNotOneWay() {
+        assertFalse("rects narrower than 8px must not be one-way",
+            com.smashprofs.server.game.physics.FighterPhysics.oneWay(
+                new com.smashprofs.server.game.physics.MapCollisionDefinition.CollisionRectangle(100,400,200,7,16)));
+    }
 }

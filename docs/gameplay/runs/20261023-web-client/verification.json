@@ -1,0 +1,1506 @@
+{
+  "status": "PASS",
+  "date": "2026-10-23",
+  "checks": [
+    "Gateway rejects an origin outside the configured exact allowlist",
+    "Real shared MainMenuScreen boots in Edge/WebGL",
+    "Shared keybinding settings open and close",
+    "Shared profile saves to browser storage and survives a page reload",
+    "Real GET_LEADERBOARD through WebSocket and SQLite ranking service",
+    "Real shared OnlineRoomScreen creates room TZ6UGL",
+    "Two browser clients start same authoritative match with distinct server identities",
+    "Boss art/AI and real laser ammo consumption while alive; shooting starts no unarmed attack",
+    "Space jumps using latest dev bindings, observed in authoritative snapshots",
+    "Real A/D input with shared prediction and server snapshots",
+    "Shared HUD/inventory renders",
+    "Real final server snapshot and GAME_END open shared results screen",
+    "Both rematch votes create a new authoritative match and reload shared play screen",
+    "Completed match persists once into SQLite; co-op keeps competitive Elo unchanged",
+    "Leave match closes connection and returns to shared lobby",
+    "A real finished match credits the persistent guest, and reloading highlights the same named ranking entry",
+    "No server exceptions during the browser run",
+    "No JavaScript exceptions or failed assets"
+  ],
+  "states": {
+    "menu": {
+      "screen": "MainMenuScreen",
+      "phase": "",
+      "room": "",
+      "playerId": "",
+      "matchId": "",
+      "players": 0,
+      "x": 0,
+      "y": 0,
+      "hp": 0,
+      "tick": 0,
+      "bossHp": -1,
+      "error": "",
+      "ui": [
+        {
+          "type": "Label",
+          "text": "SUPER SMASH PROFS  ·  MULTINETWORK EDITION",
+          "name": null,
+          "x": 234.5000034943223,
+          "y": 82.49998456332833,
+          "width": 377,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chiến Binh 70",
+          "name": null,
+          "x": 1058.5000157728791,
+          "y": 72.49998432118446,
+          "width": 103,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ID: player_7591",
+          "name": null,
+          "x": 1063.0000158399343,
+          "y": 91.49998478125781,
+          "width": 112,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "HỒ SƠ [P]",
+          "name": null,
+          "x": 1183.5000176355243,
+          "y": 81.99998455122113,
+          "width": 105,
+          "height": 34,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "HỒ SƠ [P]",
+          "name": null,
+          "x": 1183.5000176355243,
+          "y": 82.49998456332833,
+          "width": 97,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ĐẤU TRƯỜNG ĐỐI KHÁNG ĐỈNH CAO  ·  SUPER SMASH PROFS",
+          "name": null,
+          "x": 640.0000095367432,
+          "y": 191.4999872026965,
+          "width": 466,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "CHIẾN BINH",
+          "name": null,
+          "x": 259.00000385940075,
+          "y": 490.4999944427982,
+          "width": 90,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ALEX",
+          "name": null,
+          "x": 258.50000385195017,
+          "y": 521.4999951934442,
+          "width": 77,
+          "height": 39,
+          "disabled": false
+        },
+        {
+          "type": "ComicHeading",
+          "text": "CHỌN CHẾ ĐỘ CHƠI",
+          "name": null,
+          "x": 640.0000095367432,
+          "y": 271.49998913984746,
+          "width": 308,
+          "height": 39,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "CHƠI LOCAL  [SPACE]",
+          "name": null,
+          "x": 640.0000095367432,
+          "y": 320.9999903384596,
+          "width": 420,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "CHƠI LOCAL  [SPACE]",
+          "name": null,
+          "x": 639.5000095292926,
+          "y": 321.4999903505668,
+          "width": 401,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "2 người chơi đối kháng trên cùng một bàn phím",
+          "name": null,
+          "x": 639.5000095292926,
+          "y": 354.4999911496416,
+          "width": 363,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "CHƠI ONLINE  [O]",
+          "name": null,
+          "x": 640.0000095367432,
+          "y": 391.9999920576811,
+          "width": 420,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "CHƠI ONLINE  [O]",
+          "name": null,
+          "x": 639.5000095292926,
+          "y": 392.4999920697883,
+          "width": 401,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Sảnh đấu trực tuyến qua mạng LAN / Internet (2-4 người)",
+          "name": null,
+          "x": 640.0000095367432,
+          "y": 425.49999286886305,
+          "width": 434,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "BẢNG XẾP HẠNG  [B]",
+          "name": null,
+          "x": 640.0000095367432,
+          "y": 462.99999377690256,
+          "width": 420,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "BẢNG XẾP HẠNG  [B]",
+          "name": null,
+          "x": 639.5000095292926,
+          "y": 463.49999378900975,
+          "width": 401,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Top cao thủ, điểm Elo và lịch sử tỉ lệ thắng",
+          "name": null,
+          "x": 640.0000095367432,
+          "y": 496.4999945880845,
+          "width": 322,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "CÀI ĐẶT PHÍM  [C]",
+          "name": null,
+          "x": 640.0000095367432,
+          "y": 530.9999954234809,
+          "width": 420,
+          "height": 38,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "CÀI ĐẶT PHÍM  [C]",
+          "name": null,
+          "x": 639.5000095292926,
+          "y": 531.4999954355881,
+          "width": 401,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "THOÁT GAME  [ESC]",
+          "name": null,
+          "x": 640.0000095367432,
+          "y": 573.9999964646995,
+          "width": 420,
+          "height": 36,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "THOÁT GAME  [ESC]",
+          "name": null,
+          "x": 639.5000095292926,
+          "y": 574.4999964768067,
+          "width": 401,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ĐẤU THỦ",
+          "name": null,
+          "x": 1021.0000152140856,
+          "y": 490.4999944427982,
+          "width": 70,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "LEO",
+          "name": null,
+          "x": 1020.500015206635,
+          "y": 521.4999951934442,
+          "width": 53,
+          "height": 39,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "THỜI GIAN ĐÃ CHƠI: ",
+          "name": null,
+          "x": 338.50000504404306,
+          "y": 648.4999982686713,
+          "width": 157,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "0 min 0 sek",
+          "name": null,
+          "x": 459.000006839633,
+          "y": 648.4999982686713,
+          "width": 84,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "   ·   ",
+          "name": null,
+          "x": 525.5000078305602,
+          "y": 648.4999982686713,
+          "width": 25,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "SỐ TRẬN ĐÃ ĐẤU: ",
+          "name": null,
+          "x": 619.0000092238188,
+          "y": 648.4999982686713,
+          "width": 138,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "0",
+          "name": null,
+          "x": 691.500010304153,
+          "y": 648.4999982686713,
+          "width": 7,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "   ·   ",
+          "name": null,
+          "x": 719.5000107213855,
+          "y": 648.4999982686713,
+          "width": 25,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "DEV TEAM: ",
+          "name": null,
+          "x": 786.0000117123127,
+          "y": 648.4999982686713,
+          "width": 84,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Leo · Maurice · Alex · Luca",
+          "name": null,
+          "x": 923.5000137612224,
+          "y": 648.4999982686713,
+          "width": 191,
+          "height": 19,
+          "disabled": false
+        }
+      ]
+    },
+    "mode": {
+      "screen": "OnlineLobbyScreen",
+      "phase": "",
+      "room": "",
+      "playerId": "",
+      "matchId": "",
+      "players": 0,
+      "x": 0,
+      "y": 0,
+      "hp": 0,
+      "tick": 0,
+      "bossHp": -1,
+      "error": "",
+      "ui": [
+        {
+          "type": "TextButton",
+          "text": "< VỀ MENU",
+          "name": "back",
+          "x": 115.00000171363354,
+          "y": 47.999983727931976,
+          "width": 150,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "< VỀ MENU",
+          "name": null,
+          "x": 114.50000170618296,
+          "y": 48.49998374003917,
+          "width": 131,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "ComicHeading",
+          "text": "CHƠI ONLINE",
+          "name": null,
+          "x": 573.0000085383654,
+          "y": 48.49998374003917,
+          "width": 204,
+          "height": 39,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "TeaVM Host",
+          "name": null,
+          "x": 1051.0000156611204,
+          "y": 48.49998374003917,
+          "width": 190,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "BXH",
+          "name": "leaderboard",
+          "x": 1201.0000178962946,
+          "y": 47.999983727931976,
+          "width": 78,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "BXH",
+          "name": null,
+          "x": 1200.500017888844,
+          "y": 48.49998374003917,
+          "width": 59,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "CHẾ ĐỘ CHƠI",
+          "name": null,
+          "x": 306.5000045672059,
+          "y": 110.49998524133116,
+          "width": 99,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "SelectBox",
+          "text": "Hợp tác đánh Boss",
+          "name": "game-mode",
+          "x": 520.0000077486038,
+          "y": 109.99998522922397,
+          "width": 300,
+          "height": 38,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chọn chế độ trước khi ghép hoặc tạo phòng",
+          "name": null,
+          "x": 856.5000127628446,
+          "y": 110.49998524133116,
+          "width": 333,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "ComicHeading",
+          "text": "GHÉP TRẬN",
+          "name": null,
+          "x": 259.50000386685133,
+          "y": 223.99998798966408,
+          "width": 179,
+          "height": 40,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Tìm đối thủ hoặc đồng đội online.\nĐủ hai người là tự vào trận.",
+          "name": null,
+          "x": 260.0000038743019,
+          "y": 424.99999285675585,
+          "width": 300,
+          "height": 50,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "GHÉP TRẬN NHANH",
+          "name": "quick-match",
+          "x": 260.0000038743019,
+          "y": 554.9999960046262,
+          "width": 336,
+          "height": 50,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "GHÉP TRẬN NHANH",
+          "name": null,
+          "x": 259.50000386685133,
+          "y": 555.4999960167333,
+          "width": 317,
+          "height": 31,
+          "disabled": false
+        },
+        {
+          "type": "ComicHeading",
+          "text": "TẠO PHÒNG",
+          "name": null,
+          "x": 639.5000095292926,
+          "y": 223.99998798966408,
+          "width": 189,
+          "height": 40,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chơi cùng bạn bè, tự chỉnh luật.\nGửi mã phòng để mời mọi người.",
+          "name": null,
+          "x": 640.0000095367432,
+          "y": 424.99999285675585,
+          "width": 300,
+          "height": 50,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "TẠO PHÒNG RIÊNG",
+          "name": "create-room",
+          "x": 640.0000095367432,
+          "y": 554.9999960046262,
+          "width": 336,
+          "height": 50,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "TẠO PHÒNG RIÊNG",
+          "name": null,
+          "x": 639.5000095292926,
+          "y": 555.4999960167333,
+          "width": 317,
+          "height": 31,
+          "disabled": false
+        },
+        {
+          "type": "ComicHeading",
+          "text": "VÀO PHÒNG",
+          "name": null,
+          "x": 1020.0000151991844,
+          "y": 223.99998798966408,
+          "width": 192,
+          "height": 40,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Đã có mã từ bạn bè?\nNhập mã bên dưới để tham gia.",
+          "name": null,
+          "x": 1020.0000151991844,
+          "y": 424.99999285675585,
+          "width": 300,
+          "height": 50,
+          "disabled": false
+        },
+        {
+          "type": "TextField",
+          "text": "",
+          "name": "room-code",
+          "x": 1020.0000151991844,
+          "y": 499.9999946728349,
+          "width": 336,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "VÀO PHÒNG",
+          "name": "join-room",
+          "x": 1020.0000151991844,
+          "y": 554.9999960046262,
+          "width": 336,
+          "height": 50,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "VÀO PHÒNG",
+          "name": null,
+          "x": 1019.5000151917338,
+          "y": 555.4999960167333,
+          "width": 317,
+          "height": 31,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ESC: Về menu",
+          "name": null,
+          "x": 117.50000175088644,
+          "y": 676.4999989466742,
+          "width": 155,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chọn cách chơi. Ghép nhanh không cần mã phòng.",
+          "name": null,
+          "x": 622.5000092759728,
+          "y": 675.999998934567,
+          "width": 831,
+          "height": 42,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "ĐỔI MÁY CHỦ",
+          "name": "server-settings",
+          "x": 1145.0000170618296,
+          "y": 675.999998934567,
+          "width": 190,
+          "height": 40,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ĐỔI MÁY CHỦ",
+          "name": null,
+          "x": 1144.500017054379,
+          "y": 676.4999989466742,
+          "width": 171,
+          "height": 25,
+          "disabled": false
+        }
+      ]
+    },
+    "join_form": {
+      "screen": "OnlineLobbyScreen",
+      "phase": "",
+      "room": "",
+      "playerId": "",
+      "matchId": "",
+      "players": 0,
+      "x": 0,
+      "y": 0,
+      "hp": 0,
+      "tick": 0,
+      "bossHp": -1,
+      "error": "",
+      "ui": [
+        {
+          "type": "TextButton",
+          "text": "< VỀ MENU",
+          "name": "back",
+          "x": 115.00000171363354,
+          "y": 47.999983727931976,
+          "width": 150,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "< VỀ MENU",
+          "name": null,
+          "x": 114.50000170618296,
+          "y": 48.49998374003917,
+          "width": 131,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "ComicHeading",
+          "text": "CHƠI ONLINE",
+          "name": null,
+          "x": 573.0000085383654,
+          "y": 48.49998374003917,
+          "width": 204,
+          "height": 39,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chiến Binh 79",
+          "name": null,
+          "x": 1051.0000156611204,
+          "y": 48.49998374003917,
+          "width": 190,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "BXH",
+          "name": "leaderboard",
+          "x": 1201.0000178962946,
+          "y": 47.999983727931976,
+          "width": 78,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "BXH",
+          "name": null,
+          "x": 1200.500017888844,
+          "y": 48.49998374003917,
+          "width": 59,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "CHẾ ĐỘ CHƠI",
+          "name": null,
+          "x": 306.5000045672059,
+          "y": 110.49998524133116,
+          "width": 99,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "SelectBox",
+          "text": "Đối kháng PvP",
+          "name": "game-mode",
+          "x": 520.0000077486038,
+          "y": 109.99998522922397,
+          "width": 300,
+          "height": 38,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chọn chế độ trước khi ghép hoặc tạo phòng",
+          "name": null,
+          "x": 856.5000127628446,
+          "y": 110.49998524133116,
+          "width": 333,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "ComicHeading",
+          "text": "GHÉP TRẬN",
+          "name": null,
+          "x": 259.50000386685133,
+          "y": 223.99998798966408,
+          "width": 179,
+          "height": 40,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Tìm đối thủ hoặc đồng đội online.\nĐủ hai người là tự vào trận.",
+          "name": null,
+          "x": 260.0000038743019,
+          "y": 424.99999285675585,
+          "width": 300,
+          "height": 50,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "GHÉP TRẬN NHANH",
+          "name": "quick-match",
+          "x": 260.0000038743019,
+          "y": 554.9999960046262,
+          "width": 336,
+          "height": 50,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "GHÉP TRẬN NHANH",
+          "name": null,
+          "x": 259.50000386685133,
+          "y": 555.4999960167333,
+          "width": 317,
+          "height": 31,
+          "disabled": false
+        },
+        {
+          "type": "ComicHeading",
+          "text": "TẠO PHÒNG",
+          "name": null,
+          "x": 639.5000095292926,
+          "y": 223.99998798966408,
+          "width": 189,
+          "height": 40,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chơi cùng bạn bè, tự chỉnh luật.\nGửi mã phòng để mời mọi người.",
+          "name": null,
+          "x": 640.0000095367432,
+          "y": 424.99999285675585,
+          "width": 300,
+          "height": 50,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "TẠO PHÒNG RIÊNG",
+          "name": "create-room",
+          "x": 640.0000095367432,
+          "y": 554.9999960046262,
+          "width": 336,
+          "height": 50,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "TẠO PHÒNG RIÊNG",
+          "name": null,
+          "x": 639.5000095292926,
+          "y": 555.4999960167333,
+          "width": 317,
+          "height": 31,
+          "disabled": false
+        },
+        {
+          "type": "ComicHeading",
+          "text": "VÀO PHÒNG",
+          "name": null,
+          "x": 1020.0000151991844,
+          "y": 223.99998798966408,
+          "width": 192,
+          "height": 40,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Đã có mã từ bạn bè?\nNhập mã bên dưới để tham gia.",
+          "name": null,
+          "x": 1020.0000151991844,
+          "y": 424.99999285675585,
+          "width": 300,
+          "height": 50,
+          "disabled": false
+        },
+        {
+          "type": "TextField",
+          "text": "TZ6UGL",
+          "name": "room-code",
+          "x": 1020.0000151991844,
+          "y": 499.9999946728349,
+          "width": 336,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "VÀO PHÒNG",
+          "name": "join-room",
+          "x": 1020.0000151991844,
+          "y": 554.9999960046262,
+          "width": 336,
+          "height": 50,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "VÀO PHÒNG",
+          "name": null,
+          "x": 1019.5000151917338,
+          "y": 555.4999960167333,
+          "width": 317,
+          "height": 31,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ESC: Về menu",
+          "name": null,
+          "x": 117.50000175088644,
+          "y": 676.4999989466742,
+          "width": 155,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chọn cách chơi. Ghép nhanh không cần mã phòng.",
+          "name": null,
+          "x": 622.5000092759728,
+          "y": 675.999998934567,
+          "width": 831,
+          "height": 42,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "ĐỔI MÁY CHỦ",
+          "name": "server-settings",
+          "x": 1145.0000170618296,
+          "y": 675.999998934567,
+          "width": 190,
+          "height": 40,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ĐỔI MÁY CHỦ",
+          "name": null,
+          "x": 1144.500017054379,
+          "y": 676.4999989466742,
+          "width": 171,
+          "height": 25,
+          "disabled": false
+        }
+      ]
+    },
+    "match_initial": {
+      "screen": "PlayScreen",
+      "phase": "STARTED",
+      "room": "TZ6UGL",
+      "playerId": "49c9410b-57ee-404d-849b-23e04f242fa4",
+      "matchId": "8eea32d5-ea27-4bf9-bcdc-6e1a3cc8ecdb",
+      "players": 2,
+      "x": 4.5,
+      "y": 0.59163994,
+      "hp": 100,
+      "tick": 69,
+      "bossHp": 1000,
+      "error": "",
+      "ui": [],
+      "jumpInputs": 0,
+      "jumpRise": 0,
+      "roster": [
+        {
+          "playerId": "49c9410b-57ee-404d-849b-23e04f242fa4",
+          "x": 4.5,
+          "y": 0.59163994,
+          "hp": 100
+        },
+        {
+          "playerId": "95774972-887d-4dad-8512-32238540f4e2",
+          "x": 7.25,
+          "y": 0.53562,
+          "hp": 100
+        }
+      ],
+      "weapon": "LASER",
+      "ammo": 6,
+      "lives": 3,
+      "lifeState": "ACTIVE",
+      "gunShots": 0,
+      "attack": "NONE"
+    },
+    "shot": {
+      "screen": "PlayScreen",
+      "phase": "STARTED",
+      "room": "TZ6UGL",
+      "playerId": "95774972-887d-4dad-8512-32238540f4e2",
+      "matchId": "8eea32d5-ea27-4bf9-bcdc-6e1a3cc8ecdb",
+      "players": 2,
+      "x": 7.25,
+      "y": 0.53562,
+      "hp": 100,
+      "tick": 165,
+      "bossHp": 1000,
+      "error": "",
+      "ui": [],
+      "jumpInputs": 0,
+      "jumpRise": 0,
+      "roster": [
+        {
+          "playerId": "49c9410b-57ee-404d-849b-23e04f242fa4",
+          "x": 4.181638,
+          "y": 0.30148977,
+          "hp": 78
+        },
+        {
+          "playerId": "95774972-887d-4dad-8512-32238540f4e2",
+          "x": 7.25,
+          "y": 0.53562,
+          "hp": 100
+        }
+      ],
+      "weapon": "LASER",
+      "ammo": 5,
+      "lives": 3,
+      "lifeState": "ACTIVE",
+      "gunShots": 1,
+      "attack": "NONE"
+    },
+    "jumped": {
+      "screen": "PlayScreen",
+      "phase": "STARTED",
+      "room": "TZ6UGL",
+      "playerId": "49c9410b-57ee-404d-849b-23e04f242fa4",
+      "matchId": "8eea32d5-ea27-4bf9-bcdc-6e1a3cc8ecdb",
+      "players": 2,
+      "x": 4.181638,
+      "y": 1.137934,
+      "hp": 78,
+      "tick": 228,
+      "bossHp": 1000,
+      "error": "",
+      "ui": [],
+      "jumpInputs": 1,
+      "jumpRise": 0.83644423,
+      "roster": [
+        {
+          "playerId": "49c9410b-57ee-404d-849b-23e04f242fa4",
+          "x": 4.181638,
+          "y": 1.137934,
+          "hp": 78
+        },
+        {
+          "playerId": "95774972-887d-4dad-8512-32238540f4e2",
+          "x": 7.25,
+          "y": 0.53562,
+          "hp": 100
+        }
+      ],
+      "weapon": "LASER",
+      "ammo": 6,
+      "lives": 3,
+      "lifeState": "ACTIVE",
+      "gunShots": 0,
+      "attack": "NONE"
+    },
+    "moved": {
+      "screen": "PlayScreen",
+      "phase": "STARTED",
+      "room": "TZ6UGL",
+      "playerId": "49c9410b-57ee-404d-849b-23e04f242fa4",
+      "matchId": "8eea32d5-ea27-4bf9-bcdc-6e1a3cc8ecdb",
+      "players": 2,
+      "x": 4.2616377,
+      "y": 0.3724338,
+      "hp": 78,
+      "tick": 252,
+      "bossHp": 1000,
+      "error": "",
+      "ui": [],
+      "jumpInputs": 1,
+      "jumpRise": 0.83644423,
+      "roster": [
+        {
+          "playerId": "49c9410b-57ee-404d-849b-23e04f242fa4",
+          "x": 4.2616377,
+          "y": 0.3724338,
+          "hp": 78
+        },
+        {
+          "playerId": "95774972-887d-4dad-8512-32238540f4e2",
+          "x": 7.25,
+          "y": 0.53562,
+          "hp": 100
+        }
+      ],
+      "weapon": "LASER",
+      "ammo": 6,
+      "lives": 3,
+      "lifeState": "ACTIVE",
+      "gunShots": 0,
+      "attack": "NONE"
+    },
+    "result": {
+      "screen": "OnlineResultScreen",
+      "phase": "STARTED",
+      "room": "TZ6UGL",
+      "playerId": "49c9410b-57ee-404d-849b-23e04f242fa4",
+      "matchId": "8eea32d5-ea27-4bf9-bcdc-6e1a3cc8ecdb",
+      "players": 2,
+      "x": 7.223746,
+      "y": 1.4225613,
+      "hp": 36,
+      "tick": 3600,
+      "bossHp": 1000,
+      "error": "",
+      "ui": [
+        {
+          "type": "Label",
+          "text": "Boss: Demon Slime · chierit · CC BY 4.0 · chierit.itch.io/boss-demon-slime",
+          "name": null,
+          "x": 639.5000095292926,
+          "y": 702.4999995762482,
+          "width": 547,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "< VỀ SẢNH [ESC]",
+          "name": null,
+          "x": 116.0000017285347,
+          "y": 70.99998428486288,
+          "width": 184,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "< VỀ SẢNH [ESC]",
+          "name": null,
+          "x": 115.50000172108412,
+          "y": 71.49998429697007,
+          "width": 165,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "ComicHeading",
+          "text": "CẢ ĐỘI THẤT BẠI",
+          "name": null,
+          "x": 630.5000093951821,
+          "y": 39.49998352210969,
+          "width": 265,
+          "height": 39,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "ĐẤU LẠI [ENTER]",
+          "name": null,
+          "x": 526.0000078380108,
+          "y": 87.99998469650745,
+          "width": 188,
+          "height": 34,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ĐẤU LẠI [ENTER]",
+          "name": null,
+          "x": 525.5000078305602,
+          "y": 88.49998470861465,
+          "width": 169,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Hết giờ · Boss còn 1000 HP",
+          "name": null,
+          "x": 731.0000108927488,
+          "y": 88.49998470861465,
+          "width": 198,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "",
+          "name": null,
+          "x": 631.0000094026327,
+          "y": 117.49998541083187,
+          "width": 0,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "PHÒNG #TZ6UGL · 60.0s",
+          "name": null,
+          "x": 1155.0000172108412,
+          "y": 71.49998429697007,
+          "width": 178,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ĐỒNG ĐỘI 1",
+          "name": null,
+          "x": 469.5000069960952,
+          "y": 430.499992989935,
+          "width": 91,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ALEX",
+          "name": null,
+          "x": 454.0000067651272,
+          "y": 455.49999359529465,
+          "width": 38,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Player 1 (Bạn)",
+          "name": null,
+          "x": 486.5000072494149,
+          "y": 474.499994055368,
+          "width": 103,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "SCORE",
+          "name": null,
+          "x": 382.0000056922436,
+          "y": 507.4999948544428,
+          "width": 48,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "0",
+          "name": null,
+          "x": 578.5000086203218,
+          "y": 507.4999948544428,
+          "width": 7,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "KOS",
+          "name": null,
+          "x": 372.50000555068254,
+          "y": 529.4999953871593,
+          "width": 29,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "0",
+          "name": null,
+          "x": 578.5000086203218,
+          "y": 529.4999953871593,
+          "width": 7,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "FALLS",
+          "name": null,
+          "x": 379.0000056475401,
+          "y": 551.4999959198758,
+          "width": 42,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "2",
+          "name": null,
+          "x": 578.5000086203218,
+          "y": 551.4999959198758,
+          "width": 7,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "DMG DONE",
+          "name": null,
+          "x": 401.00000597536564,
+          "y": 573.4999964525923,
+          "width": 86,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "0",
+          "name": null,
+          "x": 578.5000086203218,
+          "y": 573.4999964525923,
+          "width": 7,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "FINAL HP",
+          "name": null,
+          "x": 392.50000584870577,
+          "y": 595.4999969853088,
+          "width": 69,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "36 HP",
+          "name": null,
+          "x": 561.0000083595514,
+          "y": 595.4999969853088,
+          "width": 42,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ĐỒNG ĐỘI 2",
+          "name": null,
+          "x": 809.50001206249,
+          "y": 430.499992989935,
+          "width": 93,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "LUCA",
+          "name": null,
+          "x": 817.0000121742487,
+          "y": 455.49999359529465,
+          "width": 40,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Player 2",
+          "name": null,
+          "x": 826.5000123158097,
+          "y": 474.499994055368,
+          "width": 59,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "SCORE",
+          "name": null,
+          "x": 722.0000107586384,
+          "y": 507.4999948544428,
+          "width": 48,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "0",
+          "name": null,
+          "x": 918.5000136867166,
+          "y": 507.4999948544428,
+          "width": 7,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "KOS",
+          "name": null,
+          "x": 712.5000106170774,
+          "y": 529.4999953871593,
+          "width": 29,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "0",
+          "name": null,
+          "x": 918.5000136867166,
+          "y": 529.4999953871593,
+          "width": 7,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "FALLS",
+          "name": null,
+          "x": 719.0000107139349,
+          "y": 551.4999959198758,
+          "width": 42,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "3",
+          "name": null,
+          "x": 919.0000136941671,
+          "y": 551.4999959198758,
+          "width": 6,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "DMG DONE",
+          "name": null,
+          "x": 741.0000110417604,
+          "y": 573.4999964525923,
+          "width": 86,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "0",
+          "name": null,
+          "x": 918.5000136867166,
+          "y": 573.4999964525923,
+          "width": 7,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "FINAL HP",
+          "name": null,
+          "x": 732.5000109151006,
+          "y": 595.4999969853088,
+          "width": 69,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "0 HP",
+          "name": null,
+          "x": 905.5000134930015,
+          "y": 595.4999969853088,
+          "width": 33,
+          "height": 19,
+          "disabled": false
+        }
+      ],
+      "jumpInputs": 1,
+      "jumpRise": 0.83644423,
+      "roster": [
+        {
+          "playerId": "49c9410b-57ee-404d-849b-23e04f242fa4",
+          "x": 7.223746,
+          "y": 1.4225613,
+          "hp": 36
+        },
+        {
+          "playerId": "95774972-887d-4dad-8512-32238540f4e2",
+          "x": 3.1284285,
+          "y": 0.51022834,
+          "hp": 0
+        }
+      ],
+      "weapon": "LASER",
+      "ammo": 6,
+      "lives": 1,
+      "lifeState": "ACTIVE",
+      "gunShots": 0,
+      "attack": "NONE"
+    },
+    "rematch": {
+      "screen": "PlayScreen",
+      "phase": "STARTED",
+      "room": "TZ6UGL",
+      "playerId": "49c9410b-57ee-404d-849b-23e04f242fa4",
+      "matchId": "3845db3a-f6e0-43b7-8707-208b399edc1b",
+      "players": 2,
+      "x": 4.5,
+      "y": 0.59160566,
+      "hp": 100,
+      "tick": 27,
+      "bossHp": 1000,
+      "error": "",
+      "ui": [],
+      "jumpInputs": 0,
+      "jumpRise": 0,
+      "roster": [
+        {
+          "playerId": "49c9410b-57ee-404d-849b-23e04f242fa4",
+          "x": 4.5,
+          "y": 0.59160566,
+          "hp": 100
+        },
+        {
+          "playerId": "95774972-887d-4dad-8512-32238540f4e2",
+          "x": 7.25,
+          "y": 0.5356138,
+          "hp": 100
+        }
+      ],
+      "weapon": "LASER",
+      "ammo": 6,
+      "lives": 3,
+      "lifeState": "ACTIVE",
+      "gunShots": 0,
+      "attack": "NONE"
+    },
+    "ranking_records": [
+      [
+        "guest_972e7369-2aa7-4017-90e4-a3ee3abf4d66",
+        1000.0,
+        0,
+        1,
+        0,
+        1
+      ],
+      [
+        "guest_a2ed023d-f7c0-4a4b-8557-0ad71b516f17",
+        1000.0,
+        0,
+        1,
+        0,
+        1
+      ]
+    ],
+    "persistent_profile_id": "guest_972e7369-2aa7-4017-90e4-a3ee3abf4d66"
+  }
+}

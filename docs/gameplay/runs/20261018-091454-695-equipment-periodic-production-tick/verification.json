@@ -1,0 +1,9 @@
+﻿{
+    "date":  "2026-10-18T09:15:02.6920571+07:00",
+    "status":  "PASS",
+    "label":  "equipment-periodic-production-tick",
+    "heapMiB":  128,
+    "suites":  [
+                   "com.smashprofs.server.game.FighterEngineTest"
+               ]
+}

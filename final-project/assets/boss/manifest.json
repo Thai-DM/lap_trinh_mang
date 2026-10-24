@@ -1,0 +1,1903 @@
+{
+  "downloadedOn": "2026-10-22",
+  "integratedIntoGameplay": true,
+  "packs": [
+    {
+      "archive": "more-explosions.zip",
+      "author": "StumpyStrust",
+      "source": "https://opengameart.org/content/more-explosions",
+      "license": "CC0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "archiveSha256": "ae661986d7cae0692f9f7486e7d3af71b85a5b53a7bc74da160424ca9420f348",
+      "files": [
+        {
+          "file": "effects/more-explosions/test.png",
+          "bytes": 633029,
+          "width": 1024,
+          "height": 1024,
+          "mode": "RGBA"
+        },
+        {
+          "file": "effects/more-explosions/test3.png",
+          "bytes": 594974,
+          "width": 1024,
+          "height": 1024,
+          "mode": "RGBA"
+        },
+        {
+          "file": "effects/more-explosions/test4.png",
+          "bytes": 409397,
+          "width": 1024,
+          "height": 1024,
+          "mode": "RGBA"
+        },
+        {
+          "file": "effects/more-explosions/test5.png",
+          "bytes": 443986,
+          "width": 1024,
+          "height": 1024,
+          "mode": "RGBA"
+        },
+        {
+          "file": "effects/more-explosions/test6.png",
+          "bytes": 482023,
+          "width": 1024,
+          "height": 1024,
+          "mode": "RGBA"
+        },
+        {
+          "file": "effects/more-explosions/tests.png",
+          "bytes": 247590,
+          "width": 1024,
+          "height": 1024,
+          "mode": "RGBA"
+        }
+      ]
+    },
+    {
+      "archive": "kenney-particle-pack.zip",
+      "author": "Kenney",
+      "source": "https://kenney.nl/assets/particle-pack",
+      "license": "CC0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "archiveSha256": "b631d4b07f7002549fdcf155f01141ad482f79f3440e4e301eed49ce5f1d8958",
+      "files": [
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/circle_01.png",
+          "bytes": 69755,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/circle_02.png",
+          "bytes": 43380,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/circle_03.png",
+          "bytes": 72952,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/circle_04.png",
+          "bytes": 59557,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/circle_05.png",
+          "bytes": 65336,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/dirt_01.png",
+          "bytes": 47313,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/dirt_02.png",
+          "bytes": 54060,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/dirt_03.png",
+          "bytes": 114937,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/fire_01.png",
+          "bytes": 99891,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/fire_02.png",
+          "bytes": 88453,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/flame_01.png",
+          "bytes": 54099,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/flame_02.png",
+          "bytes": 68498,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/flame_03.png",
+          "bytes": 49857,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/flame_04.png",
+          "bytes": 70731,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/flame_05.png",
+          "bytes": 13395,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/flame_06.png",
+          "bytes": 15971,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/flare_01.png",
+          "bytes": 42886,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/light_01.png",
+          "bytes": 93470,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/light_02.png",
+          "bytes": 93415,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/light_03.png",
+          "bytes": 100114,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/magic_01.png",
+          "bytes": 81687,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/magic_02.png",
+          "bytes": 86500,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/magic_03.png",
+          "bytes": 58093,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/magic_04.png",
+          "bytes": 50082,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/magic_05.png",
+          "bytes": 74794,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/muzzle_01.png",
+          "bytes": 81811,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/muzzle_02.png",
+          "bytes": 58365,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/muzzle_03.png",
+          "bytes": 57240,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/muzzle_04.png",
+          "bytes": 62593,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/muzzle_05.png",
+          "bytes": 54088,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/Rotated/flame_05_rotated.png",
+          "bytes": 12155,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/Rotated/flame_06_rotated.png",
+          "bytes": 14979,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/Rotated/muzzle_01_rotated.png",
+          "bytes": 75703,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/Rotated/muzzle_02_rotated.png",
+          "bytes": 49401,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/Rotated/muzzle_03_rotated.png",
+          "bytes": 48054,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/Rotated/muzzle_04_rotated.png",
+          "bytes": 51171,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/Rotated/muzzle_05_rotated.png",
+          "bytes": 44504,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/Rotated/spark_05_rotated.png",
+          "bytes": 56533,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/Rotated/spark_06_rotated.png",
+          "bytes": 41431,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/Rotated/trace_01_rotated.png",
+          "bytes": 28417,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/Rotated/trace_02_rotated.png",
+          "bytes": 31249,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/Rotated/trace_03_rotated.png",
+          "bytes": 34894,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/Rotated/trace_04_rotated.png",
+          "bytes": 36918,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/Rotated/trace_05_rotated.png",
+          "bytes": 36725,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/Rotated/trace_06_rotated.png",
+          "bytes": 30533,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/Rotated/trace_07_rotated.png",
+          "bytes": 27368,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/scorch_01.png",
+          "bytes": 60598,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/scorch_02.png",
+          "bytes": 74485,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/scorch_03.png",
+          "bytes": 91921,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/scratch_01.png",
+          "bytes": 65462,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/slash_01.png",
+          "bytes": 25465,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/slash_02.png",
+          "bytes": 38224,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/slash_03.png",
+          "bytes": 16634,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/slash_04.png",
+          "bytes": 17889,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/smoke_01.png",
+          "bytes": 97452,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/smoke_02.png",
+          "bytes": 96825,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/smoke_03.png",
+          "bytes": 39737,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/smoke_04.png",
+          "bytes": 97568,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/smoke_05.png",
+          "bytes": 83445,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/smoke_06.png",
+          "bytes": 62156,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/smoke_07.png",
+          "bytes": 77838,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/smoke_08.png",
+          "bytes": 90424,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/smoke_09.png",
+          "bytes": 87963,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/smoke_10.png",
+          "bytes": 90497,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/spark_01.png",
+          "bytes": 95070,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/spark_02.png",
+          "bytes": 101613,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/spark_03.png",
+          "bytes": 79574,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/spark_04.png",
+          "bytes": 83811,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/spark_05.png",
+          "bytes": 64808,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/spark_06.png",
+          "bytes": 46347,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/spark_07.png",
+          "bytes": 40968,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/star_01.png",
+          "bytes": 42118,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/star_02.png",
+          "bytes": 49897,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/star_03.png",
+          "bytes": 56622,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/star_04.png",
+          "bytes": 30613,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/star_05.png",
+          "bytes": 62216,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/star_06.png",
+          "bytes": 35453,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/star_07.png",
+          "bytes": 32369,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/star_08.png",
+          "bytes": 26479,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/star_09.png",
+          "bytes": 50142,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/symbol_01.png",
+          "bytes": 9088,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/symbol_02.png",
+          "bytes": 7608,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/trace_01.png",
+          "bytes": 38406,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/trace_02.png",
+          "bytes": 39395,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/trace_03.png",
+          "bytes": 42254,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/trace_04.png",
+          "bytes": 47104,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/trace_05.png",
+          "bytes": 42174,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/trace_06.png",
+          "bytes": 36247,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/trace_07.png",
+          "bytes": 33145,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/twirl_01.png",
+          "bytes": 51060,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/twirl_02.png",
+          "bytes": 76886,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/twirl_03.png",
+          "bytes": 81463,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/window_01.png",
+          "bytes": 33759,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/window_02.png",
+          "bytes": 39286,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/window_03.png",
+          "bytes": 16860,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Transparent)/window_04.png",
+          "bytes": 52143,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/License.txt",
+          "bytes": 651
+        },
+        {
+          "file": "effects/kenney-particle-pack/Preview.png",
+          "bytes": 91674,
+          "width": 918,
+          "height": 515,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/circle_01.png",
+          "bytes": 35915,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/circle_02.png",
+          "bytes": 30403,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/circle_03.png",
+          "bytes": 47065,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/circle_04.png",
+          "bytes": 30231,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/circle_05.png",
+          "bytes": 27583,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/dirt_01.png",
+          "bytes": 46644,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/dirt_02.png",
+          "bytes": 53980,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/dirt_03.png",
+          "bytes": 113946,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/fire_01.png",
+          "bytes": 96339,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/fire_02.png",
+          "bytes": 86394,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/flame_01.png",
+          "bytes": 35189,
+          "width": 512,
+          "height": 512,
+          "mode": "RGBA"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/flame_02.png",
+          "bytes": 45366,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/flame_03.png",
+          "bytes": 34261,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/flame_04.png",
+          "bytes": 43388,
+          "width": 512,
+          "height": 512,
+          "mode": "RGBA"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/flame_05.png",
+          "bytes": 11404,
+          "width": 512,
+          "height": 512,
+          "mode": "RGBA"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/flame_06.png",
+          "bytes": 13722,
+          "width": 512,
+          "height": 512,
+          "mode": "RGBA"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/flare_01.png",
+          "bytes": 17953,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/light_01.png",
+          "bytes": 60764,
+          "width": 512,
+          "height": 512,
+          "mode": "RGBA"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/light_02.png",
+          "bytes": 60327,
+          "width": 512,
+          "height": 512,
+          "mode": "RGBA"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/light_03.png",
+          "bytes": 62268,
+          "width": 512,
+          "height": 512,
+          "mode": "RGBA"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/magic_01.png",
+          "bytes": 60113,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/magic_02.png",
+          "bytes": 68717,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/magic_03.png",
+          "bytes": 43622,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/magic_04.png",
+          "bytes": 31286,
+          "width": 512,
+          "height": 512,
+          "mode": "RGBA"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/magic_05.png",
+          "bytes": 48663,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/muzzle_01.png",
+          "bytes": 80802,
+          "width": 512,
+          "height": 512,
+          "mode": "RGBA"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/muzzle_02.png",
+          "bytes": 59278,
+          "width": 512,
+          "height": 512,
+          "mode": "RGBA"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/muzzle_03.png",
+          "bytes": 58467,
+          "width": 512,
+          "height": 512,
+          "mode": "RGBA"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/muzzle_04.png",
+          "bytes": 56666,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/muzzle_05.png",
+          "bytes": 56402,
+          "width": 512,
+          "height": 512,
+          "mode": "RGBA"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/Rotated/flame_05_rotated.png",
+          "bytes": 10589,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/Rotated/flame_06_rotated.png",
+          "bytes": 13447,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/Rotated/muzzle_01_rotated.png",
+          "bytes": 85709,
+          "width": 512,
+          "height": 512,
+          "mode": "RGBA"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/Rotated/muzzle_02_rotated.png",
+          "bytes": 65767,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/Rotated/muzzle_03_rotated.png",
+          "bytes": 64602,
+          "width": 512,
+          "height": 512,
+          "mode": "RGBA"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/Rotated/muzzle_04_rotated.png",
+          "bytes": 42701,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/Rotated/muzzle_05_rotated.png",
+          "bytes": 62527,
+          "width": 512,
+          "height": 512,
+          "mode": "RGBA"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/Rotated/spark_05_rotated.png",
+          "bytes": 40995,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/Rotated/spark_06_rotated.png",
+          "bytes": 38886,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/Rotated/trace_01_rotated.png",
+          "bytes": 24462,
+          "width": 512,
+          "height": 512,
+          "mode": "RGBA"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/Rotated/trace_02_rotated.png",
+          "bytes": 29626,
+          "width": 512,
+          "height": 512,
+          "mode": "RGBA"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/Rotated/trace_03_rotated.png",
+          "bytes": 33115,
+          "width": 512,
+          "height": 512,
+          "mode": "RGBA"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/Rotated/trace_04_rotated.png",
+          "bytes": 34091,
+          "width": 512,
+          "height": 512,
+          "mode": "RGBA"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/Rotated/trace_05_rotated.png",
+          "bytes": 32863,
+          "width": 512,
+          "height": 512,
+          "mode": "RGBA"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/Rotated/trace_06_rotated.png",
+          "bytes": 17003,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/Rotated/trace_07_rotated.png",
+          "bytes": 12758,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/scorch_01.png",
+          "bytes": 59486,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/scorch_02.png",
+          "bytes": 71227,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/scorch_03.png",
+          "bytes": 88181,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/scratch_01.png",
+          "bytes": 48136,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/slash_01.png",
+          "bytes": 16775,
+          "width": 512,
+          "height": 512,
+          "mode": "RGBA"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/slash_02.png",
+          "bytes": 28122,
+          "width": 512,
+          "height": 512,
+          "mode": "RGBA"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/slash_03.png",
+          "bytes": 14700,
+          "width": 512,
+          "height": 512,
+          "mode": "RGBA"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/slash_04.png",
+          "bytes": 13373,
+          "width": 512,
+          "height": 512,
+          "mode": "RGBA"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/smoke_01.png",
+          "bytes": 86344,
+          "width": 512,
+          "height": 512,
+          "mode": "RGBA"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/smoke_02.png",
+          "bytes": 86644,
+          "width": 512,
+          "height": 512,
+          "mode": "RGBA"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/smoke_03.png",
+          "bytes": 33642,
+          "width": 512,
+          "height": 512,
+          "mode": "RGBA"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/smoke_04.png",
+          "bytes": 77863,
+          "width": 512,
+          "height": 512,
+          "mode": "RGBA"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/smoke_05.png",
+          "bytes": 67943,
+          "width": 512,
+          "height": 512,
+          "mode": "RGBA"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/smoke_06.png",
+          "bytes": 50927,
+          "width": 512,
+          "height": 512,
+          "mode": "RGBA"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/smoke_07.png",
+          "bytes": 64564,
+          "width": 512,
+          "height": 512,
+          "mode": "RGBA"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/smoke_08.png",
+          "bytes": 81734,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/smoke_09.png",
+          "bytes": 79871,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/smoke_10.png",
+          "bytes": 84879,
+          "width": 512,
+          "height": 512,
+          "mode": "RGBA"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/spark_01.png",
+          "bytes": 82487,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/spark_02.png",
+          "bytes": 100419,
+          "width": 512,
+          "height": 512,
+          "mode": "RGBA"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/spark_03.png",
+          "bytes": 72740,
+          "width": 512,
+          "height": 512,
+          "mode": "RGBA"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/spark_04.png",
+          "bytes": 77451,
+          "width": 512,
+          "height": 512,
+          "mode": "RGBA"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/spark_05.png",
+          "bytes": 44785,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/spark_06.png",
+          "bytes": 42423,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/spark_07.png",
+          "bytes": 27522,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/star_01.png",
+          "bytes": 29258,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/star_02.png",
+          "bytes": 37858,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/star_03.png",
+          "bytes": 32321,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/star_04.png",
+          "bytes": 21740,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/star_05.png",
+          "bytes": 39630,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/star_06.png",
+          "bytes": 25156,
+          "width": 512,
+          "height": 512,
+          "mode": "RGBA"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/star_07.png",
+          "bytes": 25846,
+          "width": 512,
+          "height": 512,
+          "mode": "RGBA"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/star_08.png",
+          "bytes": 22840,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/star_09.png",
+          "bytes": 32629,
+          "width": 512,
+          "height": 512,
+          "mode": "RGBA"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/symbol_01.png",
+          "bytes": 3849,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/symbol_02.png",
+          "bytes": 3546,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/trace_01.png",
+          "bytes": 17369,
+          "width": 512,
+          "height": 512,
+          "mode": "RGBA"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/trace_02.png",
+          "bytes": 20280,
+          "width": 512,
+          "height": 512,
+          "mode": "RGBA"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/trace_03.png",
+          "bytes": 24429,
+          "width": 512,
+          "height": 512,
+          "mode": "RGBA"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/trace_04.png",
+          "bytes": 24865,
+          "width": 512,
+          "height": 512,
+          "mode": "RGBA"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/trace_05.png",
+          "bytes": 22660,
+          "width": 512,
+          "height": 512,
+          "mode": "RGBA"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/trace_06.png",
+          "bytes": 21552,
+          "width": 512,
+          "height": 512,
+          "mode": "RGBA"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/trace_07.png",
+          "bytes": 18802,
+          "width": 512,
+          "height": 512,
+          "mode": "RGBA"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/twirl_01.png",
+          "bytes": 31267,
+          "width": 512,
+          "height": 512,
+          "mode": "RGBA"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/twirl_02.png",
+          "bytes": 45770,
+          "width": 512,
+          "height": 512,
+          "mode": "RGBA"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/twirl_03.png",
+          "bytes": 53410,
+          "width": 512,
+          "height": 512,
+          "mode": "RGBA"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/window_01.png",
+          "bytes": 13573,
+          "width": 512,
+          "height": 512,
+          "mode": "RGBA"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/window_02.png",
+          "bytes": 14062,
+          "width": 512,
+          "height": 512,
+          "mode": "RGBA"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/window_03.png",
+          "bytes": 6760,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        },
+        {
+          "file": "effects/kenney-particle-pack/PNG (Black background)/window_04.png",
+          "bytes": 30772,
+          "width": 512,
+          "height": 512,
+          "mode": "P"
+        }
+      ]
+    },
+    {
+      "archive": "boss_demon_slime_FREE_v1.0.zip",
+      "author": "chierit",
+      "source": "https://chierit.itch.io/boss-demon-slime",
+      "license": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "archiveSha256": "4d3c2662db6249e4ee984f39f6668b6d0e6d2e5ab6c7511356708689a625ac31",
+      "providedByUser": true,
+      "importedOn": "2026-10-22",
+      "files": [
+        {
+          "file": "demon-slime/aseprite/demon_slime_FREE_v1.0.aseprite",
+          "bytes": 122080
+        },
+        {
+          "file": "demon-slime/gifs/01_d_idle.gif",
+          "bytes": 34375,
+          "width": 864,
+          "height": 480,
+          "mode": "P"
+        },
+        {
+          "file": "demon-slime/gifs/02_d_walk.gif",
+          "bytes": 61839,
+          "width": 864,
+          "height": 480,
+          "mode": "P"
+        },
+        {
+          "file": "demon-slime/gifs/03_d_cleave.gif",
+          "bytes": 82834,
+          "width": 864,
+          "height": 480,
+          "mode": "P"
+        },
+        {
+          "file": "demon-slime/gifs/04_d_take_hit.gif",
+          "bytes": 29504,
+          "width": 864,
+          "height": 480,
+          "mode": "P"
+        },
+        {
+          "file": "demon-slime/gifs/05_d_death.gif",
+          "bytes": 90787,
+          "width": 864,
+          "height": 480,
+          "mode": "P"
+        },
+        {
+          "file": "demon-slime/individual sprites/01_demon_idle/demon_idle_1.png",
+          "bytes": 4084,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/01_demon_idle/demon_idle_2.png",
+          "bytes": 4170,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/01_demon_idle/demon_idle_3.png",
+          "bytes": 4184,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/01_demon_idle/demon_idle_4.png",
+          "bytes": 4291,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/01_demon_idle/demon_idle_5.png",
+          "bytes": 4252,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/01_demon_idle/demon_idle_6.png",
+          "bytes": 4122,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/02_demon_walk/demon_walk_1.png",
+          "bytes": 3863,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/02_demon_walk/demon_walk_2.png",
+          "bytes": 3766,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/02_demon_walk/demon_walk_3.png",
+          "bytes": 3832,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/02_demon_walk/demon_walk_4.png",
+          "bytes": 3714,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/02_demon_walk/demon_walk_5.png",
+          "bytes": 3845,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/02_demon_walk/demon_walk_6.png",
+          "bytes": 3822,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/02_demon_walk/demon_walk_7.png",
+          "bytes": 3916,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/02_demon_walk/demon_walk_8.png",
+          "bytes": 3897,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/02_demon_walk/demon_walk_9.png",
+          "bytes": 3897,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/02_demon_walk/demon_walk_10.png",
+          "bytes": 3781,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/02_demon_walk/demon_walk_11.png",
+          "bytes": 3634,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/02_demon_walk/demon_walk_12.png",
+          "bytes": 3772,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/03_demon_cleave/demon_cleave_1.png",
+          "bytes": 4120,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/03_demon_cleave/demon_cleave_2.png",
+          "bytes": 3998,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/03_demon_cleave/demon_cleave_3.png",
+          "bytes": 4289,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/03_demon_cleave/demon_cleave_4.png",
+          "bytes": 4110,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/03_demon_cleave/demon_cleave_5.png",
+          "bytes": 4033,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/03_demon_cleave/demon_cleave_6.png",
+          "bytes": 3830,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/03_demon_cleave/demon_cleave_7.png",
+          "bytes": 3902,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/03_demon_cleave/demon_cleave_8.png",
+          "bytes": 4129,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/03_demon_cleave/demon_cleave_9.png",
+          "bytes": 4170,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/03_demon_cleave/demon_cleave_10.png",
+          "bytes": 4872,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/03_demon_cleave/demon_cleave_11.png",
+          "bytes": 4470,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/03_demon_cleave/demon_cleave_12.png",
+          "bytes": 4103,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/03_demon_cleave/demon_cleave_13.png",
+          "bytes": 3901,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/03_demon_cleave/demon_cleave_14.png",
+          "bytes": 3954,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/03_demon_cleave/demon_cleave_15.png",
+          "bytes": 4169,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/04_demon_take_hit/demon_take_hit_1.png",
+          "bytes": 4373,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/04_demon_take_hit/demon_take_hit_2.png",
+          "bytes": 4282,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/04_demon_take_hit/demon_take_hit_3.png",
+          "bytes": 4491,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/04_demon_take_hit/demon_take_hit_4.png",
+          "bytes": 4422,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/04_demon_take_hit/demon_take_hit_5.png",
+          "bytes": 4068,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/05_demon_death/demon_death_1.png",
+          "bytes": 3474,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/05_demon_death/demon_death_2.png",
+          "bytes": 3611,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/05_demon_death/demon_death_3.png",
+          "bytes": 3385,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/05_demon_death/demon_death_4.png",
+          "bytes": 3726,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/05_demon_death/demon_death_5.png",
+          "bytes": 4542,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/05_demon_death/demon_death_6.png",
+          "bytes": 4421,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/05_demon_death/demon_death_7.png",
+          "bytes": 4600,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/05_demon_death/demon_death_8.png",
+          "bytes": 4868,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/05_demon_death/demon_death_9.png",
+          "bytes": 5699,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/05_demon_death/demon_death_10.png",
+          "bytes": 5739,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/05_demon_death/demon_death_11.png",
+          "bytes": 4245,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/05_demon_death/demon_death_12.png",
+          "bytes": 2727,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/05_demon_death/demon_death_13.png",
+          "bytes": 2671,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/05_demon_death/demon_death_14.png",
+          "bytes": 2694,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/05_demon_death/demon_death_15.png",
+          "bytes": 2618,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/05_demon_death/demon_death_16.png",
+          "bytes": 1571,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/05_demon_death/demon_death_17.png",
+          "bytes": 1166,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/05_demon_death/demon_death_18.png",
+          "bytes": 803,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/05_demon_death/demon_death_19.png",
+          "bytes": 624,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/05_demon_death/demon_death_20.png",
+          "bytes": 453,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/05_demon_death/demon_death_21.png",
+          "bytes": 340,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/individual sprites/05_demon_death/demon_death_22.png",
+          "bytes": 340,
+          "width": 288,
+          "height": 160,
+          "mode": "RGBA"
+        },
+        {
+          "file": "demon-slime/spritesheets/demon_slime_FREE_v1.0_288x160_spritesheet.png",
+          "bytes": 160647,
+          "width": 6336,
+          "height": 800,
+          "mode": "RGBA"
+        }
+      ]
+    }
+  ],
+  "integrationDate": "2026-10-22",
+  "renderer": "com.smashprofs.game.Screens.OnlineBossAssets"
+}

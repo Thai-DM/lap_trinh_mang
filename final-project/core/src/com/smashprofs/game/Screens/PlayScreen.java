@@ -33,6 +33,21 @@ import org.apache.logging.log4j.Logger;
 import static com.smashprofs.game.Actors.Players.Player.PPM;
 
 
+import com.smashprofs.common.model.GameSnapshot;
+import com.smashprofs.common.model.MatchResult;
+import com.smashprofs.common.model.PlayerId;
+import com.smashprofs.common.model.PlayerInput;
+import com.smashprofs.common.model.PlayerState;
+import com.smashprofs.common.protocol.MessageType;
+import com.smashprofs.common.protocol.NetworkPacket;
+import com.smashprofs.game.network.client.ConnectionListener;
+import com.smashprofs.game.network.client.NetworkClient;
+import com.smashprofs.game.network.client.NetworkMetricsTracker;
+import com.smashprofs.game.network.client.OutboundInputQueue;
+import com.smashprofs.game.network.client.SnapshotBuffer;
+import com.smashprofs.game.network.client.StateInterpolator;
+import java.util.Map;
+
 /**
  * The main game screen
  */
@@ -41,13 +56,28 @@ public class PlayScreen implements Screen {
     private static Logger log = LogManager.getLogger(PlayScreen.class);
 
     private Game game;
+    private Screen onlineScreen;
     public static Viewport viewport; // Manages a Camera and determines how world coordinates are mapped to and from the screen.
     private Hud hud;
     private WinScreen winScreen;
 
+    // Network Integration (Phase 6 & 7)
+    private NetworkClient networkClient;
+    private SnapshotBuffer snapshotBuffer;
+    private StateInterpolator stateInterpolator;
+    private OutboundInputQueue outboundInputQueue;
+    private NetworkMetricsTracker networkMetricsTracker;
+    private float pingTimer = 0.0f;
+    private MatchResult latestMatchResult;
+    private boolean networkActive = false;
+    private long clientInputTick = 0;
+    // Only the legacy MockServer fixture uses these IDs; production identity/roster lives in LobbyClient.
+    private PlayerId p1Id;
+    private PlayerId p2Id;
+
 
     //tiled map
-    public static ShapeRenderer debugRenderer = new ShapeRenderer();
+    public static ShapeRenderer debugRenderer;
     private TmxMapLoader mapLoader;
     private TiledMap map;
     private OrthogonalTiledMapRenderer tiledMapRenderer;
@@ -57,14 +87,14 @@ public class PlayScreen implements Screen {
 
     //managers
     private final B2dContactListener contactListener;
-    private SoundManager soundManager = SoundManager.getSoundManager_INSTANCE();
+    private SoundManager soundManager;
 
     private String gameSong = "music/beste music ever.wav";
     private CombatManager combatManager;
 
-    private CameraManager cameraManager = CameraManager.getCameraManager_INSTANCE();
+    private CameraManager cameraManager;
 
-    private VAFXManager vafxManager = VAFXManager.getVFXManager_INSTANCE();
+    private VAFXManager vafxManager;
 
     private OrthographicCamera gamecamera; //set by camera manager
 
@@ -93,6 +123,7 @@ public class PlayScreen implements Screen {
      * The game deltatime
      */
     public void checkInput(float deltatime){
+        if (onlineScreen != null) { return; }
 
         //Player input is now handeled in the PlayerClass
         //Only external input is handled here
@@ -101,6 +132,17 @@ public class PlayScreen implements Screen {
         if(Gdx.input.isKeyPressed(Input.Keys.ESCAPE)){
            // Gdx.app.exit();
             game.setScreen(new MainMenuScreen(game));
+        }
+
+        // Phím tắt BACKSPACE: Giả lập ngắt kết nối server đột ngột để kiểm thử Graceful Disconnect (Giai đoạn 7)
+        if (Gdx.input.isKeyJustPressed(Input.Keys.BACKSPACE)) {
+            if (game.getMockServer() != null && game.getMockServer().isRunning()) {
+                log.warn("[TEST] Người dùng ấn BACKSPACE: Dừng MockServer đột ngột để kiểm tra xử lý ngắt kết nối an toàn...");
+                game.getMockServer().stop();
+            } else if (networkClient != null && networkClient.isConnected()) {
+                log.warn("[TEST] Người dùng ấn BACKSPACE: Ngắt kết nối NetworkClient đột ngột...");
+                networkClient.disconnect();
+            }
         }
     }
 
@@ -115,7 +157,46 @@ public class PlayScreen implements Screen {
      * The game delta time
      */
     public void update(float deltatime) {
+        if (onlineScreen != null) { return; } // Online updates only through its presentation render path.
         tiledMapRenderer.setView(gamecamera);
+
+        if (networkActive && networkClient != null && networkClient.isConnected()) {
+            // 1. Capture local Player 1 keyboard input and enqueue into OutboundInputQueue
+            var cfg = com.smashprofs.game.Helper.KeyBindingConfig.getInstance();
+            float moveAxis = 0.0f;
+            if (Gdx.input.isKeyPressed(cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.LEFT))) moveAxis -= 1.0f;
+            if (Gdx.input.isKeyPressed(cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.RIGHT))) moveAxis += 1.0f;
+            boolean jump = Gdx.input.isKeyJustPressed(cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.JUMP));
+            boolean stomp = Gdx.input.isKeyJustPressed(cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.DOWN));
+            boolean melee = Gdx.input.isKeyJustPressed(cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.LIGHT)) || Gdx.input.isKeyJustPressed(Input.Keys.V);
+            boolean ability = Gdx.input.isKeyJustPressed(cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.ABILITY));
+            boolean block = Gdx.input.isKeyPressed(cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.DODGE)) || Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT);
+
+            outboundInputQueue.recordFrameInput(moveAxis, jump, stomp, melee, block, ability);
+            PlayerInput input = outboundInputQueue.pollNextInputToSend(clientInputTick++);
+            if (input != null) {
+                networkClient.sendPacket(NetworkPacket.of(MessageType.PLAYER_INPUT, p1Id.value(), input));
+            }
+
+            // 2. Periodic Ping (Phase 7 - RTT Measurement)
+            pingTimer += deltatime;
+            if (pingTimer >= 1.0f) {
+                pingTimer = 0.0f;
+                networkMetricsTracker.sendPing(networkClient, p1Id.value());
+            }
+
+            // 2. Advance StateInterpolator and apply interpolated state to Remote Player 2
+            stateInterpolator.update(deltatime);
+            Map<PlayerId, PlayerState> interpolated = stateInterpolator.getInterpolatedPlayers();
+            if (interpolated != null) {
+                PlayerState p2State = interpolated.get(p2Id);
+                if (p2State != null) {
+                    playerTwo.getB2dbody().setTransform(p2State.x(), p2State.y(), 0);
+                    playerTwo.getB2dbody().setLinearVelocity(p2State.velocityX(), p2State.velocityY());
+                    playerTwo.setFacingRight(p2State.facingRight());
+                }
+            }
+        }
 
         playerOne.update(deltatime);
         playerTwo.update(deltatime); // update method must be before most of the code below otherwise some values are null;
@@ -170,6 +251,23 @@ public class PlayScreen implements Screen {
      * The game.
      */
     public PlayScreen(Game game) {
+        this(game, session -> new OnlinePlayScreen(game, session));
+    }
+
+    /** Screen factory seam for headless verification of the online/local simulation boundary. */
+    PlayScreen(Game game, java.util.function.Function<com.smashprofs.game.network.client.ClientMatchSession, Screen> onlineFactory) {
+        this.game = game;
+        if (game.getLobbyClient() != null) {
+            var session = game.getLobbyClient().getMatchSession();
+            if (session == null) { throw new IllegalStateException("Online PlayScreen requires validated GAME_START"); }
+            contactListener = null;
+            onlineScreen = java.util.Objects.requireNonNull(onlineFactory.apply(session));
+            return; // No PlayerFactory, local World, CombatManager, Hud.testWin or offline WinScreen.
+        }
+        soundManager = SoundManager.getSoundManager_INSTANCE();
+        cameraManager = CameraManager.getCameraManager_INSTANCE();
+        vafxManager = VAFXManager.getVFXManager_INSTANCE();
+        if (debugRenderer == null) { debugRenderer = new ShapeRenderer(); }
         this.debugMode = Game.debugMode;
 
         //add pre configured settings to PostProcessingManager
@@ -190,24 +288,33 @@ public class PlayScreen implements Screen {
 
         createTileMap();
 
-        //playerOne = playerFactory.getPlayer(PlayerTypes.Alex);
-        switch(CharacterSelectScreen.getSelectedPlayerOne()) {
+        String p1Type = "Alex";
+        String p2Type = "Maurice";
+        try {
+            if (CharacterSelectScreen.getSelectedPlayerOne() != null) {
+                p1Type = CharacterSelectScreen.getSelectedPlayerOne();
+            }
+            if (CharacterSelectScreen.getSelectedPlayerTwo() != null) {
+                p2Type = CharacterSelectScreen.getSelectedPlayerTwo();
+            }
+        } catch (Exception ignored) {}
+
+        switch(p1Type) {
             case "Alex": playerOne = playerFactory.getPlayer(PlayerTypes.Alex); break;
-            case "Maurice": playerOne = playerFactory.getPlayer(    PlayerTypes.Maurice); break;
+            case "Maurice": playerOne = playerFactory.getPlayer(PlayerTypes.Maurice); break;
             case "Luca": playerOne = playerFactory.getPlayer(PlayerTypes.Luca); break;
             case "Leo": playerOne = playerFactory.getPlayer(PlayerTypes.Leo); break;
             case "Viktor": playerOne = playerFactory.getPlayer(PlayerTypes.Viktor); break;
             default: playerOne = playerFactory.getPlayer(PlayerTypes.Alex);
         }
 
-        // playerTwo = playerFactory.getPlayer(PlayerTypes.Maurice);
-        switch(CharacterSelectScreen.getSelectedPlayerTwo()) {
+        switch(p2Type) {
             case "Alex": playerTwo = playerFactory.getPlayer(PlayerTypes.Alex); break;
             case "Maurice": playerTwo = playerFactory.getPlayer(PlayerTypes.Maurice); break;
             case "Luca": playerTwo = playerFactory.getPlayer(PlayerTypes.Luca); break;
             case "Leo": playerTwo = playerFactory.getPlayer(PlayerTypes.Leo); break;
             case "Viktor": playerTwo = playerFactory.getPlayer(PlayerTypes.Viktor); break;
-            default: playerTwo = playerFactory.getPlayer(PlayerTypes.Alex);
+            default: playerTwo = playerFactory.getPlayer(PlayerTypes.Maurice);
         }
 
         contactListener = B2dContactListener.getContactListener_INSTANCE();
@@ -234,6 +341,69 @@ public class PlayScreen implements Screen {
         playerFactory.resetFactory();
         combatManager.resetCombatManager();
         contactListener.resetContactListener();
+
+        // Network Initialization (Phase 6 & 7)
+        this.networkClient = game.getNetworkClient();
+        // Legacy mock adapter only; production belongs to LobbyClient/ClientMatchSession.
+        if (this.networkClient != null && this.networkClient.isMockProtocol()) {
+            this.networkActive = true;
+            this.p1Id = new PlayerId("player-1");
+            this.p2Id = new PlayerId("player-2");
+            this.snapshotBuffer = new SnapshotBuffer(32);
+            this.stateInterpolator = new StateInterpolator(snapshotBuffer, 30.0f, 2.0f);
+            this.outboundInputQueue = new OutboundInputQueue(p1Id, 32);
+            this.networkMetricsTracker = new NetworkMetricsTracker();
+
+            // Remote player input is disabled; updated via network interpolation
+            playerTwo.setInputState(Player.InputState.NETWORK);
+
+            networkClient.setListener(new ConnectionListener() {
+                @Override
+                public void onConnected() {
+                    networkMetricsTracker.onConnected();
+                    log.info("Network connected to server. Sending JOIN_ROOM...");
+                    networkClient.sendPacket(new NetworkPacket(MessageType.JOIN_ROOM, p1Id.value(), "{\"roomId\":\"mock-room\"}"));
+                }
+
+                @Override
+                public void onPacketReceived(NetworkPacket packet) {
+                    if (packet.getType() == MessageType.GAME_STATE) {
+                        GameSnapshot snapshot = packet.parsePayload(GameSnapshot.class);
+                        if (snapshot != null) {
+                            snapshotBuffer.push(snapshot);
+                            networkMetricsTracker.onSnapshotReceived(snapshot.serverTick());
+                        }
+                    } else if (packet.getType() == MessageType.PONG) {
+                        networkMetricsTracker.onPongReceived(packet);
+                    } else if (packet.getType() == MessageType.MATCH_RESULT) {
+                        MatchResult result = packet.parsePayload(MatchResult.class);
+                        if (result != null) {
+                            latestMatchResult = result;
+                            log.info("Authoritative MATCH_RESULT received: winner={}", result.winnerId());
+                            Gdx.app.postRunnable(() -> {
+                                winScreen.setMatchResult(result);
+                                game.setScreen(winScreen);
+                            });
+                        }
+                    }
+                }
+
+                @Override
+                public void onDisconnected(String reason) {
+                    networkMetricsTracker.onDisconnected(reason);
+                    log.warn("Network disconnected: {}", reason);
+                }
+            });
+
+            if (!networkClient.isConnected()) {
+                try {
+                    networkClient.connect();
+                } catch (Exception e) {
+                    networkMetricsTracker.onDisconnected(e.getMessage());
+                    log.error("Failed to connect network client: " + e.getMessage());
+                }
+            }
+        }
 
     }
     /**
@@ -276,7 +446,8 @@ public class PlayScreen implements Screen {
 
     @Override
     public void show() {
-
+        if (onlineScreen != null) { onlineScreen.show(); }
+        else { Gdx.input.setInputProcessor(null); }
     }
 
     /**
@@ -287,6 +458,7 @@ public class PlayScreen implements Screen {
      */
     @Override
     public void render(float delta) {
+        if (onlineScreen != null) { onlineScreen.render(delta); return; }
 
         Gdx.gl.glClear(Gdx.gl.GL_COLOR_BUFFER_BIT);
         Gdx.gl.glClearColor(0, 0, 0, 1); //-> light blue
@@ -321,6 +493,9 @@ public class PlayScreen implements Screen {
 
 
         // Muss unter batch.end() stehen
+        if (networkActive && networkMetricsTracker != null) {
+            hud.setNetworkStatus(networkMetricsTracker.getStatusSummary());
+        }
         hud.stage.draw();
         hud.updateHud(delta, playerOne, playerTwo);
 
@@ -333,6 +508,9 @@ public class PlayScreen implements Screen {
         //Test for win and set to win screen
        if(hud.testWin(playerOne,playerTwo))
        {
+           if (latestMatchResult != null) {
+               winScreen.setMatchResult(latestMatchResult);
+           }
            game.setScreen(winScreen);
        }
 
@@ -348,22 +526,23 @@ public class PlayScreen implements Screen {
      */
     @Override
     public void resize(int width, int height) {
+        if (onlineScreen != null) { onlineScreen.resize(width, height); return; }
         viewport.update(width, height);
     }
 
     @Override
     public void pause() {
-
+        if (onlineScreen != null) { onlineScreen.pause(); }
     }
 
     @Override
     public void resume() {
-
+        if (onlineScreen != null) { onlineScreen.resume(); }
     }
 
     @Override
     public void hide() {
-
+        if (onlineScreen != null) { onlineScreen.hide(); }
     }
 
     /**
@@ -371,6 +550,10 @@ public class PlayScreen implements Screen {
      */
     @Override
     public void dispose() {
+        if (onlineScreen != null) { onlineScreen.dispose(); return; }
+        if (networkClient != null) {
+            networkClient.disconnect();
+        }
         map.dispose();
         tiledMapRenderer.dispose();
         box2DDebugRenderer.dispose();

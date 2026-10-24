@@ -22,6 +22,10 @@ public class PostProcessingSettings {
     private void setUpManager()
     {
         log.debug("Setting up the VFXManager...");
+        // Keep the full desktop preset available, while the browser starts with
+        // a single presentation pass instead of the costly legacy TV/bloom stack.
+        if(com.badlogic.gdx.Gdx.app.getType()==com.badlogic.gdx.Application.ApplicationType.WebGL
+                && !Boolean.getBoolean("smashprofs.web.effects")) { return; }
         FilmGrainEffect filmGrainEffect = new FilmGrainEffect();
         filmGrainEffect.setNoiseAmount(0.08f);
         OldTvEffect oldTvEffect = new OldTvEffect();

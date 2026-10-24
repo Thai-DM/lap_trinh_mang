@@ -1,0 +1,23 @@
+﻿{
+    "screenshots":  16,
+    "runs":  [
+                 {
+                     "players":  2,
+                     "width":  1280,
+                     "folder":  "two-players",
+                     "height":  720,
+                     "win":  "true"
+                 },
+                 {
+                     "players":  4,
+                     "width":  960,
+                     "folder":  "four-players-small",
+                     "height":  540,
+                     "win":  "false"
+                 }
+             ],
+    "kind":  "Hidden native GL windows, real TCP, controlled server fixtures",
+    "heapMiB":  192,
+    "date":  "2026-10-22",
+    "status":  "PASS"
+}

@@ -1,0 +1,13 @@
+﻿{
+    "date":  "2026-10-17T09:31:03.3157988+07:00",
+    "status":  "PASS",
+    "label":  "lava-surface-follow-camera",
+    "heapMiB":  128,
+    "suites":  [
+                   "com.smashprofs.server.game.FighterEngineTest",
+                   "com.smashprofs.server.game.LavaReboundTest",
+                   "com.smashprofs.game.network.client.FighterClientTest",
+                   "com.smashprofs.game.network.client.OnlineCameraControllerTest",
+                   "com.smashprofs.server.game.FighterTcpIntegrationTest"
+               ]
+}

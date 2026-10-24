@@ -1,0 +1,76 @@
+plugins { id 'java' }
+
+repositories { mavenCentral() }
+
+sourceCompatibility = 17
+targetCompatibility = 17
+tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }
+
+dependencies {
+    implementation 'com.badlogicgames.gdx:gdx:1.14.2'
+    implementation 'com.github.xpenatan.gdx-teavm:backend-web:1.6.2'
+    implementation 'org.teavm:teavm-tooling:0.15.0'
+    implementation 'org.teavm:teavm-jso:0.15.0'
+    implementation 'org.teavm:teavm-jso-apis:0.15.0'
+}
+
+// Compile selected real project sources; do not copy or fork these implementations.
+sourceSets.main.java {
+    srcDir '../core/src'
+    srcDir '../common/src'
+    include 'com/smashprofs/game/Screens/TeaVmProbe.java'
+    include 'com/smashprofs/game/Screens/OnlineBossAssets.java'
+    include 'com/smashprofs/game/network/client/OnlineVisualCatalog.java'
+    include 'com/smashprofs/game/network/client/OnlineCameraController.java'
+    include 'com/smashprofs/game/ui/CombatIcons.java'
+    include 'com/smashprofs/common/model/BossSnapshot.java'
+    include 'com/smashprofs/common/model/FighterMovement.java'
+    include 'com/smashprofs/probe/**'
+}
+
+tasks.register('prepareAssets', Sync) {
+    from('../assets') {
+        include '1/Map1New2Remake.tmx'
+        include 'Tilesets/**', 'Assets/**', 'Raw/peaceful_nightfield/**'
+        include 'Sprites/**', 'ui/online/**'
+        include 'boss/demon-slime/individual sprites/**'
+        include 'boss/effects/kenney-particle-pack/PNG (Transparent)/fire_01.png'
+        include 'boss/effects/more-explosions/test.png'
+        include 'boss/README.md', 'boss/manifest.json'
+        include 'sounds/minecraft_click.mp3'
+    }
+    into layout.buildDirectory.dir('probe-assets')
+}
+
+tasks.register('buildWeb', JavaExec) {
+    dependsOn classes, prepareAssets
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.smashprofs.probe.BuildWeb'
+    workingDir = projectDir
+    maxHeapSize = '512m'
+}
+
+// The local bridge runs on the JVM with the existing server libraries, never in TeaVM.
+configurations { gatewayRuntime }
+dependencies {
+    gatewayRuntime fileTree('../build/cluster') { include '*.jar' }
+    gatewayRuntime 'org.java-websocket:Java-WebSocket:1.6.0'
+}
+tasks.register('compileGateway', JavaCompile) {
+    source = fileTree('src/gateway/java') { include '**/*.java' }
+    classpath = configurations.gatewayRuntime
+    destinationDirectory = layout.buildDirectory.dir('classes/gateway')
+    options.release = 17
+}
+tasks.register('gatewayJar', Jar) {
+    dependsOn compileGateway
+    from tasks.named('compileGateway').map { it.destinationDirectory }
+    archiveFileName = 'probe-gateway.jar'
+    destinationDirectory = layout.buildDirectory.dir('gateway')
+}
+tasks.register('prepareGateway', Sync) {
+    dependsOn gatewayJar
+    from configurations.gatewayRuntime
+    from tasks.named('gatewayJar')
+    into layout.buildDirectory.dir('gateway/lib')
+}

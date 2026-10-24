@@ -1,0 +1,11 @@
+﻿{
+    "date":  "2026-10-22T22:15:46.0167956+07:00",
+    "status":  "PASS",
+    "label":  "azure-deploy",
+    "heapMiB":  128,
+    "suites":  [
+                   "com.smashprofs.server.cluster.StandaloneDeploymentTest",
+                   "com.smashprofs.tests.network.OnlineLobbyFormModelTest",
+                   "com.smashprofs.server.game.BossTcpIntegrationTest"
+               ]
+}

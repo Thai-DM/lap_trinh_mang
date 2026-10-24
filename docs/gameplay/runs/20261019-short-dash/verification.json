@@ -1,0 +1,34 @@
+﻿{
+    "status":  "PASS",
+    "date":  "2026-10-19T20:37:03.9067530+07:00",
+    "branch":  "dev",
+    "baseCommit":  "2d44c3ab2145f231c647c350253b3e69986c87bc",
+    "normalDash":  {
+                       "cooldownTicks":  24,
+                       "ticks":  6,
+                       "speedMetersPerSecond":  2.6,
+                       "approximateBurstMeters":  0.26,
+                       "previousTicks":  12,
+                       "seconds":  0.1
+                   },
+    "neutralGroundDodge":  "Slides only 6 ticks; existing invulnerability and recovery durations retained",
+    "controls":  "One physical dodge press selects one action; holding and changing direction does not emit another dash/dodge",
+    "prediction":  "Shared dash duration; native comparisons at ACK offsets 0,1,3,5,6,8, including stable repeated 120 FPS samples",
+    "fullRegression":  {
+                           "evidence":  "../20261019-203541-116-final-gameplay-regression/tests.log",
+                           "tests":  780
+                       },
+    "build":  "build.log",
+    "clientJarSHA256":  "2aba639f07877585feb7703754569aaa4c4739cd661742ba91c5304e3a5dc0cb",
+    "sourceSHA256":  {
+                         "docs/gameplay/13-UNARMED-MVP.md":  "30cb30863a900718d5db4eb10cd8834a844de79c61009208e595b64ed677861e",
+                         "docs/gameplay/README.md":  "843c2b51902a37c946788353ea56f8b09ab05833d2ef4d7a1330582bcf00d3fa",
+                         "final-project/common/src/com/smashprofs/common/model/FighterMovement.java":  "fff364daaba27ff54e6990e15da00e0a56027d9212f9f37464b9530956751c3f",
+                         "final-project/core/src/com/smashprofs/game/network/client/LocalFighterPrediction.java":  "fa0c76b5c812b2c54b983b1863afe07ec3169a9603fd4c91ccb563220932049c",
+                         "final-project/core/src/com/smashprofs/game/network/client/UnarmedControls.java":  "a1b1041b9b925eda2bb3a4b435c1982af2c9ef87082ed617523e2f4ad24128b5",
+                         "final-project/server/src/com/smashprofs/server/game/FighterEngine.java":  "1ad549f9399aaad4f3d7613152c2b4169d4423a264edb45ef02ac2cb0203e3e7",
+                         "final-project/server/test/com/smashprofs/server/game/FighterEngineTest.java":  "1a28df9a284223deebf05b79059be0e86a9cc74d87d02f4f75b59c6a61ee7795",
+                         "final-project/tests/src/com/smashprofs/game/network/client/FighterClientTest.java":  "e494a87442a0d149646348f72d3eb0c228bf80e1dc037be5eee4fb6d975e32d9",
+                         "final-project/tests/src/com/smashprofs/server/game/FighterTcpIntegrationTest.java":  "895a264cf70848a1a4911499957c6e359995b3cc009f958273a72c874fbb528d"
+                     }
+}

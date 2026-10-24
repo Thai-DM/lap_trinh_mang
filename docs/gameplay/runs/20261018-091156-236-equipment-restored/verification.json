@@ -1,0 +1,15 @@
+﻿{
+    "date":  "2026-10-18T09:12:10.6669983+07:00",
+    "status":  "PASS",
+    "label":  "equipment-restored",
+    "heapMiB":  128,
+    "suites":  [
+                   "com.smashprofs.server.game.FighterEngineTest",
+                   "com.smashprofs.server.game.FighterEquipmentTest",
+                   "com.smashprofs.server.game.UnarmedGameplayTest",
+                   "com.smashprofs.server.game.ItemGameplayTest",
+                   "com.smashprofs.server.room.HostRulesTest",
+                   "com.smashprofs.game.network.client.FighterClientTest",
+                   "com.smashprofs.server.game.FighterTcpIntegrationTest"
+               ]
+}

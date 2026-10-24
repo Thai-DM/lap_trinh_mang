@@ -1,0 +1,55 @@
+﻿{
+    "status":  "PASS",
+    "date":  "2026-10-18T09:46:57.3206560+07:00",
+    "branch":  "dev",
+    "baseCommit":  "5fc0f283083cce0923d70063b777e58cd0b43dce",
+    "behavior":  "Equipped attacks fire projectiles only; no Unarmed attack state, hitbox, damage or punch animation",
+    "fullRegression":  {
+                           "evidence":  "../20261018-094446-754-final-gameplay-regression/tests.log",
+                           "tests":  769
+                       },
+    "targeted":  {
+                     "evidence":  "../20261018-094341-183-weapon-only-attacks/tests.log",
+                     "tests":  94
+                 },
+    "tcp":  {
+                "evidence":  "../20261018-094446-754-final-gameplay-regression/tests.log",
+                "unarmedAttack":  "NONE",
+                "players":  [
+                                2,
+                                3,
+                                4
+                            ],
+                "laserDamage":  24,
+                "ammoSpent":  1
+            },
+    "native":  {
+                   "evidence":  "four-players-small.log",
+                   "width":  960,
+                   "targetHpBefore":  80,
+                   "targetHpAfter":  56,
+                   "unarmedAttack":  "NONE",
+                   "players":  4,
+                   "screenshot":  "four-players-small/weapon-fired.png"
+               },
+    "edgeCases":  [
+                      "Cooldown does not punch",
+                      "Last bullet does not punch",
+                      "Missed projectile has no hand hitbox",
+                      "Heavy while equipped does not start Unarmed Recovery",
+                      "First shot honors input direction",
+                      "Dropping gun restores Unarmed attacks",
+                      "HP, lava, respawn, inventory and rematch regression"
+                  ],
+    "clientJarSHA256":  "0364dfeeec3aa4d0352b37a4ea785517af06418d02420a2fcfa7651063ca9b86",
+    "sourceSHA256":  {
+                         "docs/gameplay/13-UNARMED-MVP.md":  "420eafc0ae28484d4dca57e6b4b1e0a867930439a4703d0d356f78039d076777",
+                         "docs/gameplay/README.md":  "317b615280607ff88890cb98103de3b7c86e2b1971e9aaeba30ac938fa058155",
+                         "final-project/core/src/com/smashprofs/game/Scenes/OnlineHud.java":  "2255c690ec42000e40e971043083e045ed53c6a6e6ca3fe84f597e4907625bde",
+                         "final-project/server/src/com/smashprofs/server/game/FighterEngine.java":  "4a4637a4b4ded642e673127b2f5e70279646db28ad1970634841062a31b2009f",
+                         "final-project/server/src/com/smashprofs/server/game/ItemSystem.java":  "9bdae0b7890f95d899a571bca6005743b2865f1ece6e49ccca6d44b7e3bcbbeb",
+                         "final-project/server/test/com/smashprofs/server/game/FighterEquipmentTest.java":  "ecfbe91df2caa51744d15e37275e0602b675cabd33e512a58354df469599e106",
+                         "final-project/tests/src/com/smashprofs/server/game/FighterTcpIntegrationTest.java":  "aded2ea69e60e53cdcd15f91cb248da0e3ee12d4b41cbd9b1432d85c06340592",
+                         "scripts/gameplay/FighterVisualPreview.java":  "9ff5a951b7e3dbe6621dcd1d73a7b43d034cbc92acd6957f0733b0e62af1dc93"
+                     }
+}

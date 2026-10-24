@@ -1,0 +1,14 @@
+﻿{
+    "date":  "2026-10-18T09:43:59.1631244+07:00",
+    "status":  "PASS",
+    "label":  "weapon-only-attacks",
+    "heapMiB":  128,
+    "suites":  [
+                   "com.smashprofs.server.game.FighterEquipmentTest",
+                   "com.smashprofs.server.game.FighterEngineTest",
+                   "com.smashprofs.server.game.UnarmedGameplayTest",
+                   "com.smashprofs.server.game.ItemGameplayTest",
+                   "com.smashprofs.server.game.FighterTcpIntegrationTest",
+                   "com.smashprofs.game.network.client.FighterClientTest"
+               ]
+}

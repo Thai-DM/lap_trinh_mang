@@ -1,0 +1,23 @@
+﻿{
+    "date":  "2026-10-16T16:24:13.3914025+07:00",
+    "status":  "PASS",
+    "label":  "combat-visual-final",
+    "heapMiB":  128,
+    "suites":  [
+                   "com.smashprofs.server.game.LavaReboundTest",
+                   "com.smashprofs.server.game.StockGameplayTest",
+                   "com.smashprofs.server.game.ItemGameplayTest",
+                   "com.smashprofs.server.game.physics.WallMovementTest",
+                   "com.smashprofs.server.game.physics.TmxCollisionLoaderTest",
+                   "com.smashprofs.server.game.MatchRuntimeEndingTest",
+                   "com.smashprofs.server.game.MatchRuntimeProjectileTest",
+                   "com.smashprofs.server.network.SharedSnapshotCacheTest",
+                   "com.smashprofs.server.network.TcpProtocolV1Test",
+                   "com.smashprofs.server.network.TcpSnapshotBackpressureTest",
+                   "com.smashprofs.tests.network.GameplayClientModelTest",
+                   "com.smashprofs.server.game.GameplayTcpIntegrationTest",
+                   "com.smashprofs.tests.network.WireGameSnapshotTest",
+                   "com.smashprofs.tests.network.GameplayClusterIntegrationTest",
+                   "com.smashprofs.tests.network.OnlineRoomFlowTest"
+               ]
+}

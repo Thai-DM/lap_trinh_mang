@@ -1,0 +1,29 @@
+{
+  "date": "2026-10-22",
+  "status": "PASS",
+  "build": "Gradle offline :desktop:dist :server:installCluster, heap 256 MiB",
+  "client": {
+    "file": "final-project/desktop/build/libs/desktop-1.0.jar",
+    "bytes": 74869889,
+    "sha256": "1c7ddb9270be1a42cc8afc1f4660d7a85460ee04a6a972ba1422697359a44052"
+  },
+  "server": {
+    "file": "final-project/build/cluster/server-1.0.jar",
+    "bytes": 421486,
+    "sha256": "85b97a26b3da37205cf6393161a8a791ae719a2a8d7548baea2de338880f2bf2"
+  },
+  "checkedClientEntries": [
+    "com/smashprofs/common/model/BossSnapshot.class",
+    "com/smashprofs/common/protocol/BossProtocol.class",
+    "com/smashprofs/game/Screens/OnlineBossAssets.class",
+    "boss/demon-slime/individual sprites/01_demon_idle/demon_idle_1.png",
+    "boss/demon-slime/individual sprites/05_demon_death/demon_death_22.png",
+    "boss/effects/kenney-particle-pack/PNG (Transparent)/fire_01.png",
+    "boss/effects/more-explosions/test.png",
+    "boss/README.md",
+    "boss/manifest.json"
+  ],
+  "archiveIntegrity": "PASS",
+  "regression": "docs/gameplay/runs/20261022-150432-790-final-gameplay-regression/verification.json",
+  "native": "docs/gameplay/runs/20261022-boss-native/verification.json"
+}

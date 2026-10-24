@@ -1,0 +1,1247 @@
+{
+  "status": "PASS",
+  "date": "2026-10-24",
+  "checks": [
+    "Gateway rejects an origin outside the configured exact allowlist",
+    "Real shared MainMenuScreen boots in Edge/WebGL",
+    "Three audio sliders respond to real mouse input and fit three viewport sizes",
+    "Master, music and effects volumes survive reload in real browser Preferences",
+    "Master slider reaches complete mute",
+    "No server exceptions during the browser run",
+    "No JavaScript exceptions or failed assets"
+  ],
+  "states": {
+    "menu": {
+      "screen": "MainMenuScreen",
+      "phase": "",
+      "room": "",
+      "playerId": "",
+      "matchId": "",
+      "players": 0,
+      "x": 0,
+      "y": 0,
+      "hp": 0,
+      "tick": 0,
+      "bossHp": -1,
+      "error": "",
+      "ui": [
+        {
+          "type": "Label",
+          "text": "SUPER SMASH PROFS  ·  MULTINETWORK EDITION",
+          "name": null,
+          "x": 234.5000034943223,
+          "y": 82.49998456332833,
+          "width": 377,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chiến Binh 92",
+          "name": null,
+          "x": 1058.5000157728791,
+          "y": 72.49998432118446,
+          "width": 103,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ID: player_5371",
+          "name": null,
+          "x": 1063.0000158399343,
+          "y": 91.49998478125781,
+          "width": 112,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "HỒ SƠ [P]",
+          "name": null,
+          "x": 1183.5000176355243,
+          "y": 81.99998455122113,
+          "width": 105,
+          "height": 34,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "HỒ SƠ [P]",
+          "name": null,
+          "x": 1183.5000176355243,
+          "y": 82.49998456332833,
+          "width": 97,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ĐẤU TRƯỜNG ĐỐI KHÁNG ĐỈNH CAO  ·  SUPER SMASH PROFS",
+          "name": null,
+          "x": 640.0000095367432,
+          "y": 191.4999872026965,
+          "width": 466,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "CHIẾN BINH",
+          "name": null,
+          "x": 259.00000385940075,
+          "y": 490.4999944427982,
+          "width": 90,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ALEX",
+          "name": null,
+          "x": 258.50000385195017,
+          "y": 521.4999951934442,
+          "width": 77,
+          "height": 39,
+          "disabled": false
+        },
+        {
+          "type": "ComicHeading",
+          "text": "CHỌN CHẾ ĐỘ CHƠI",
+          "name": null,
+          "x": 640.0000095367432,
+          "y": 271.49998913984746,
+          "width": 308,
+          "height": 39,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "CHƠI LOCAL  [SPACE]",
+          "name": null,
+          "x": 640.0000095367432,
+          "y": 320.9999903384596,
+          "width": 420,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "CHƠI LOCAL  [SPACE]",
+          "name": null,
+          "x": 639.5000095292926,
+          "y": 321.4999903505668,
+          "width": 401,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "2 người chơi đối kháng trên cùng một bàn phím",
+          "name": null,
+          "x": 639.5000095292926,
+          "y": 354.4999911496416,
+          "width": 363,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "CHƠI ONLINE  [O]",
+          "name": null,
+          "x": 640.0000095367432,
+          "y": 391.9999920576811,
+          "width": 420,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "CHƠI ONLINE  [O]",
+          "name": null,
+          "x": 639.5000095292926,
+          "y": 392.4999920697883,
+          "width": 401,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Sảnh đấu trực tuyến qua mạng LAN / Internet (2-4 người)",
+          "name": null,
+          "x": 640.0000095367432,
+          "y": 425.49999286886305,
+          "width": 434,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "BẢNG XẾP HẠNG  [B]",
+          "name": null,
+          "x": 640.0000095367432,
+          "y": 462.99999377690256,
+          "width": 420,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "BẢNG XẾP HẠNG  [B]",
+          "name": null,
+          "x": 639.5000095292926,
+          "y": 463.49999378900975,
+          "width": 401,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Top cao thủ, điểm Elo và lịch sử tỉ lệ thắng",
+          "name": null,
+          "x": 640.0000095367432,
+          "y": 496.4999945880845,
+          "width": 322,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "CÀI ĐẶT  [C]",
+          "name": null,
+          "x": 640.0000095367432,
+          "y": 530.9999954234809,
+          "width": 420,
+          "height": 38,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "CÀI ĐẶT  [C]",
+          "name": null,
+          "x": 639.5000095292926,
+          "y": 531.4999954355881,
+          "width": 401,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "THOÁT GAME  [ESC]",
+          "name": null,
+          "x": 640.0000095367432,
+          "y": 573.9999964646995,
+          "width": 420,
+          "height": 36,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "THOÁT GAME  [ESC]",
+          "name": null,
+          "x": 639.5000095292926,
+          "y": 574.4999964768067,
+          "width": 401,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ĐẤU THỦ",
+          "name": null,
+          "x": 1021.0000152140856,
+          "y": 490.4999944427982,
+          "width": 70,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "LEO",
+          "name": null,
+          "x": 1020.500015206635,
+          "y": 521.4999951934442,
+          "width": 53,
+          "height": 39,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "THỜI GIAN ĐÃ CHƠI: ",
+          "name": null,
+          "x": 338.50000504404306,
+          "y": 648.4999982686713,
+          "width": 157,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "0 min 0 sek",
+          "name": null,
+          "x": 459.000006839633,
+          "y": 648.4999982686713,
+          "width": 84,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "   ·   ",
+          "name": null,
+          "x": 525.5000078305602,
+          "y": 648.4999982686713,
+          "width": 25,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "SỐ TRẬN ĐÃ ĐẤU: ",
+          "name": null,
+          "x": 619.0000092238188,
+          "y": 648.4999982686713,
+          "width": 138,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "0",
+          "name": null,
+          "x": 691.500010304153,
+          "y": 648.4999982686713,
+          "width": 7,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "   ·   ",
+          "name": null,
+          "x": 719.5000107213855,
+          "y": 648.4999982686713,
+          "width": 25,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "DEV TEAM: ",
+          "name": null,
+          "x": 786.0000117123127,
+          "y": 648.4999982686713,
+          "width": 84,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Leo · Maurice · Alex · Luca",
+          "name": null,
+          "x": 923.5000137612224,
+          "y": 648.4999982686713,
+          "width": 191,
+          "height": 19,
+          "disabled": false
+        }
+      ]
+    },
+    "settings": {
+      "screen": "MainMenuScreen",
+      "phase": "",
+      "room": "",
+      "playerId": "",
+      "matchId": "",
+      "players": 0,
+      "x": 0,
+      "y": 0,
+      "hp": 0,
+      "tick": 0,
+      "bossHp": -1,
+      "error": "",
+      "ui": [
+        {
+          "type": "Label",
+          "text": "SUPER SMASH PROFS  ·  MULTINETWORK EDITION",
+          "name": null,
+          "x": 234.5000034943223,
+          "y": 82.49998456332833,
+          "width": 377,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chiến Binh 92",
+          "name": null,
+          "x": 1058.5000157728791,
+          "y": 72.49998432118446,
+          "width": 103,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ID: player_5371",
+          "name": null,
+          "x": 1063.0000158399343,
+          "y": 91.49998478125781,
+          "width": 112,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "HỒ SƠ [P]",
+          "name": null,
+          "x": 1183.5000176355243,
+          "y": 81.99998455122113,
+          "width": 105,
+          "height": 34,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "HỒ SƠ [P]",
+          "name": null,
+          "x": 1183.5000176355243,
+          "y": 82.49998456332833,
+          "width": 97,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ĐẤU TRƯỜNG ĐỐI KHÁNG ĐỈNH CAO  ·  SUPER SMASH PROFS",
+          "name": null,
+          "x": 640.0000095367432,
+          "y": 191.4999872026965,
+          "width": 466,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "CHIẾN BINH",
+          "name": null,
+          "x": 259.00000385940075,
+          "y": 490.4999944427982,
+          "width": 90,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ALEX",
+          "name": null,
+          "x": 258.50000385195017,
+          "y": 521.4999951934442,
+          "width": 77,
+          "height": 39,
+          "disabled": false
+        },
+        {
+          "type": "ComicHeading",
+          "text": "CHỌN CHẾ ĐỘ CHƠI",
+          "name": null,
+          "x": 640.0000095367432,
+          "y": 271.49998913984746,
+          "width": 308,
+          "height": 39,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "CHƠI LOCAL  [SPACE]",
+          "name": null,
+          "x": 640.0000095367432,
+          "y": 320.9999903384596,
+          "width": 420,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "CHƠI LOCAL  [SPACE]",
+          "name": null,
+          "x": 639.5000095292926,
+          "y": 321.4999903505668,
+          "width": 401,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "2 người chơi đối kháng trên cùng một bàn phím",
+          "name": null,
+          "x": 639.5000095292926,
+          "y": 354.4999911496416,
+          "width": 363,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "CHƠI ONLINE  [O]",
+          "name": null,
+          "x": 640.0000095367432,
+          "y": 391.9999920576811,
+          "width": 420,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "CHƠI ONLINE  [O]",
+          "name": null,
+          "x": 639.5000095292926,
+          "y": 392.4999920697883,
+          "width": 401,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Sảnh đấu trực tuyến qua mạng LAN / Internet (2-4 người)",
+          "name": null,
+          "x": 640.0000095367432,
+          "y": 425.49999286886305,
+          "width": 434,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "BẢNG XẾP HẠNG  [B]",
+          "name": null,
+          "x": 640.0000095367432,
+          "y": 462.99999377690256,
+          "width": 420,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "BẢNG XẾP HẠNG  [B]",
+          "name": null,
+          "x": 639.5000095292926,
+          "y": 463.49999378900975,
+          "width": 401,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Top cao thủ, điểm Elo và lịch sử tỉ lệ thắng",
+          "name": null,
+          "x": 640.0000095367432,
+          "y": 496.4999945880845,
+          "width": 322,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "CÀI ĐẶT  [C]",
+          "name": null,
+          "x": 640.0000095367432,
+          "y": 530.9999954234809,
+          "width": 420,
+          "height": 38,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "CÀI ĐẶT  [C]",
+          "name": null,
+          "x": 639.5000095292926,
+          "y": 531.4999954355881,
+          "width": 401,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "THOÁT GAME  [ESC]",
+          "name": null,
+          "x": 640.0000095367432,
+          "y": 573.9999964646995,
+          "width": 420,
+          "height": 36,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "THOÁT GAME  [ESC]",
+          "name": null,
+          "x": 639.5000095292926,
+          "y": 574.4999964768067,
+          "width": 401,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ĐẤU THỦ",
+          "name": null,
+          "x": 1021.0000152140856,
+          "y": 490.4999944427982,
+          "width": 70,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "LEO",
+          "name": null,
+          "x": 1020.500015206635,
+          "y": 521.4999951934442,
+          "width": 53,
+          "height": 39,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "THỜI GIAN ĐÃ CHƠI: ",
+          "name": null,
+          "x": 340.5000050738454,
+          "y": 648.4999982686713,
+          "width": 157,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "0 min 7 sek",
+          "name": null,
+          "x": 461.0000068694353,
+          "y": 648.4999982686713,
+          "width": 84,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "   ·   ",
+          "name": null,
+          "x": 527.5000078603625,
+          "y": 648.4999982686713,
+          "width": 25,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "SỐ TRẬN ĐÃ ĐẤU: ",
+          "name": null,
+          "x": 621.0000092536211,
+          "y": 648.4999982686713,
+          "width": 138,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "1",
+          "name": null,
+          "x": 692.0000103116035,
+          "y": 648.4999982686713,
+          "width": 4,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "   ·   ",
+          "name": null,
+          "x": 718.5000107064843,
+          "y": 648.4999982686713,
+          "width": 25,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "DEV TEAM: ",
+          "name": null,
+          "x": 785.0000116974115,
+          "y": 648.4999982686713,
+          "width": 84,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Leo · Maurice · Alex · Luca",
+          "name": null,
+          "x": 922.5000137463212,
+          "y": 648.4999982686713,
+          "width": 191,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "ComicHeading",
+          "text": "CÀI ĐẶT",
+          "name": null,
+          "x": 401.00000597536564,
+          "y": 148.49998616147786,
+          "width": 126,
+          "height": 39,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "X",
+          "name": null,
+          "x": 922.0000137388706,
+          "y": 147.99998614937067,
+          "width": 40,
+          "height": 40,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "X",
+          "name": null,
+          "x": 921.50001373142,
+          "y": 148.49998616147786,
+          "width": 21,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Âm lượng tổng",
+          "name": null,
+          "x": 420.0000062584877,
+          "y": 189.49998715426773,
+          "width": 140,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Slider",
+          "text": "",
+          "name": "volume-master",
+          "x": 680.0000101327896,
+          "y": 188.99998714216053,
+          "width": 360,
+          "height": 26,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "0%",
+          "name": "volume-value-master",
+          "x": 901.5000134333968,
+          "y": 189.49998715426773,
+          "width": 55,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Nhạc nền",
+          "name": null,
+          "x": 420.0000062584877,
+          "y": 219.49998788069934,
+          "width": 140,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Slider",
+          "text": "",
+          "name": "volume-music",
+          "x": 680.0000101327896,
+          "y": 218.99998786859214,
+          "width": 360,
+          "height": 26,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "27%",
+          "name": "volume-value-music",
+          "x": 901.5000134333968,
+          "y": 219.49998788069934,
+          "width": 55,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Hiệu ứng",
+          "name": null,
+          "x": 420.0000062584877,
+          "y": 249.49998860713094,
+          "width": 140,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Slider",
+          "text": "",
+          "name": "volume-effects",
+          "x": 680.0000101327896,
+          "y": 248.99998859502375,
+          "width": 360,
+          "height": 26,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "27%",
+          "name": "volume-value-effects",
+          "x": 901.5000134333968,
+          "y": 249.49998860713094,
+          "width": 55,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Bấm vào ô phím muốn đổi, sau đó ấn phím bất kỳ trên bàn phím để gán",
+          "name": null,
+          "x": 639.5000095292926,
+          "y": 281.4999893819913,
+          "width": 543,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "",
+          "name": null,
+          "x": 640.0000095367432,
+          "y": 305.9999899752438,
+          "width": 0,
+          "height": 18,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Sang trái",
+          "name": null,
+          "x": 415.5000061914325,
+          "y": 339.49999078642577,
+          "width": 155,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "[ A ]",
+          "name": null,
+          "x": 563.5000083968043,
+          "y": 338.9999907743186,
+          "width": 125,
+          "height": 32,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "[ A ]",
+          "name": null,
+          "x": 563.0000083893538,
+          "y": 339.49999078642577,
+          "width": 106,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Đánh mạnh",
+          "name": null,
+          "x": 731.5000109001994,
+          "y": 339.49999078642577,
+          "width": 155,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "[ K ]",
+          "name": null,
+          "x": 879.5000131055713,
+          "y": 338.9999907743186,
+          "width": 125,
+          "height": 32,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "[ K ]",
+          "name": null,
+          "x": 879.0000130981207,
+          "y": 339.49999078642577,
+          "width": 106,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Sang phải",
+          "name": null,
+          "x": 415.5000061914325,
+          "y": 375.4999916581437,
+          "width": 155,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "[ D ]",
+          "name": null,
+          "x": 563.5000083968043,
+          "y": 374.9999916460365,
+          "width": 125,
+          "height": 32,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "[ D ]",
+          "name": null,
+          "x": 563.0000083893538,
+          "y": 375.4999916581437,
+          "width": 106,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Né / Lướt",
+          "name": null,
+          "x": 731.5000109001994,
+          "y": 375.4999916581437,
+          "width": 155,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "[ L ]",
+          "name": null,
+          "x": 879.5000131055713,
+          "y": 374.9999916460365,
+          "width": 125,
+          "height": 32,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "[ L ]",
+          "name": null,
+          "x": 879.0000130981207,
+          "y": 375.4999916581437,
+          "width": 106,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Hướng lên / Ngắm",
+          "name": null,
+          "x": 415.5000061914325,
+          "y": 411.49999252986163,
+          "width": 155,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "[ W ]",
+          "name": null,
+          "x": 563.5000083968043,
+          "y": 410.99999251775444,
+          "width": 125,
+          "height": 32,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "[ W ]",
+          "name": null,
+          "x": 563.0000083893538,
+          "y": 411.49999252986163,
+          "width": 106,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Kỹ năng F",
+          "name": null,
+          "x": 731.5000109001994,
+          "y": 411.49999252986163,
+          "width": 155,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "[ F ]",
+          "name": null,
+          "x": 879.5000131055713,
+          "y": 410.99999251775444,
+          "width": 125,
+          "height": 32,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "[ F ]",
+          "name": null,
+          "x": 879.0000130981207,
+          "y": 411.49999252986163,
+          "width": 106,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Hướng xuống / Rơi",
+          "name": null,
+          "x": 415.5000061914325,
+          "y": 447.49999340157956,
+          "width": 155,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "[ S ]",
+          "name": null,
+          "x": 563.5000083968043,
+          "y": 446.99999338947237,
+          "width": 125,
+          "height": 32,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "[ S ]",
+          "name": null,
+          "x": 563.0000083893538,
+          "y": 447.49999340157956,
+          "width": 106,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Nhặt đồ",
+          "name": null,
+          "x": 731.5000109001994,
+          "y": 447.49999340157956,
+          "width": 155,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "[ E ]",
+          "name": null,
+          "x": 879.5000131055713,
+          "y": 446.99999338947237,
+          "width": 125,
+          "height": 32,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "[ E ]",
+          "name": null,
+          "x": 879.0000130981207,
+          "y": 447.49999340157956,
+          "width": 106,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Nhảy",
+          "name": null,
+          "x": 415.5000061914325,
+          "y": 483.4999942732975,
+          "width": 155,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "[ Space ]",
+          "name": null,
+          "x": 563.5000083968043,
+          "y": 482.9999942611903,
+          "width": 125,
+          "height": 32,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "[ Space ]",
+          "name": null,
+          "x": 563.0000083893538,
+          "y": 483.4999942732975,
+          "width": 106,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Thả đồ",
+          "name": null,
+          "x": 731.5000109001994,
+          "y": 483.4999942732975,
+          "width": 155,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "[ G ]",
+          "name": null,
+          "x": 879.5000131055713,
+          "y": 482.9999942611903,
+          "width": 125,
+          "height": 32,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "[ G ]",
+          "name": null,
+          "x": 879.0000130981207,
+          "y": 483.4999942732975,
+          "width": 106,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Đánh nhẹ / Bắn",
+          "name": null,
+          "x": 415.5000061914325,
+          "y": 519.4999951450154,
+          "width": 155,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "[ J ]",
+          "name": null,
+          "x": 563.5000083968043,
+          "y": 518.9999951329082,
+          "width": 125,
+          "height": 32,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "[ J ]",
+          "name": null,
+          "x": 563.0000083893538,
+          "y": 519.4999951450154,
+          "width": 106,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Ném vũ khí",
+          "name": null,
+          "x": 731.5000109001994,
+          "y": 519.4999951450154,
+          "width": 155,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "[ Q ]",
+          "name": null,
+          "x": 879.5000131055713,
+          "y": 518.9999951329082,
+          "width": 125,
+          "height": 32,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "[ Q ]",
+          "name": null,
+          "x": 879.0000130981207,
+          "y": 519.4999951450154,
+          "width": 106,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "WASD",
+          "name": null,
+          "x": 458.0000068247318,
+          "y": 571.9999964162707,
+          "width": 180,
+          "height": 42,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "WASD",
+          "name": null,
+          "x": 457.50000681728125,
+          "y": 572.4999964283779,
+          "width": 161,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "MŨI TÊN",
+          "name": null,
+          "x": 640.0000095367432,
+          "y": 571.9999964162707,
+          "width": 160,
+          "height": 42,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "MŨI TÊN",
+          "name": null,
+          "x": 639.5000095292926,
+          "y": 572.4999964283779,
+          "width": 141,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "LƯU & ĐÓNG",
+          "name": null,
+          "x": 822.0000122487545,
+          "y": 571.9999964162707,
+          "width": 180,
+          "height": 42,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "LƯU & ĐÓNG",
+          "name": null,
+          "x": 821.5000122413039,
+          "y": 572.4999964283779,
+          "width": 161,
+          "height": 25,
+          "disabled": false
+        }
+      ]
+    }
+  }
+}

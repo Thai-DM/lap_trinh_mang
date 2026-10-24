@@ -1,0 +1,8 @@
+{
+  "scenario": "round-robin",
+  "clients": 2,
+  "repeat": 1,
+  "availableMemoryBytes": 500748288,
+  "status": "SAFETY_STOP_BEFORE_START",
+  "thresholdMB": 1000
+}

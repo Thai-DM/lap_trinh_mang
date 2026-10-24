@@ -1,0 +1,11 @@
+﻿{
+    "date":  "2026-10-18T08:34:58.2138970+07:00",
+    "status":  "PASS",
+    "label":  "unarmed-client-compile",
+    "heapMiB":  128,
+    "suites":  [
+                   "com.smashprofs.server.game.FighterEngineTest",
+                   "com.smashprofs.game.network.client.FighterClientTest",
+                   "com.smashprofs.server.game.FighterTcpIntegrationTest"
+               ]
+}

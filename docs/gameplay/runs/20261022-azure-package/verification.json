@@ -1,0 +1,16 @@
+{
+  "date": "2026-10-22",
+  "status": "PASS",
+  "archive": "final-project/build/deploy/smashprofs-server-20261022-221617-417.zip",
+  "bytes": 5647062,
+  "sha256": "39641bd64c98764f2cfdf2f7c6d40ba35e77217c7ab8093ff14aee4a28e4651e",
+  "checks": [
+    "ZIP integrity and required entries",
+    "Bash launcher LF line endings; bash -n separately passed",
+    "map embedded in server JAR",
+    "real standalone JVM from extracted ZIP, using only bundled JARs",
+    "two TCP clients create/join/start and receive GAME_STATE",
+    "native physics startup and authenticated graceful shutdown"
+  ],
+  "limits": "Windows JVM validation; Ubuntu systemd and Azure WAN deployment not yet executed"
+}

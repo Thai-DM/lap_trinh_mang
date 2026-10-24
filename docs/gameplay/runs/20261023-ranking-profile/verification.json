@@ -1,0 +1,4333 @@
+{
+  "status": "PASS",
+  "date": "2026-10-23",
+  "checks": [
+    "Gateway rejects an origin outside the configured exact allowlist",
+    "Real shared MainMenuScreen boots in Edge/WebGL",
+    "Vietnamese long names and legacy UUIDs stay inside aligned columns at three viewport sizes; list starts at top",
+    "Leaderboard with fourteen entries scrolls inside its card",
+    "Refreshing ranking and reloading the page preserve the authenticated guest profile",
+    "A new tab in the same browser reuses the same guest profile",
+    "An isolated browser gets a separate guest identity",
+    "Repeated ranking connections bind to one SQLite guest profile without creating fake ranking entries",
+    "No server exceptions during the browser run",
+    "No JavaScript exceptions or failed assets"
+  ],
+  "states": {
+    "menu": {
+      "screen": "MainMenuScreen",
+      "phase": "",
+      "room": "",
+      "playerId": "",
+      "matchId": "",
+      "players": 0,
+      "x": 0,
+      "y": 0,
+      "hp": 0,
+      "tick": 0,
+      "bossHp": -1,
+      "error": "",
+      "ui": [
+        {
+          "type": "Label",
+          "text": "SUPER SMASH PROFS  ·  MULTINETWORK EDITION",
+          "name": null,
+          "x": 234.5000034943223,
+          "y": 82.49998456332833,
+          "width": 377,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chiến Binh 62",
+          "name": null,
+          "x": 1055.5000157281756,
+          "y": 72.49998432118446,
+          "width": 103,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ID: player_1807",
+          "name": null,
+          "x": 1061.5000158175826,
+          "y": 91.49998478125781,
+          "width": 115,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "HỒ SƠ [P]",
+          "name": null,
+          "x": 1183.5000176355243,
+          "y": 81.99998455122113,
+          "width": 105,
+          "height": 34,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "HỒ SƠ [P]",
+          "name": null,
+          "x": 1183.5000176355243,
+          "y": 82.49998456332833,
+          "width": 97,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ĐẤU TRƯỜNG ĐỐI KHÁNG ĐỈNH CAO  ·  SUPER SMASH PROFS",
+          "name": null,
+          "x": 640.0000095367432,
+          "y": 191.4999872026965,
+          "width": 466,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "CHIẾN BINH",
+          "name": null,
+          "x": 259.00000385940075,
+          "y": 490.4999944427982,
+          "width": 90,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ALEX",
+          "name": null,
+          "x": 258.50000385195017,
+          "y": 521.4999951934442,
+          "width": 77,
+          "height": 39,
+          "disabled": false
+        },
+        {
+          "type": "ComicHeading",
+          "text": "CHỌN CHẾ ĐỘ CHƠI",
+          "name": null,
+          "x": 640.0000095367432,
+          "y": 271.49998913984746,
+          "width": 308,
+          "height": 39,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "CHƠI LOCAL  [SPACE]",
+          "name": null,
+          "x": 640.0000095367432,
+          "y": 320.9999903384596,
+          "width": 420,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "CHƠI LOCAL  [SPACE]",
+          "name": null,
+          "x": 639.5000095292926,
+          "y": 321.4999903505668,
+          "width": 401,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "2 người chơi đối kháng trên cùng một bàn phím",
+          "name": null,
+          "x": 639.5000095292926,
+          "y": 354.4999911496416,
+          "width": 363,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "CHƠI ONLINE  [O]",
+          "name": null,
+          "x": 640.0000095367432,
+          "y": 391.9999920576811,
+          "width": 420,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "CHƠI ONLINE  [O]",
+          "name": null,
+          "x": 639.5000095292926,
+          "y": 392.4999920697883,
+          "width": 401,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Sảnh đấu trực tuyến qua mạng LAN / Internet (2-4 người)",
+          "name": null,
+          "x": 640.0000095367432,
+          "y": 425.49999286886305,
+          "width": 434,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "BẢNG XẾP HẠNG  [B]",
+          "name": null,
+          "x": 640.0000095367432,
+          "y": 462.99999377690256,
+          "width": 420,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "BẢNG XẾP HẠNG  [B]",
+          "name": null,
+          "x": 639.5000095292926,
+          "y": 463.49999378900975,
+          "width": 401,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Top cao thủ, điểm Elo và lịch sử tỉ lệ thắng",
+          "name": null,
+          "x": 640.0000095367432,
+          "y": 496.4999945880845,
+          "width": 322,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "CÀI ĐẶT PHÍM  [C]",
+          "name": null,
+          "x": 640.0000095367432,
+          "y": 530.9999954234809,
+          "width": 420,
+          "height": 38,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "CÀI ĐẶT PHÍM  [C]",
+          "name": null,
+          "x": 639.5000095292926,
+          "y": 531.4999954355881,
+          "width": 401,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "THOÁT GAME  [ESC]",
+          "name": null,
+          "x": 640.0000095367432,
+          "y": 573.9999964646995,
+          "width": 420,
+          "height": 36,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "THOÁT GAME  [ESC]",
+          "name": null,
+          "x": 639.5000095292926,
+          "y": 574.4999964768067,
+          "width": 401,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ĐẤU THỦ",
+          "name": null,
+          "x": 1021.0000152140856,
+          "y": 490.4999944427982,
+          "width": 70,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "LEO",
+          "name": null,
+          "x": 1020.500015206635,
+          "y": 521.4999951934442,
+          "width": 53,
+          "height": 39,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "THỜI GIAN ĐÃ CHƠI: ",
+          "name": null,
+          "x": 338.50000504404306,
+          "y": 648.4999982686713,
+          "width": 157,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "0 min 0 sek",
+          "name": null,
+          "x": 459.000006839633,
+          "y": 648.4999982686713,
+          "width": 84,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "   ·   ",
+          "name": null,
+          "x": 525.5000078305602,
+          "y": 648.4999982686713,
+          "width": 25,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "SỐ TRẬN ĐÃ ĐẤU: ",
+          "name": null,
+          "x": 619.0000092238188,
+          "y": 648.4999982686713,
+          "width": 138,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "0",
+          "name": null,
+          "x": 691.500010304153,
+          "y": 648.4999982686713,
+          "width": 7,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "   ·   ",
+          "name": null,
+          "x": 719.5000107213855,
+          "y": 648.4999982686713,
+          "width": 25,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "DEV TEAM: ",
+          "name": null,
+          "x": 786.0000117123127,
+          "y": 648.4999982686713,
+          "width": 84,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Leo · Maurice · Alex · Luca",
+          "name": null,
+          "x": 923.5000137612224,
+          "y": 648.4999982686713,
+          "width": 191,
+          "height": 19,
+          "disabled": false
+        }
+      ]
+    },
+    "ranking_1280": {
+      "screen": "LeaderboardScreen",
+      "phase": "",
+      "room": "",
+      "playerId": "",
+      "matchId": "",
+      "players": 0,
+      "x": 0,
+      "y": 0,
+      "hp": 0,
+      "tick": 0,
+      "bossHp": -1,
+      "error": "",
+      "ui": [
+        {
+          "type": "TextButton",
+          "text": "QUAY LẠI",
+          "name": "ranking-back",
+          "x": 108.00000160932541,
+          "y": 46.99998370371759,
+          "width": 152,
+          "height": 42,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "QUAY LẠI",
+          "name": null,
+          "x": 107.50000160187483,
+          "y": 47.49998371582478,
+          "width": 133,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "ComicHeading",
+          "text": "BẢNG XẾP HẠNG",
+          "name": null,
+          "x": 639.5000095292926,
+          "y": 47.49998371582478,
+          "width": 259,
+          "height": 39,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "LÀM MỚI",
+          "name": "ranking-refresh",
+          "x": 1172.000017464161,
+          "y": 46.99998370371759,
+          "width": 152,
+          "height": 42,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "LÀM MỚI",
+          "name": null,
+          "x": 1171.5000174567103,
+          "y": 47.49998371582478,
+          "width": 133,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Đối kháng PvP tính Elo · Hợp tác Boss ghi nhận thắng / thua",
+          "name": null,
+          "x": 639.5000095292926,
+          "y": 85.49998463597149,
+          "width": 453,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "BẠN: Chiến Binh 62 · guest_eb42…11e1",
+          "name": "ranking-profile",
+          "x": 346.0000051558018,
+          "y": 137.4999858951196,
+          "width": 604,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ws://127.0.0.1:53061",
+          "name": "ranking-endpoint",
+          "x": 860.0000128149986,
+          "y": 137.4999858951196,
+          "width": 400,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "Đổi máy chủ",
+          "name": "ranking-server-settings",
+          "x": 1154.00001719594,
+          "y": 136.9999858830124,
+          "width": 164,
+          "height": 36,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Đổi máy chủ",
+          "name": null,
+          "x": 1154.00001719594,
+          "y": 137.4999858951196,
+          "width": 140,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Đã cập nhật · 14 người chơi",
+          "name": "ranking-status",
+          "x": 640.0000095367432,
+          "y": 188.99998714216053,
+          "width": 1216,
+          "height": 28,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "HẠNG",
+          "name": null,
+          "x": 138.00000205636024,
+          "y": 236.49998829234391,
+          "width": 92,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "NGƯỜI CHƠI",
+          "name": null,
+          "x": 390.00000581145287,
+          "y": 236.49998829234391,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ĐIỂM ELO",
+          "name": null,
+          "x": 668.0000099539757,
+          "y": 236.49998829234391,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "THẮNG / THUA",
+          "name": null,
+          "x": 820.0000122189522,
+          "y": 236.49998829234391,
+          "width": 160,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "TỈ LỆ THẮNG",
+          "name": null,
+          "x": 972.0000144839287,
+          "y": 236.49998829234391,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "SỐ TRẬN",
+          "name": null,
+          "x": 1116.000016629696,
+          "y": 236.49998829234391,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "ScrollPane",
+          "text": "",
+          "name": "ranking-scroll",
+          "x": 640.0000095367432,
+          "y": 462.99999377690256,
+          "width": 1196,
+          "height": 404,
+          "disabled": false
+        },
+        {
+          "type": "Table",
+          "text": "",
+          "name": "ranking-row-1",
+          "x": 639.5000095292926,
+          "y": 291.9999896362424,
+          "width": 1195,
+          "height": 62,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "#1",
+          "name": null,
+          "x": 137.00000204145908,
+          "y": 292.4999896483496,
+          "width": 92,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Khách acb416da-3…08f8",
+          "name": "ranking-name-1",
+          "x": 389.0000057965517,
+          "y": 282.4999894062057,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ID: acb416da-3…08f8",
+          "name": null,
+          "x": 389.0000057965517,
+          "y": 301.49998986627907,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "2000",
+          "name": "ranking-elo-1",
+          "x": 667.0000099390745,
+          "y": 292.4999896483496,
+          "width": 144,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "10 / 5",
+          "name": null,
+          "x": 819.000012204051,
+          "y": 292.4999896483496,
+          "width": 160,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "66.7%",
+          "name": null,
+          "x": 971.0000144690275,
+          "y": 292.4999896483496,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "15",
+          "name": null,
+          "x": 1115.0000166147947,
+          "y": 292.4999896483496,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Table",
+          "text": "",
+          "name": "ranking-row-2",
+          "x": 639.5000095292926,
+          "y": 357.9999912343919,
+          "width": 1195,
+          "height": 62,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "#2",
+          "name": null,
+          "x": 137.00000204145908,
+          "y": 358.4999912464991,
+          "width": 92,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Nguyễn Hoàng Chiến Binh Đấu Trường Việt Nam Nguyễn Hoàng Chiến B",
+          "name": "ranking-name-2",
+          "x": 389.0000057965517,
+          "y": 348.49999100435525,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ID: guest_0000…0001",
+          "name": null,
+          "x": 389.0000057965517,
+          "y": 367.4999914644286,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "1984",
+          "name": "ranking-elo-2",
+          "x": 667.0000099390745,
+          "y": 358.4999912464991,
+          "width": 144,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "10 / 5",
+          "name": null,
+          "x": 819.000012204051,
+          "y": 358.4999912464991,
+          "width": 160,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "66.7%",
+          "name": null,
+          "x": 971.0000144690275,
+          "y": 358.4999912464991,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "15",
+          "name": null,
+          "x": 1115.0000166147947,
+          "y": 358.4999912464991,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Table",
+          "text": "",
+          "name": "ranking-row-3",
+          "x": 639.5000095292926,
+          "y": 423.99999283254147,
+          "width": 1195,
+          "height": 62,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "#3",
+          "name": null,
+          "x": 137.00000204145908,
+          "y": 424.49999284464866,
+          "width": 92,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chiến binh 2",
+          "name": "ranking-name-3",
+          "x": 389.0000057965517,
+          "y": 414.4999926025048,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ID: guest_0000…0002",
+          "name": null,
+          "x": 389.0000057965517,
+          "y": 433.49999306257814,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "1968",
+          "name": "ranking-elo-3",
+          "x": 667.0000099390745,
+          "y": 424.49999284464866,
+          "width": 144,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "10 / 5",
+          "name": null,
+          "x": 819.000012204051,
+          "y": 424.49999284464866,
+          "width": 160,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "66.7%",
+          "name": null,
+          "x": 971.0000144690275,
+          "y": 424.49999284464866,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "15",
+          "name": null,
+          "x": 1115.0000166147947,
+          "y": 424.49999284464866,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Table",
+          "text": "",
+          "name": "ranking-row-4",
+          "x": 639.5000095292926,
+          "y": 489.999994430691,
+          "width": 1195,
+          "height": 62,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "#4",
+          "name": null,
+          "x": 137.00000204145908,
+          "y": 490.4999944427982,
+          "width": 92,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chiến binh 3",
+          "name": "ranking-name-4",
+          "x": 389.0000057965517,
+          "y": 480.4999942006543,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ID: guest_0000…0003",
+          "name": null,
+          "x": 389.0000057965517,
+          "y": 499.4999946607277,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "1952",
+          "name": "ranking-elo-4",
+          "x": 667.0000099390745,
+          "y": 490.4999944427982,
+          "width": 144,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "10 / 5",
+          "name": null,
+          "x": 819.000012204051,
+          "y": 490.4999944427982,
+          "width": 160,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "66.7%",
+          "name": null,
+          "x": 971.0000144690275,
+          "y": 490.4999944427982,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "15",
+          "name": null,
+          "x": 1115.0000166147947,
+          "y": 490.4999944427982,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Table",
+          "text": "",
+          "name": "ranking-row-5",
+          "x": 639.5000095292926,
+          "y": 555.9999960288405,
+          "width": 1195,
+          "height": 62,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "#5",
+          "name": null,
+          "x": 137.00000204145908,
+          "y": 556.4999960409477,
+          "width": 92,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chiến binh 4",
+          "name": "ranking-name-5",
+          "x": 389.0000057965517,
+          "y": 546.4999957988039,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ID: guest_0000…0004",
+          "name": null,
+          "x": 389.0000057965517,
+          "y": 565.4999962588772,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "1936",
+          "name": "ranking-elo-5",
+          "x": 667.0000099390745,
+          "y": 556.4999960409477,
+          "width": 144,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "10 / 5",
+          "name": null,
+          "x": 819.000012204051,
+          "y": 556.4999960409477,
+          "width": 160,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "66.7%",
+          "name": null,
+          "x": 971.0000144690275,
+          "y": 556.4999960409477,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "15",
+          "name": null,
+          "x": 1115.0000166147947,
+          "y": 556.4999960409477,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Table",
+          "text": "",
+          "name": "ranking-row-6",
+          "x": 639.5000095292926,
+          "y": 621.9999976269901,
+          "width": 1195,
+          "height": 62,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "#6",
+          "name": null,
+          "x": 137.00000204145908,
+          "y": 622.4999976390973,
+          "width": 92,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chiến binh 5",
+          "name": "ranking-name-6",
+          "x": 389.0000057965517,
+          "y": 612.4999973969534,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ID: guest_0000…0005",
+          "name": null,
+          "x": 389.0000057965517,
+          "y": 631.4999978570268,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "1920",
+          "name": "ranking-elo-6",
+          "x": 667.0000099390745,
+          "y": 622.4999976390973,
+          "width": 144,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "10 / 5",
+          "name": null,
+          "x": 819.000012204051,
+          "y": 622.4999976390973,
+          "width": 160,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "66.7%",
+          "name": null,
+          "x": 971.0000144690275,
+          "y": 622.4999976390973,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "15",
+          "name": null,
+          "x": 1115.0000166147947,
+          "y": 622.4999976390973,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Table",
+          "text": "",
+          "name": "ranking-row-7",
+          "x": 639.5000095292926,
+          "y": 687.9999992251396,
+          "width": 1195,
+          "height": 62,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "#7",
+          "name": null,
+          "x": 137.00000204145908,
+          "y": 688.4999992372468,
+          "width": 92,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chiến binh 6",
+          "name": "ranking-name-7",
+          "x": 389.0000057965517,
+          "y": 678.4999989951029,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ID: guest_0000…0006",
+          "name": null,
+          "x": 389.0000057965517,
+          "y": 697.4999994551763,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "1904",
+          "name": "ranking-elo-7",
+          "x": 667.0000099390745,
+          "y": 688.4999992372468,
+          "width": 144,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "10 / 5",
+          "name": null,
+          "x": 819.000012204051,
+          "y": 688.4999992372468,
+          "width": 160,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "66.7%",
+          "name": null,
+          "x": 971.0000144690275,
+          "y": 688.4999992372468,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "15",
+          "name": null,
+          "x": 1115.0000166147947,
+          "y": 688.4999992372468,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Table",
+          "text": "",
+          "name": "ranking-row-8",
+          "x": 639.5000095292926,
+          "y": 754.0000008232892,
+          "width": 1195,
+          "height": 62,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "#8",
+          "name": null,
+          "x": 137.00000204145908,
+          "y": 754.5000008353963,
+          "width": 92,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chiến binh 7",
+          "name": "ranking-name-8",
+          "x": 389.0000057965517,
+          "y": 744.5000005932525,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ID: guest_0000…0007",
+          "name": null,
+          "x": 389.0000057965517,
+          "y": 763.5000010533258,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "1888",
+          "name": "ranking-elo-8",
+          "x": 667.0000099390745,
+          "y": 754.5000008353963,
+          "width": 144,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "10 / 5",
+          "name": null,
+          "x": 819.000012204051,
+          "y": 754.5000008353963,
+          "width": 160,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "66.7%",
+          "name": null,
+          "x": 971.0000144690275,
+          "y": 754.5000008353963,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "15",
+          "name": null,
+          "x": 1115.0000166147947,
+          "y": 754.5000008353963,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Table",
+          "text": "",
+          "name": "ranking-row-9",
+          "x": 639.5000095292926,
+          "y": 820.0000024214387,
+          "width": 1195,
+          "height": 62,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "#9",
+          "name": null,
+          "x": 137.00000204145908,
+          "y": 820.5000024335459,
+          "width": 92,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chiến binh 8",
+          "name": "ranking-name-9",
+          "x": 389.0000057965517,
+          "y": 810.500002191402,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ID: guest_0000…0008",
+          "name": null,
+          "x": 389.0000057965517,
+          "y": 829.5000026514754,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "1872",
+          "name": "ranking-elo-9",
+          "x": 667.0000099390745,
+          "y": 820.5000024335459,
+          "width": 144,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "10 / 5",
+          "name": null,
+          "x": 819.000012204051,
+          "y": 820.5000024335459,
+          "width": 160,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "66.7%",
+          "name": null,
+          "x": 971.0000144690275,
+          "y": 820.5000024335459,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "15",
+          "name": null,
+          "x": 1115.0000166147947,
+          "y": 820.5000024335459,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Table",
+          "text": "",
+          "name": "ranking-row-10",
+          "x": 639.5000095292926,
+          "y": 886.0000040195882,
+          "width": 1195,
+          "height": 62,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "#10",
+          "name": null,
+          "x": 137.00000204145908,
+          "y": 886.5000040316954,
+          "width": 92,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chiến binh 9",
+          "name": "ranking-name-10",
+          "x": 389.0000057965517,
+          "y": 876.5000037895516,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ID: guest_0000…0009",
+          "name": null,
+          "x": 389.0000057965517,
+          "y": 895.5000042496249,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "1856",
+          "name": "ranking-elo-10",
+          "x": 667.0000099390745,
+          "y": 886.5000040316954,
+          "width": 144,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "10 / 5",
+          "name": null,
+          "x": 819.000012204051,
+          "y": 886.5000040316954,
+          "width": 160,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "66.7%",
+          "name": null,
+          "x": 971.0000144690275,
+          "y": 886.5000040316954,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "15",
+          "name": null,
+          "x": 1115.0000166147947,
+          "y": 886.5000040316954,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Table",
+          "text": "",
+          "name": "ranking-row-11",
+          "x": 639.5000095292926,
+          "y": 952.0000056177378,
+          "width": 1195,
+          "height": 62,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "#11",
+          "name": null,
+          "x": 137.00000204145908,
+          "y": 952.500005629845,
+          "width": 92,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chiến binh 10",
+          "name": "ranking-name-11",
+          "x": 389.0000057965517,
+          "y": 942.5000053877011,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ID: guest_0000…0010",
+          "name": null,
+          "x": 389.0000057965517,
+          "y": 961.5000058477744,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "1840",
+          "name": "ranking-elo-11",
+          "x": 667.0000099390745,
+          "y": 952.500005629845,
+          "width": 144,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "10 / 5",
+          "name": null,
+          "x": 819.000012204051,
+          "y": 952.500005629845,
+          "width": 160,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "66.7%",
+          "name": null,
+          "x": 971.0000144690275,
+          "y": 952.500005629845,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "15",
+          "name": null,
+          "x": 1115.0000166147947,
+          "y": 952.500005629845,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Table",
+          "text": "",
+          "name": "ranking-row-12",
+          "x": 639.5000095292926,
+          "y": 1018.0000072158873,
+          "width": 1195,
+          "height": 62,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "#12",
+          "name": null,
+          "x": 137.00000204145908,
+          "y": 1018.5000072279945,
+          "width": 92,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chiến binh 11",
+          "name": "ranking-name-12",
+          "x": 389.0000057965517,
+          "y": 1008.5000069858506,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ID: guest_0000…0011",
+          "name": null,
+          "x": 389.0000057965517,
+          "y": 1027.500007445924,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "1824",
+          "name": "ranking-elo-12",
+          "x": 667.0000099390745,
+          "y": 1018.5000072279945,
+          "width": 144,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "10 / 5",
+          "name": null,
+          "x": 819.000012204051,
+          "y": 1018.5000072279945,
+          "width": 160,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "66.7%",
+          "name": null,
+          "x": 971.0000144690275,
+          "y": 1018.5000072279945,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "15",
+          "name": null,
+          "x": 1115.0000166147947,
+          "y": 1018.5000072279945,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Table",
+          "text": "",
+          "name": "ranking-row-13",
+          "x": 639.5000095292926,
+          "y": 1084.0000088140368,
+          "width": 1195,
+          "height": 62,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "#13",
+          "name": null,
+          "x": 137.00000204145908,
+          "y": 1084.500008826144,
+          "width": 92,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chiến binh 12",
+          "name": "ranking-name-13",
+          "x": 389.0000057965517,
+          "y": 1074.5000085840002,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ID: guest_0000…0012",
+          "name": null,
+          "x": 389.0000057965517,
+          "y": 1093.5000090440735,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "1808",
+          "name": "ranking-elo-13",
+          "x": 667.0000099390745,
+          "y": 1084.500008826144,
+          "width": 144,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "10 / 5",
+          "name": null,
+          "x": 819.000012204051,
+          "y": 1084.500008826144,
+          "width": 160,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "66.7%",
+          "name": null,
+          "x": 971.0000144690275,
+          "y": 1084.500008826144,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "15",
+          "name": null,
+          "x": 1115.0000166147947,
+          "y": 1084.500008826144,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Table",
+          "text": "",
+          "name": "ranking-row-14",
+          "x": 639.5000095292926,
+          "y": 1150.0000104121864,
+          "width": 1195,
+          "height": 62,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "#14",
+          "name": null,
+          "x": 137.00000204145908,
+          "y": 1150.5000104242936,
+          "width": 92,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chiến binh 13",
+          "name": "ranking-name-14",
+          "x": 389.0000057965517,
+          "y": 1140.5000101821497,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ID: guest_0000…0013",
+          "name": null,
+          "x": 389.0000057965517,
+          "y": 1159.500010642223,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "1792",
+          "name": "ranking-elo-14",
+          "x": 667.0000099390745,
+          "y": 1150.5000104242936,
+          "width": 144,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "10 / 5",
+          "name": null,
+          "x": 819.000012204051,
+          "y": 1150.5000104242936,
+          "width": 160,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "66.7%",
+          "name": null,
+          "x": 971.0000144690275,
+          "y": 1150.5000104242936,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "15",
+          "name": null,
+          "x": 1115.0000166147947,
+          "y": 1150.5000104242936,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Hồ sơ khách được nhớ trên thiết bị này. ESC: Quay lại · F5: Làm mới",
+          "name": null,
+          "x": 639.5000095292926,
+          "y": 694.4999993825331,
+          "width": 503,
+          "height": 19,
+          "disabled": false
+        }
+      ]
+    },
+    "ranking_960": {
+      "screen": "LeaderboardScreen",
+      "phase": "",
+      "room": "",
+      "playerId": "",
+      "matchId": "",
+      "players": 0,
+      "x": 0,
+      "y": 0,
+      "hp": 0,
+      "tick": 0,
+      "bossHp": -1,
+      "error": "",
+      "ui": [
+        {
+          "type": "TextButton",
+          "text": "QUAY LẠI",
+          "name": "ranking-back",
+          "x": 81.00000120699406,
+          "y": 35.24998777778819,
+          "width": 152,
+          "height": 42,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "QUAY LẠI",
+          "name": null,
+          "x": 80.62500120140612,
+          "y": 35.62498778686859,
+          "width": 133,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "ComicHeading",
+          "text": "BẢNG XẾP HẠNG",
+          "name": null,
+          "x": 479.62500714696944,
+          "y": 35.62498778686859,
+          "width": 259,
+          "height": 39,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "LÀM MỚI",
+          "name": "ranking-refresh",
+          "x": 879.0000130981207,
+          "y": 35.24998777778819,
+          "width": 152,
+          "height": 42,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "LÀM MỚI",
+          "name": null,
+          "x": 878.6250130925328,
+          "y": 35.62498778686859,
+          "width": 133,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Đối kháng PvP tính Elo · Hợp tác Boss ghi nhận thắng / thua",
+          "name": null,
+          "x": 479.62500714696944,
+          "y": 64.12498847697861,
+          "width": 453,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "BẠN: Chiến Binh 62 · guest_eb42…11e1",
+          "name": "ranking-profile",
+          "x": 259.50000386685133,
+          "y": 103.1249894213397,
+          "width": 604,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ws://127.0.0.1:53061",
+          "name": "ranking-endpoint",
+          "x": 645.000009611249,
+          "y": 103.1249894213397,
+          "width": 400,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "Đổi máy chủ",
+          "name": "ranking-server-settings",
+          "x": 865.500012896955,
+          "y": 102.74998941225931,
+          "width": 164,
+          "height": 36,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Đổi máy chủ",
+          "name": null,
+          "x": 865.500012896955,
+          "y": 103.1249894213397,
+          "width": 140,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Đã cập nhật · 14 người chơi",
+          "name": "ranking-status",
+          "x": 480.0000071525574,
+          "y": 141.7499903566204,
+          "width": 1216,
+          "height": 28,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "HẠNG",
+          "name": null,
+          "x": 103.50000154227018,
+          "y": 177.37499121925794,
+          "width": 92,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "NGƯỜI CHƠI",
+          "name": null,
+          "x": 292.50000435858965,
+          "y": 177.37499121925794,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ĐIỂM ELO",
+          "name": null,
+          "x": 501.00000746548176,
+          "y": 177.37499121925794,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "THẮNG / THUA",
+          "name": null,
+          "x": 615.0000091642141,
+          "y": 177.37499121925794,
+          "width": 160,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "TỈ LỆ THẮNG",
+          "name": null,
+          "x": 729.0000108629465,
+          "y": 177.37499121925794,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "SỐ TRẬN",
+          "name": null,
+          "x": 837.0000124722719,
+          "y": 177.37499121925794,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "ScrollPane",
+          "text": "",
+          "name": "ranking-scroll",
+          "x": 480.0000071525574,
+          "y": 347.2499953326769,
+          "width": 1196,
+          "height": 404,
+          "disabled": false
+        },
+        {
+          "type": "Table",
+          "text": "",
+          "name": "ranking-row-1",
+          "x": 479.62500714696944,
+          "y": 218.9999922271818,
+          "width": 1195,
+          "height": 62,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "#1",
+          "name": null,
+          "x": 102.75000153109431,
+          "y": 219.3749922362622,
+          "width": 92,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Khách acb416da-3…08f8",
+          "name": "ranking-name-1",
+          "x": 291.7500043474138,
+          "y": 211.87499205465429,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ID: acb416da-3…08f8",
+          "name": null,
+          "x": 291.7500043474138,
+          "y": 226.1249923997093,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "2000",
+          "name": "ranking-elo-1",
+          "x": 500.2500074543059,
+          "y": 219.3749922362622,
+          "width": 144,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "10 / 5",
+          "name": null,
+          "x": 614.2500091530383,
+          "y": 219.3749922362622,
+          "width": 160,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "66.7%",
+          "name": null,
+          "x": 728.2500108517706,
+          "y": 219.3749922362622,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "15",
+          "name": null,
+          "x": 836.250012461096,
+          "y": 219.3749922362622,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Table",
+          "text": "",
+          "name": "ranking-row-2",
+          "x": 479.62500714696944,
+          "y": 268.49999342579395,
+          "width": 1195,
+          "height": 62,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "#2",
+          "name": null,
+          "x": 102.75000153109431,
+          "y": 268.87499343487434,
+          "width": 92,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Nguyễn Hoàng Chiến Binh Đấu Trường Việt Nam Nguyễn Hoàng Chiến B",
+          "name": "ranking-name-2",
+          "x": 291.7500043474138,
+          "y": 261.37499325326644,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ID: guest_0000…0001",
+          "name": null,
+          "x": 291.7500043474138,
+          "y": 275.62499359832145,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "1984",
+          "name": "ranking-elo-2",
+          "x": 500.2500074543059,
+          "y": 268.87499343487434,
+          "width": 144,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "10 / 5",
+          "name": null,
+          "x": 614.2500091530383,
+          "y": 268.87499343487434,
+          "width": 160,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "66.7%",
+          "name": null,
+          "x": 728.2500108517706,
+          "y": 268.87499343487434,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "15",
+          "name": null,
+          "x": 836.250012461096,
+          "y": 268.87499343487434,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Table",
+          "text": "",
+          "name": "ranking-row-3",
+          "x": 479.62500714696944,
+          "y": 317.9999946244061,
+          "width": 1195,
+          "height": 62,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "#3",
+          "name": null,
+          "x": 102.75000153109431,
+          "y": 318.3749946334865,
+          "width": 92,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chiến binh 2",
+          "name": "ranking-name-3",
+          "x": 291.7500043474138,
+          "y": 310.8749944518786,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ID: guest_0000…0002",
+          "name": null,
+          "x": 291.7500043474138,
+          "y": 325.1249947969336,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "1968",
+          "name": "ranking-elo-3",
+          "x": 500.2500074543059,
+          "y": 318.3749946334865,
+          "width": 144,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "10 / 5",
+          "name": null,
+          "x": 614.2500091530383,
+          "y": 318.3749946334865,
+          "width": 160,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "66.7%",
+          "name": null,
+          "x": 728.2500108517706,
+          "y": 318.3749946334865,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "15",
+          "name": null,
+          "x": 836.250012461096,
+          "y": 318.3749946334865,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Table",
+          "text": "",
+          "name": "ranking-row-4",
+          "x": 479.62500714696944,
+          "y": 367.49999582301825,
+          "width": 1195,
+          "height": 62,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "#4",
+          "name": null,
+          "x": 102.75000153109431,
+          "y": 367.87499583209865,
+          "width": 92,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chiến binh 3",
+          "name": "ranking-name-4",
+          "x": 291.7500043474138,
+          "y": 360.37499565049075,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ID: guest_0000…0003",
+          "name": null,
+          "x": 291.7500043474138,
+          "y": 374.62499599554576,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "1952",
+          "name": "ranking-elo-4",
+          "x": 500.2500074543059,
+          "y": 367.87499583209865,
+          "width": 144,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "10 / 5",
+          "name": null,
+          "x": 614.2500091530383,
+          "y": 367.87499583209865,
+          "width": 160,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "66.7%",
+          "name": null,
+          "x": 728.2500108517706,
+          "y": 367.87499583209865,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "15",
+          "name": null,
+          "x": 836.250012461096,
+          "y": 367.87499583209865,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Table",
+          "text": "",
+          "name": "ranking-row-5",
+          "x": 479.62500714696944,
+          "y": 416.9999970216304,
+          "width": 1195,
+          "height": 62,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "#5",
+          "name": null,
+          "x": 102.75000153109431,
+          "y": 417.3749970307108,
+          "width": 92,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chiến binh 4",
+          "name": "ranking-name-5",
+          "x": 291.7500043474138,
+          "y": 409.8749968491029,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ID: guest_0000…0004",
+          "name": null,
+          "x": 291.7500043474138,
+          "y": 424.1249971941579,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "1936",
+          "name": "ranking-elo-5",
+          "x": 500.2500074543059,
+          "y": 417.3749970307108,
+          "width": 144,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "10 / 5",
+          "name": null,
+          "x": 614.2500091530383,
+          "y": 417.3749970307108,
+          "width": 160,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "66.7%",
+          "name": null,
+          "x": 728.2500108517706,
+          "y": 417.3749970307108,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "15",
+          "name": null,
+          "x": 836.250012461096,
+          "y": 417.3749970307108,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Table",
+          "text": "",
+          "name": "ranking-row-6",
+          "x": 479.62500714696944,
+          "y": 466.49999822024256,
+          "width": 1195,
+          "height": 62,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "#6",
+          "name": null,
+          "x": 102.75000153109431,
+          "y": 466.87499822932296,
+          "width": 92,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chiến binh 5",
+          "name": "ranking-name-6",
+          "x": 291.7500043474138,
+          "y": 459.37499804771505,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ID: guest_0000…0005",
+          "name": null,
+          "x": 291.7500043474138,
+          "y": 473.62499839277007,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "1920",
+          "name": "ranking-elo-6",
+          "x": 500.2500074543059,
+          "y": 466.87499822932296,
+          "width": 144,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "10 / 5",
+          "name": null,
+          "x": 614.2500091530383,
+          "y": 466.87499822932296,
+          "width": 160,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "66.7%",
+          "name": null,
+          "x": 728.2500108517706,
+          "y": 466.87499822932296,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "15",
+          "name": null,
+          "x": 836.250012461096,
+          "y": 466.87499822932296,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Table",
+          "text": "",
+          "name": "ranking-row-7",
+          "x": 479.62500714696944,
+          "y": 515.9999994188547,
+          "width": 1195,
+          "height": 62,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "#7",
+          "name": null,
+          "x": 102.75000153109431,
+          "y": 516.3749994279351,
+          "width": 92,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chiến binh 6",
+          "name": "ranking-name-7",
+          "x": 291.7500043474138,
+          "y": 508.8749992463272,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ID: guest_0000…0006",
+          "name": null,
+          "x": 291.7500043474138,
+          "y": 523.1249995913822,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "1904",
+          "name": "ranking-elo-7",
+          "x": 500.2500074543059,
+          "y": 516.3749994279351,
+          "width": 144,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "10 / 5",
+          "name": null,
+          "x": 614.2500091530383,
+          "y": 516.3749994279351,
+          "width": 160,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "66.7%",
+          "name": null,
+          "x": 728.2500108517706,
+          "y": 516.3749994279351,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "15",
+          "name": null,
+          "x": 836.250012461096,
+          "y": 516.3749994279351,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Table",
+          "text": "",
+          "name": "ranking-row-8",
+          "x": 479.62500714696944,
+          "y": 565.5000006174669,
+          "width": 1195,
+          "height": 62,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "#8",
+          "name": null,
+          "x": 102.75000153109431,
+          "y": 565.8750006265473,
+          "width": 92,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chiến binh 7",
+          "name": "ranking-name-8",
+          "x": 291.7500043474138,
+          "y": 558.3750004449394,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ID: guest_0000…0007",
+          "name": null,
+          "x": 291.7500043474138,
+          "y": 572.6250007899944,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "1888",
+          "name": "ranking-elo-8",
+          "x": 500.2500074543059,
+          "y": 565.8750006265473,
+          "width": 144,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "10 / 5",
+          "name": null,
+          "x": 614.2500091530383,
+          "y": 565.8750006265473,
+          "width": 160,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "66.7%",
+          "name": null,
+          "x": 728.2500108517706,
+          "y": 565.8750006265473,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "15",
+          "name": null,
+          "x": 836.250012461096,
+          "y": 565.8750006265473,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Table",
+          "text": "",
+          "name": "ranking-row-9",
+          "x": 479.62500714696944,
+          "y": 615.000001816079,
+          "width": 1195,
+          "height": 62,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "#9",
+          "name": null,
+          "x": 102.75000153109431,
+          "y": 615.3750018251594,
+          "width": 92,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chiến binh 8",
+          "name": "ranking-name-9",
+          "x": 291.7500043474138,
+          "y": 607.8750016435515,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ID: guest_0000…0008",
+          "name": null,
+          "x": 291.7500043474138,
+          "y": 622.1250019886065,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "1872",
+          "name": "ranking-elo-9",
+          "x": 500.2500074543059,
+          "y": 615.3750018251594,
+          "width": 144,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "10 / 5",
+          "name": null,
+          "x": 614.2500091530383,
+          "y": 615.3750018251594,
+          "width": 160,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "66.7%",
+          "name": null,
+          "x": 728.2500108517706,
+          "y": 615.3750018251594,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "15",
+          "name": null,
+          "x": 836.250012461096,
+          "y": 615.3750018251594,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Table",
+          "text": "",
+          "name": "ranking-row-10",
+          "x": 479.62500714696944,
+          "y": 664.5000030146912,
+          "width": 1195,
+          "height": 62,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "#10",
+          "name": null,
+          "x": 102.75000153109431,
+          "y": 664.8750030237716,
+          "width": 92,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chiến binh 9",
+          "name": "ranking-name-10",
+          "x": 291.7500043474138,
+          "y": 657.3750028421637,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ID: guest_0000…0009",
+          "name": null,
+          "x": 291.7500043474138,
+          "y": 671.6250031872187,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "1856",
+          "name": "ranking-elo-10",
+          "x": 500.2500074543059,
+          "y": 664.8750030237716,
+          "width": 144,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "10 / 5",
+          "name": null,
+          "x": 614.2500091530383,
+          "y": 664.8750030237716,
+          "width": 160,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "66.7%",
+          "name": null,
+          "x": 728.2500108517706,
+          "y": 664.8750030237716,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "15",
+          "name": null,
+          "x": 836.250012461096,
+          "y": 664.8750030237716,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Table",
+          "text": "",
+          "name": "ranking-row-11",
+          "x": 479.62500714696944,
+          "y": 714.0000042133033,
+          "width": 1195,
+          "height": 62,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "#11",
+          "name": null,
+          "x": 102.75000153109431,
+          "y": 714.3750042223837,
+          "width": 92,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chiến binh 10",
+          "name": "ranking-name-11",
+          "x": 291.7500043474138,
+          "y": 706.8750040407758,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ID: guest_0000…0010",
+          "name": null,
+          "x": 291.7500043474138,
+          "y": 721.1250043858308,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "1840",
+          "name": "ranking-elo-11",
+          "x": 500.2500074543059,
+          "y": 714.3750042223837,
+          "width": 144,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "10 / 5",
+          "name": null,
+          "x": 614.2500091530383,
+          "y": 714.3750042223837,
+          "width": 160,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "66.7%",
+          "name": null,
+          "x": 728.2500108517706,
+          "y": 714.3750042223837,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "15",
+          "name": null,
+          "x": 836.250012461096,
+          "y": 714.3750042223837,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Table",
+          "text": "",
+          "name": "ranking-row-12",
+          "x": 479.62500714696944,
+          "y": 763.5000054119155,
+          "width": 1195,
+          "height": 62,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "#12",
+          "name": null,
+          "x": 102.75000153109431,
+          "y": 763.8750054209959,
+          "width": 92,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chiến binh 11",
+          "name": "ranking-name-12",
+          "x": 291.7500043474138,
+          "y": 756.375005239388,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ID: guest_0000…0011",
+          "name": null,
+          "x": 291.7500043474138,
+          "y": 770.625005584443,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "1824",
+          "name": "ranking-elo-12",
+          "x": 500.2500074543059,
+          "y": 763.8750054209959,
+          "width": 144,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "10 / 5",
+          "name": null,
+          "x": 614.2500091530383,
+          "y": 763.8750054209959,
+          "width": 160,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "66.7%",
+          "name": null,
+          "x": 728.2500108517706,
+          "y": 763.8750054209959,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "15",
+          "name": null,
+          "x": 836.250012461096,
+          "y": 763.8750054209959,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Table",
+          "text": "",
+          "name": "ranking-row-13",
+          "x": 479.62500714696944,
+          "y": 813.0000066105276,
+          "width": 1195,
+          "height": 62,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "#13",
+          "name": null,
+          "x": 102.75000153109431,
+          "y": 813.375006619608,
+          "width": 92,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chiến binh 12",
+          "name": "ranking-name-13",
+          "x": 291.7500043474138,
+          "y": 805.8750064380001,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ID: guest_0000…0012",
+          "name": null,
+          "x": 291.7500043474138,
+          "y": 820.1250067830551,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "1808",
+          "name": "ranking-elo-13",
+          "x": 500.2500074543059,
+          "y": 813.375006619608,
+          "width": 144,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "10 / 5",
+          "name": null,
+          "x": 614.2500091530383,
+          "y": 813.375006619608,
+          "width": 160,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "66.7%",
+          "name": null,
+          "x": 728.2500108517706,
+          "y": 813.375006619608,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "15",
+          "name": null,
+          "x": 836.250012461096,
+          "y": 813.375006619608,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Table",
+          "text": "",
+          "name": "ranking-row-14",
+          "x": 479.62500714696944,
+          "y": 862.5000078091398,
+          "width": 1195,
+          "height": 62,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "#14",
+          "name": null,
+          "x": 102.75000153109431,
+          "y": 862.8750078182202,
+          "width": 92,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chiến binh 13",
+          "name": "ranking-name-14",
+          "x": 291.7500043474138,
+          "y": 855.3750076366123,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ID: guest_0000…0013",
+          "name": null,
+          "x": 291.7500043474138,
+          "y": 869.6250079816673,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "1792",
+          "name": "ranking-elo-14",
+          "x": 500.2500074543059,
+          "y": 862.8750078182202,
+          "width": 144,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "10 / 5",
+          "name": null,
+          "x": 614.2500091530383,
+          "y": 862.8750078182202,
+          "width": 160,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "66.7%",
+          "name": null,
+          "x": 728.2500108517706,
+          "y": 862.8750078182202,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "15",
+          "name": null,
+          "x": 836.250012461096,
+          "y": 862.8750078182202,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Hồ sơ khách được nhớ trên thiết bị này. ESC: Quay lại · F5: Làm mới",
+          "name": null,
+          "x": 479.62500714696944,
+          "y": 520.8749995368998,
+          "width": 503,
+          "height": 19,
+          "disabled": false
+        }
+      ]
+    },
+    "ranking_1024": {
+      "screen": "LeaderboardScreen",
+      "phase": "",
+      "room": "",
+      "playerId": "",
+      "matchId": "",
+      "players": 0,
+      "x": 0,
+      "y": 0,
+      "hp": 0,
+      "tick": 0,
+      "bossHp": -1,
+      "error": "",
+      "ui": [
+        {
+          "type": "TextButton",
+          "text": "QUAY LẠI",
+          "name": "ranking-back",
+          "x": 86.40000128746033,
+          "y": 133.59998696297407,
+          "width": 152,
+          "height": 42,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "QUAY LẠI",
+          "name": null,
+          "x": 86.00000128149986,
+          "y": 133.99998697265983,
+          "width": 133,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "ComicHeading",
+          "text": "BẢNG XẾP HẠNG",
+          "name": null,
+          "x": 511.60000762343407,
+          "y": 133.99998697265983,
+          "width": 259,
+          "height": 39,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "LÀM MỚI",
+          "name": "ranking-refresh",
+          "x": 937.6000139713287,
+          "y": 133.59998696297407,
+          "width": 152,
+          "height": 42,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "LÀM MỚI",
+          "name": null,
+          "x": 937.2000139653683,
+          "y": 133.99998697265983,
+          "width": 133,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Đối kháng PvP tính Elo · Hợp tác Boss ghi nhận thắng / thua",
+          "name": null,
+          "x": 511.60000762343407,
+          "y": 164.3999877087772,
+          "width": 453,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "BẠN: Chiến Binh 62 · guest_eb42…11e1",
+          "name": "ranking-profile",
+          "x": 276.8000041246414,
+          "y": 205.9999887160957,
+          "width": 604,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ws://127.0.0.1:53061",
+          "name": "ranking-endpoint",
+          "x": 688.0000102519989,
+          "y": 205.9999887160957,
+          "width": 400,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "TextButton",
+          "text": "Đổi máy chủ",
+          "name": "ranking-server-settings",
+          "x": 923.200013756752,
+          "y": 205.59998870640993,
+          "width": 164,
+          "height": 36,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Đổi máy chủ",
+          "name": null,
+          "x": 923.200013756752,
+          "y": 205.9999887160957,
+          "width": 140,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Đã cập nhật · 14 người chơi",
+          "name": "ranking-status",
+          "x": 512.0000076293945,
+          "y": 247.19998971372843,
+          "width": 1216,
+          "height": 28,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "HẠNG",
+          "name": null,
+          "x": 110.4000016450882,
+          "y": 285.19999063387513,
+          "width": 92,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "NGƯỜI CHƠI",
+          "name": null,
+          "x": 312.0000046491623,
+          "y": 285.19999063387513,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ĐIỂM ELO",
+          "name": null,
+          "x": 534.4000079631805,
+          "y": 285.19999063387513,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "THẮNG / THUA",
+          "name": null,
+          "x": 656.0000097751617,
+          "y": 285.19999063387513,
+          "width": 160,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "TỈ LỆ THẮNG",
+          "name": null,
+          "x": 777.600011587143,
+          "y": 285.19999063387513,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "SỐ TRẬN",
+          "name": null,
+          "x": 892.8000133037567,
+          "y": 285.19999063387513,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "ScrollPane",
+          "text": "",
+          "name": "ranking-scroll",
+          "x": 512.0000076293945,
+          "y": 466.39999502152205,
+          "width": 1196,
+          "height": 404,
+          "disabled": false
+        },
+        {
+          "type": "Table",
+          "text": "",
+          "name": "ranking-row-1",
+          "x": 511.60000762343407,
+          "y": 329.5999917089939,
+          "width": 1195,
+          "height": 62,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "#1",
+          "name": null,
+          "x": 109.60000163316727,
+          "y": 329.99999171867967,
+          "width": 92,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Khách acb416da-3…08f8",
+          "name": "ranking-name-1",
+          "x": 311.20000463724136,
+          "y": 321.99999152496457,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ID: acb416da-3…08f8",
+          "name": null,
+          "x": 311.20000463724136,
+          "y": 337.19999189302325,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "2000",
+          "name": "ranking-elo-1",
+          "x": 533.6000079512596,
+          "y": 329.99999171867967,
+          "width": 144,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "10 / 5",
+          "name": null,
+          "x": 655.2000097632408,
+          "y": 329.99999171867967,
+          "width": 160,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "66.7%",
+          "name": null,
+          "x": 776.800011575222,
+          "y": 329.99999171867967,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "15",
+          "name": null,
+          "x": 892.0000132918358,
+          "y": 329.99999171867967,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Table",
+          "text": "",
+          "name": "ranking-row-2",
+          "x": 511.60000762343407,
+          "y": 382.39999298751354,
+          "width": 1195,
+          "height": 62,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "#2",
+          "name": null,
+          "x": 109.60000163316727,
+          "y": 382.7999929971993,
+          "width": 92,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Nguyễn Hoàng Chiến Binh Đấu Trường Việt Nam Nguyễn Hoàng Chiến B",
+          "name": "ranking-name-2",
+          "x": 311.20000463724136,
+          "y": 374.7999928034842,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ID: guest_0000…0001",
+          "name": null,
+          "x": 311.20000463724136,
+          "y": 389.9999931715429,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "1984",
+          "name": "ranking-elo-2",
+          "x": 533.6000079512596,
+          "y": 382.7999929971993,
+          "width": 144,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "10 / 5",
+          "name": null,
+          "x": 655.2000097632408,
+          "y": 382.7999929971993,
+          "width": 160,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "66.7%",
+          "name": null,
+          "x": 776.800011575222,
+          "y": 382.7999929971993,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "15",
+          "name": null,
+          "x": 892.0000132918358,
+          "y": 382.7999929971993,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Table",
+          "text": "",
+          "name": "ranking-row-3",
+          "x": 511.60000762343407,
+          "y": 435.1999942660332,
+          "width": 1195,
+          "height": 62,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "#3",
+          "name": null,
+          "x": 109.60000163316727,
+          "y": 435.5999942757189,
+          "width": 92,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chiến binh 2",
+          "name": "ranking-name-3",
+          "x": 311.20000463724136,
+          "y": 427.59999408200383,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ID: guest_0000…0002",
+          "name": null,
+          "x": 311.20000463724136,
+          "y": 442.7999944500625,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "1968",
+          "name": "ranking-elo-3",
+          "x": 533.6000079512596,
+          "y": 435.5999942757189,
+          "width": 144,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "10 / 5",
+          "name": null,
+          "x": 655.2000097632408,
+          "y": 435.5999942757189,
+          "width": 160,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "66.7%",
+          "name": null,
+          "x": 776.800011575222,
+          "y": 435.5999942757189,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "15",
+          "name": null,
+          "x": 892.0000132918358,
+          "y": 435.5999942757189,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Table",
+          "text": "",
+          "name": "ranking-row-4",
+          "x": 511.60000762343407,
+          "y": 487.9999955445528,
+          "width": 1195,
+          "height": 62,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "#4",
+          "name": null,
+          "x": 109.60000163316727,
+          "y": 488.39999555423856,
+          "width": 92,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chiến binh 3",
+          "name": "ranking-name-4",
+          "x": 311.20000463724136,
+          "y": 480.39999536052346,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ID: guest_0000…0003",
+          "name": null,
+          "x": 311.20000463724136,
+          "y": 495.59999572858214,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "1952",
+          "name": "ranking-elo-4",
+          "x": 533.6000079512596,
+          "y": 488.39999555423856,
+          "width": 144,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "10 / 5",
+          "name": null,
+          "x": 655.2000097632408,
+          "y": 488.39999555423856,
+          "width": 160,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "66.7%",
+          "name": null,
+          "x": 776.800011575222,
+          "y": 488.39999555423856,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "15",
+          "name": null,
+          "x": 892.0000132918358,
+          "y": 488.39999555423856,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Table",
+          "text": "",
+          "name": "ranking-row-5",
+          "x": 511.60000762343407,
+          "y": 540.7999968230724,
+          "width": 1195,
+          "height": 62,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "#5",
+          "name": null,
+          "x": 109.60000163316727,
+          "y": 541.1999968327582,
+          "width": 92,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chiến binh 4",
+          "name": "ranking-name-5",
+          "x": 311.20000463724136,
+          "y": 533.1999966390431,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ID: guest_0000…0004",
+          "name": null,
+          "x": 311.20000463724136,
+          "y": 548.3999970071018,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "1936",
+          "name": "ranking-elo-5",
+          "x": 533.6000079512596,
+          "y": 541.1999968327582,
+          "width": 144,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "10 / 5",
+          "name": null,
+          "x": 655.2000097632408,
+          "y": 541.1999968327582,
+          "width": 160,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "66.7%",
+          "name": null,
+          "x": 776.800011575222,
+          "y": 541.1999968327582,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "15",
+          "name": null,
+          "x": 892.0000132918358,
+          "y": 541.1999968327582,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Table",
+          "text": "",
+          "name": "ranking-row-6",
+          "x": 511.60000762343407,
+          "y": 593.5999981015921,
+          "width": 1195,
+          "height": 62,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "#6",
+          "name": null,
+          "x": 109.60000163316727,
+          "y": 593.9999981112778,
+          "width": 92,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chiến binh 5",
+          "name": "ranking-name-6",
+          "x": 311.20000463724136,
+          "y": 585.9999979175627,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ID: guest_0000…0005",
+          "name": null,
+          "x": 311.20000463724136,
+          "y": 601.1999982856214,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "1920",
+          "name": "ranking-elo-6",
+          "x": 533.6000079512596,
+          "y": 593.9999981112778,
+          "width": 144,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "10 / 5",
+          "name": null,
+          "x": 655.2000097632408,
+          "y": 593.9999981112778,
+          "width": 160,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "66.7%",
+          "name": null,
+          "x": 776.800011575222,
+          "y": 593.9999981112778,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "15",
+          "name": null,
+          "x": 892.0000132918358,
+          "y": 593.9999981112778,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Table",
+          "text": "",
+          "name": "ranking-row-7",
+          "x": 511.60000762343407,
+          "y": 646.3999993801117,
+          "width": 1195,
+          "height": 62,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "#7",
+          "name": null,
+          "x": 109.60000163316727,
+          "y": 646.7999993897974,
+          "width": 92,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chiến binh 6",
+          "name": "ranking-name-7",
+          "x": 311.20000463724136,
+          "y": 638.7999991960824,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ID: guest_0000…0006",
+          "name": null,
+          "x": 311.20000463724136,
+          "y": 653.999999564141,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "1904",
+          "name": "ranking-elo-7",
+          "x": 533.6000079512596,
+          "y": 646.7999993897974,
+          "width": 144,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "10 / 5",
+          "name": null,
+          "x": 655.2000097632408,
+          "y": 646.7999993897974,
+          "width": 160,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "66.7%",
+          "name": null,
+          "x": 776.800011575222,
+          "y": 646.7999993897974,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "15",
+          "name": null,
+          "x": 892.0000132918358,
+          "y": 646.7999993897974,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Table",
+          "text": "",
+          "name": "ranking-row-8",
+          "x": 511.60000762343407,
+          "y": 699.2000006586313,
+          "width": 1195,
+          "height": 62,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "#8",
+          "name": null,
+          "x": 109.60000163316727,
+          "y": 699.6000006683171,
+          "width": 92,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chiến binh 7",
+          "name": "ranking-name-8",
+          "x": 311.20000463724136,
+          "y": 691.600000474602,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ID: guest_0000…0007",
+          "name": null,
+          "x": 311.20000463724136,
+          "y": 706.8000008426607,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "1888",
+          "name": "ranking-elo-8",
+          "x": 533.6000079512596,
+          "y": 699.6000006683171,
+          "width": 144,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "10 / 5",
+          "name": null,
+          "x": 655.2000097632408,
+          "y": 699.6000006683171,
+          "width": 160,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "66.7%",
+          "name": null,
+          "x": 776.800011575222,
+          "y": 699.6000006683171,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "15",
+          "name": null,
+          "x": 892.0000132918358,
+          "y": 699.6000006683171,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Table",
+          "text": "",
+          "name": "ranking-row-9",
+          "x": 511.60000762343407,
+          "y": 752.000001937151,
+          "width": 1195,
+          "height": 62,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "#9",
+          "name": null,
+          "x": 109.60000163316727,
+          "y": 752.4000019468367,
+          "width": 92,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chiến binh 8",
+          "name": "ranking-name-9",
+          "x": 311.20000463724136,
+          "y": 744.4000017531216,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ID: guest_0000…0008",
+          "name": null,
+          "x": 311.20000463724136,
+          "y": 759.6000021211803,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "1872",
+          "name": "ranking-elo-9",
+          "x": 533.6000079512596,
+          "y": 752.4000019468367,
+          "width": 144,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "10 / 5",
+          "name": null,
+          "x": 655.2000097632408,
+          "y": 752.4000019468367,
+          "width": 160,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "66.7%",
+          "name": null,
+          "x": 776.800011575222,
+          "y": 752.4000019468367,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "15",
+          "name": null,
+          "x": 892.0000132918358,
+          "y": 752.4000019468367,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Table",
+          "text": "",
+          "name": "ranking-row-10",
+          "x": 511.60000762343407,
+          "y": 804.8000032156706,
+          "width": 1195,
+          "height": 62,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "#10",
+          "name": null,
+          "x": 109.60000163316727,
+          "y": 805.2000032253563,
+          "width": 92,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chiến binh 9",
+          "name": "ranking-name-10",
+          "x": 311.20000463724136,
+          "y": 797.2000030316412,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ID: guest_0000…0009",
+          "name": null,
+          "x": 311.20000463724136,
+          "y": 812.4000033996999,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "1856",
+          "name": "ranking-elo-10",
+          "x": 533.6000079512596,
+          "y": 805.2000032253563,
+          "width": 144,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "10 / 5",
+          "name": null,
+          "x": 655.2000097632408,
+          "y": 805.2000032253563,
+          "width": 160,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "66.7%",
+          "name": null,
+          "x": 776.800011575222,
+          "y": 805.2000032253563,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "15",
+          "name": null,
+          "x": 892.0000132918358,
+          "y": 805.2000032253563,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Table",
+          "text": "",
+          "name": "ranking-row-11",
+          "x": 511.60000762343407,
+          "y": 857.6000044941902,
+          "width": 1195,
+          "height": 62,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "#11",
+          "name": null,
+          "x": 109.60000163316727,
+          "y": 858.000004503876,
+          "width": 92,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chiến binh 10",
+          "name": "ranking-name-11",
+          "x": 311.20000463724136,
+          "y": 850.0000043101609,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ID: guest_0000…0010",
+          "name": null,
+          "x": 311.20000463724136,
+          "y": 865.2000046782196,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "1840",
+          "name": "ranking-elo-11",
+          "x": 533.6000079512596,
+          "y": 858.000004503876,
+          "width": 144,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "10 / 5",
+          "name": null,
+          "x": 655.2000097632408,
+          "y": 858.000004503876,
+          "width": 160,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "66.7%",
+          "name": null,
+          "x": 776.800011575222,
+          "y": 858.000004503876,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "15",
+          "name": null,
+          "x": 892.0000132918358,
+          "y": 858.000004503876,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Table",
+          "text": "",
+          "name": "ranking-row-12",
+          "x": 511.60000762343407,
+          "y": 910.4000057727098,
+          "width": 1195,
+          "height": 62,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "#12",
+          "name": null,
+          "x": 109.60000163316727,
+          "y": 910.8000057823956,
+          "width": 92,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chiến binh 11",
+          "name": "ranking-name-12",
+          "x": 311.20000463724136,
+          "y": 902.8000055886805,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ID: guest_0000…0011",
+          "name": null,
+          "x": 311.20000463724136,
+          "y": 918.0000059567392,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "1824",
+          "name": "ranking-elo-12",
+          "x": 533.6000079512596,
+          "y": 910.8000057823956,
+          "width": 144,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "10 / 5",
+          "name": null,
+          "x": 655.2000097632408,
+          "y": 910.8000057823956,
+          "width": 160,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "66.7%",
+          "name": null,
+          "x": 776.800011575222,
+          "y": 910.8000057823956,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "15",
+          "name": null,
+          "x": 892.0000132918358,
+          "y": 910.8000057823956,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Table",
+          "text": "",
+          "name": "ranking-row-13",
+          "x": 511.60000762343407,
+          "y": 963.2000070512295,
+          "width": 1195,
+          "height": 62,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "#13",
+          "name": null,
+          "x": 109.60000163316727,
+          "y": 963.6000070609152,
+          "width": 92,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chiến binh 12",
+          "name": "ranking-name-13",
+          "x": 311.20000463724136,
+          "y": 955.6000068672001,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ID: guest_0000…0012",
+          "name": null,
+          "x": 311.20000463724136,
+          "y": 970.8000072352588,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "1808",
+          "name": "ranking-elo-13",
+          "x": 533.6000079512596,
+          "y": 963.6000070609152,
+          "width": 144,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "10 / 5",
+          "name": null,
+          "x": 655.2000097632408,
+          "y": 963.6000070609152,
+          "width": 160,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "66.7%",
+          "name": null,
+          "x": 776.800011575222,
+          "y": 963.6000070609152,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "15",
+          "name": null,
+          "x": 892.0000132918358,
+          "y": 963.6000070609152,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Table",
+          "text": "",
+          "name": "ranking-row-14",
+          "x": 511.60000762343407,
+          "y": 1016.0000083297491,
+          "width": 1195,
+          "height": 62,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "#14",
+          "name": null,
+          "x": 109.60000163316727,
+          "y": 1016.4000083394349,
+          "width": 92,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Chiến binh 13",
+          "name": "ranking-name-14",
+          "x": 311.20000463724136,
+          "y": 1008.4000081457198,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "ID: guest_0000…0013",
+          "name": null,
+          "x": 311.20000463724136,
+          "y": 1023.6000085137784,
+          "width": 412,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "1792",
+          "name": "ranking-elo-14",
+          "x": 533.6000079512596,
+          "y": 1016.4000083394349,
+          "width": 144,
+          "height": 25,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "10 / 5",
+          "name": null,
+          "x": 655.2000097632408,
+          "y": 1016.4000083394349,
+          "width": 160,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "66.7%",
+          "name": null,
+          "x": 776.800011575222,
+          "y": 1016.4000083394349,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "15",
+          "name": null,
+          "x": 892.0000132918358,
+          "y": 1016.4000083394349,
+          "width": 144,
+          "height": 19,
+          "disabled": false
+        },
+        {
+          "type": "Label",
+          "text": "Hồ sơ khách được nhớ trên thiết bị này. ESC: Quay lại · F5: Làm mới",
+          "name": null,
+          "x": 511.60000762343407,
+          "y": 651.5999995060265,
+          "width": 503,
+          "height": 19,
+          "disabled": false
+        }
+      ]
+    },
+    "guest_profile_id": "guest_eb427175-c968-45a9-a4d1-f4b10bdb11e1"
+  }
+}

@@ -1,0 +1,10 @@
+﻿{
+    "date":  "2026-10-22T15:06:08.3121901+07:00",
+    "status":  "PASS",
+    "label":  "boss-desktop-prerequisites",
+    "heapMiB":  128,
+    "suites":  [
+                   "com.smashprofs.server.game.BossModeTest",
+                   "com.smashprofs.server.game.BossTcpIntegrationTest"
+               ]
+}

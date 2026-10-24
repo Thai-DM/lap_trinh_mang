@@ -1,0 +1,19 @@
+[Unit]
+Description=SmashProfs multiplayer game server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=azureuser
+WorkingDirectory=/home/azureuser/smashprofs-server
+ExecStart=/usr/bin/bash /home/azureuser/smashprofs-server/start-server.sh
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+KillSignal=SIGTERM
+UMask=0077
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,13 @@
+﻿{
+    "renderer":  "LWJGL3/OpenGL",
+    "clientJarSHA256":  "13E5CC050EB5143617038E3DFC0D1E9857FB016E41CC0FF1185D30456D1B1C3A",
+    "images":  18,
+    "heapMiB":  128,
+    "date":  "2026-10-17T07:56:19.9198903+07:00",
+    "status":  "PASS",
+    "cases":  [
+                  "2 players 1280x720",
+                  "4 players 1280x720",
+                  "4 players 960x540"
+              ]
+}

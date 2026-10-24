@@ -1,0 +1,15 @@
+﻿{
+    "date":  "2026-10-16T07:34:51.2998869+07:00",
+    "status":  "PASS",
+    "label":  "mechanics-client",
+    "heapMiB":  128,
+    "suites":  [
+                   "com.smashprofs.server.game.physics.WallMovementTest",
+                   "com.smashprofs.server.game.ItemGameplayTest",
+                   "com.smashprofs.server.game.StockGameplayTest",
+                   "com.smashprofs.server.cluster.ControlPlaneTest",
+                   "com.smashprofs.tests.network.GameplayClientModelTest",
+                   "com.smashprofs.tests.network.WireGameSnapshotTest",
+                   "com.smashprofs.tests.network.NetworkClientProtocolV1Test"
+               ]
+}

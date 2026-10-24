@@ -1,0 +1,58 @@
+﻿{
+    "status":  "PASS",
+    "date":  "2026-10-18T09:15:41.0610194+07:00",
+    "branch":  "dev",
+    "baseCommit":  "a3e99277158d5663eb3c903eed427a4e032fce15",
+    "damageModel":  "HP",
+    "equipment":  "Existing weapons and items restored alongside Unarmed combat",
+    "defaultDropRate":  "MEDIUM: 900 ticks / 15 seconds",
+    "fullRegression":  {
+                           "evidence":  "../20261018-091243-117-final-gameplay-regression/tests.log",
+                           "tests":  764
+                       },
+    "finalTargeted":  {
+                          "evidence":  "../20261018-091454-695-equipment-periodic-production-tick/tests.log",
+                          "tests":  27,
+                          "coverage":  "Real production ticks: no automatic item before tick 480 at HIGH, falling and settled pickup at first drop"
+                      },
+    "nativeCases":  [
+                        {
+                            "evidence":  "two-players.log",
+                            "players":  2,
+                            "width":  1280
+                        },
+                        {
+                            "evidence":  "four-players-small.log",
+                            "players":  4,
+                            "width":  960
+                        }
+                    ],
+    "nativeCoverage":  [
+                           "Existing HUD and weapon icons visible",
+                           "E pickup over TCP",
+                           "Inventory stays open through HUD updates",
+                           "Attack fires once in active frames",
+                           "Q throw and re-pickup retain 5 rounds",
+                           "G drop returns weapon",
+                           "Lava, HP KO, respawn and rematch"
+                       ],
+    "clientJarSHA256":  "953a3022bea665e8baed7e99fd45901baeb3b06faeaa8335a1ca6d83b5ec0a6f",
+    "sourceSHA256":  {
+                         "docs/gameplay/13-UNARMED-MVP.md":  "a91ac2d19166e64ab020f7075a9b53ef7acd591cf0537b48d162beae7c52c769",
+                         "docs/gameplay/README.md":  "868e128f1eb00fec81fe122835dfa6e830f56a52ef3f707099322749b0f8d340",
+                         "final-project/common/src/com/smashprofs/common/model/MatchRules.java":  "dde4de2160f3cc170f748e7077ddb3394264c8abc60cdfd021f22e78835f7230",
+                         "final-project/core/src/com/smashprofs/game/Scenes/OnlineHud.java":  "7c0c206467540259950acab2e851fc6b65f0e1d509ac728f2167f5b5a7ab101a",
+                         "final-project/core/src/com/smashprofs/game/Screens/OnlinePlayScreen.java":  "edd52d35b4c3e350e2239b25bec0b338ddaef9c472a5b634d0b6cd8c82a7310b",
+                         "final-project/core/src/com/smashprofs/game/Screens/OnlineRoomScreen.java":  "9ae5f63a6d3898b2e33bfb6962ba9f410fa7e639c73a6164ad76b3182b28b138",
+                         "final-project/core/src/com/smashprofs/game/network/client/OnlineRoomPresentation.java":  "5bfeff1a4428c414e77ce34abbca359b8f5fb5b5f3c85ca0a05a1790fffb52d0",
+                         "final-project/core/src/com/smashprofs/game/network/client/UnarmedControls.java":  "d3aed12cf2a49eff1a7798638fc1b94dc3bea817bc2cb09a4da3e244f4371d90",
+                         "final-project/server/src/com/smashprofs/server/game/FighterEngine.java":  "b83a834c178538f6f70a411ea869bc31805db42ae91bb81582bc9783f40f2f25",
+                         "final-project/server/src/com/smashprofs/server/game/ItemSystem.java":  "8ded97aff604bf01c46555b969945457f9479823aac4e888537aec6189993988",
+                         "final-project/server/test/com/smashprofs/server/game/FighterEngineTest.java":  "6b0bdbb4c264f5005979a24428dc8d488ad20ca0c43e6e7056ccebd69f93111f",
+                         "final-project/server/test/com/smashprofs/server/room/HostRulesTest.java":  "b7de26b26d3d0985333f4e64b06293f5655968f81755f849cb06755ff37a7f18",
+                         "final-project/tests/src/com/smashprofs/game/network/client/FighterClientTest.java":  "c1b9122d46e70aaf7c27d114e1fab61e458f88e86b942bb03558b8c98d632334",
+                         "scripts/gameplay/FighterVisualPreview.java":  "06d72f66ba6c5592da61630f2cc10ce3116bae99bcdc328fae231ee4514c15ef",
+                         "scripts/gameplay/Verify-Gameplay.ps1":  "ee07e80cc5e07f1c02386c7c2e233ce9f2f00b3fa1bf5471d6f6b36328f21bb2",
+                         "final-project/server/test/com/smashprofs/server/game/FighterEquipmentTest.java":  "0c390d28944e1983cc84c4f874e2f0648a0f9426931124190a3732626ee7083c"
+                     }
+}

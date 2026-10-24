@@ -1,0 +1,13 @@
+﻿{
+    "date":  "2026-10-16T07:49:00.3692689+07:00",
+    "status":  "PASS",
+    "label":  "finish-native-disposal",
+    "heapMiB":  128,
+    "suites":  [
+                   "com.smashprofs.server.game.StockGameplayTest",
+                   "com.smashprofs.server.game.FileHistoryTcpIntegrationTest",
+                   "com.smashprofs.server.game.GameEndTcpDeliveryTest",
+                   "com.smashprofs.server.network.TcpIoLifecycleTest",
+                   "com.smashprofs.server.game.GameplayTcpIntegrationTest"
+               ]
+}

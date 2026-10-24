@@ -12,10 +12,9 @@ import org.apache.logging.log4j.Logger;
  */
 public class SoundManager {
 
-    private boolean turnOnMusic= Game.ingameMusic;
-    private boolean turnOnSound= Game.soundEffects;
-
     private Music currenMusic;
+    private String musicPath;
+    private final java.util.Map<String,Sound> effects=new java.util.HashMap<>();
 
     //Singleton for the sound manager
     private static final SoundManager soundManager_INSTANCE = new SoundManager();
@@ -39,24 +38,17 @@ public class SoundManager {
      */
     public void setupMusic(String musicPath) {
         //music from https://www.fesliyanstudios.com/royalty-free-music/download/funny-bit/2399 -> royalty free
-        try{
-            currenMusic.stop();
-            currenMusic.setLooping(false);
-        }
-        catch(Exception e) {
-            log.error("No music declared or the program just started");
-        }
-
-
+        if(currenMusic!=null && musicPath.equals(this.musicPath)) { applyVolumes();return; }
+        if(currenMusic!=null) { currenMusic.stop();currenMusic.dispose(); }
+        this.musicPath=musicPath;
         currenMusic = Gdx.audio.newMusic(Gdx.files.internal(musicPath));
         System.out.println("SoundManager: setupMusic: musicPath: " + musicPath);
         log.info("SoundManager: setupMusic: musicPath: " + musicPath);
 
 
-        if(turnOnMusic){
-
+        currenMusic.setLooping(true);applyVolumes();
+        if(!Boolean.FALSE.equals(Game.ingameMusic)){
             currenMusic.play();
-            currenMusic.setLooping(true);
         }
     }
 
@@ -66,25 +58,19 @@ public class SoundManager {
      * The path of the sound file.
      */
     public void playSound(String soundPath) {
-        //play sound
-        if(turnOnSound){
-            if(soundPath.contains(".wav")) {
-                Sound wavSound = Gdx.audio.newSound(Gdx.files.internal(soundPath));
-                wavSound.play();
-
-            }
-            else if(soundPath.contains(".mp3")) {
-                Sound mp3Sound = Gdx.audio.newSound(Gdx.files.internal(soundPath));
-                mp3Sound.play();
-
-            }
-            else {
-                log.info("SoundManager: updateSounds: unknown sound format");
-                return;
-            }
-        }
+        if(Boolean.FALSE.equals(Game.soundEffects) || AudioSettings.get().effectGain(1)==0) { return; }
+        if(!soundPath.endsWith(".wav") && !soundPath.endsWith(".mp3")) { return; }
+        playEffect(effects.computeIfAbsent(soundPath,path->Gdx.audio.newSound(Gdx.files.internal(path))),1);
     }
-
-
-
+    public void playEffect(Sound sound,float gain) {
+        float volume=AudioSettings.get().effectGain(gain);
+        if(!Boolean.FALSE.equals(Game.soundEffects) && volume>0) { sound.play(volume); }
+    }
+    public void applyVolumes() {
+        if(currenMusic!=null) { currenMusic.setVolume(Boolean.FALSE.equals(Game.ingameMusic)?0:AudioSettings.get().musicGain()); }
+    }
+    public void dispose() {
+        if(currenMusic!=null) { currenMusic.dispose();currenMusic=null;musicPath=null; }
+        effects.values().forEach(Sound::dispose);effects.clear();
+    }
 }

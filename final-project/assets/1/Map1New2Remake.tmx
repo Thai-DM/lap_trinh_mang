@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.8" tiledversion="1.8.2" orientation="orthogonal" renderorder="right-down" width="150" height="50" tilewidth="8" tileheight="8" infinite="0" nextlayerid="24" nextobjectid="59">
+<map version="1.8" tiledversion="1.8.2" orientation="orthogonal" renderorder="right-down" width="150" height="50" tilewidth="8" tileheight="8" infinite="0" nextlayerid="25" nextobjectid="60">
  <tileset firstgid="1" source="../Tilesets/F1_light_blue_flag.svg.tsx"/>
  <tileset firstgid="12289" source="../Tilesets/PeacefulNightfield.tsx"/>
  <tileset firstgid="12496" source="../Tilesets/clouds.tsx"/>
@@ -517,5 +517,8 @@
   <object id="52" x="424.5" y="209.966" width="31.75" height="32.0341"/>
   <object id="53" x="400.002" y="231.77" width="24.0889" height="23.9171"/>
   <object id="54" x="344.667" y="272.676" width="15.9798" height="24.0171"/>
+ </objectgroup>
+ <objectgroup id="24" name="lava_hazard">
+  <object id="59" type="LAVA" x="96" y="384" width="976" height="16"/>
  </objectgroup>
 </map>

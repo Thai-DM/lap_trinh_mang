@@ -1,0 +1,11 @@
+﻿{
+    "date":  "2026-10-17T09:09:43.5141990+07:00",
+    "status":  "PASS",
+    "label":  "fighter-movement-control-final",
+    "heapMiB":  128,
+    "suites":  [
+                   "com.smashprofs.server.game.FighterEngineTest",
+                   "com.smashprofs.game.network.client.FighterClientTest",
+                   "com.smashprofs.server.game.FighterTcpIntegrationTest"
+               ]
+}

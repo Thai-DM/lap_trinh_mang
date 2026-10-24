@@ -1,0 +1,13 @@
+﻿{
+    "date":  "2026-10-16T07:42:02.7740181+07:00",
+    "status":  "PASS",
+    "label":  "mechanics-final",
+    "heapMiB":  128,
+    "suites":  [
+                   "com.smashprofs.server.game.StockGameplayTest",
+                   "com.smashprofs.server.game.ItemGameplayTest",
+                   "com.smashprofs.server.game.physics.WallMovementTest",
+                   "com.smashprofs.server.game.GameplayTcpIntegrationTest",
+                   "com.smashprofs.tests.network.GameplayClientModelTest"
+               ]
+}

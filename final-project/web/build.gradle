@@ -1,0 +1,82 @@
+plugins { id 'java' }
+repositories { mavenCentral() }
+sourceCompatibility = 17
+targetCompatibility = 17
+tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }
+
+dependencies {
+    implementation 'com.badlogicgames.gdx:gdx:1.14.2'
+    // Pure Java Box2D: the desktop JNI library cannot execute in JavaScript.
+    implementation 'com.badlogicgames.gdx:gdx-box2d-gwt:1.14.2'
+    implementation 'com.badlogicgames.gdx-controllers:gdx-controllers-core:2.2.1'
+    implementation 'com.github.xpenatan.gdx-teavm:gdx-controllers-web:1.6.2'
+    implementation 'com.crashinvaders.vfx:gdx-vfx-core:0.5.0'
+    implementation 'com.crashinvaders.vfx:gdx-vfx-effects:0.5.0'
+    implementation 'com.github.xpenatan.gdx-teavm:backend-web:1.6.2'
+    implementation 'org.teavm:teavm-tooling:0.15.0'
+    implementation 'org.teavm:teavm-jso:0.15.0'
+    implementation 'org.teavm:teavm-jso-apis:0.15.0'
+    testImplementation 'junit:junit:4.13.2'
+}
+
+// Shared gameplay/UI sources stay authoritative. Only imports change in generated,
+// ignored build output, to bind their JSON tree and logging APIs to browser adapters.
+def platformSources = [
+    'com/smashprofs/game/network/client/NetworkClient.java',
+    'com/smashprofs/game/Helper/Util.java',
+    'com/smashprofs/game/Helper/gamePropertiesManager.java',
+    'com/smashprofs/common/protocol/JsonFrameCodec.java',
+    'com/smashprofs/common/protocol/NetworkPacket.java',
+    'com/smashprofs/game/network/client/ClusterLobbyConnector.java'
+]
+tasks.register('prepareSharedSources', Sync) {
+    from('../core/src') { include '**/*.java'; exclude platformSources }
+    from('../common/src') { include '**/*.java'; exclude platformSources }
+    into layout.buildDirectory.dir('shared-java')
+    filteringCharset = 'UTF-8'
+    filter { String line -> line
+        .replace('com.fasterxml.jackson.databind.node.', 'com.smashprofs.web.json.')
+        .replace('com.fasterxml.jackson.databind.JsonNode', 'com.smashprofs.web.json.JsonNode')
+        .replace('org.apache.logging.log4j.', 'com.smashprofs.web.log.') }
+}
+sourceSets.main.java.srcDir layout.buildDirectory.dir('shared-java')
+tasks.named('compileJava') { dependsOn 'prepareSharedSources' }
+
+tasks.register('prepareAssets', Sync) {
+    from('../assets') {
+        exclude 'screenshots/**', 'boss/demon-slime/tileset/**'
+        exclude '**/*.zip', '**/*.aseprite', '**/*.psd'
+    }
+    into layout.buildDirectory.dir('assets')
+}
+tasks.register('buildWeb', JavaExec) {
+    dependsOn classes, prepareAssets
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.smashprofs.web.BuildWeb'
+    workingDir = projectDir
+    maxHeapSize = '768m'
+}
+
+configurations { gatewayRuntime }
+dependencies {
+    gatewayRuntime fileTree('../build/cluster') { include '*.jar' }
+    gatewayRuntime 'org.java-websocket:Java-WebSocket:1.6.0'
+}
+tasks.register('compileGateway', JavaCompile) {
+    source = files(fileTree('../teavm-probe/src/gateway/java') { include '**/*.java' },fileTree('src/gateway/java') { include '**/*.java' })
+    classpath = configurations.gatewayRuntime
+    destinationDirectory = layout.buildDirectory.dir('classes/gateway')
+    options.release = 17
+}
+tasks.register('gatewayJar', Jar) {
+    dependsOn compileGateway
+    from tasks.named('compileGateway').map { it.destinationDirectory }
+    archiveFileName = 'smashprofs-gateway.jar'
+    destinationDirectory = layout.buildDirectory.dir('gateway')
+}
+tasks.register('prepareGateway', Sync) {
+    dependsOn gatewayJar
+    from configurations.gatewayRuntime
+    from tasks.named('gatewayJar')
+    into layout.buildDirectory.dir('gateway/lib')
+}

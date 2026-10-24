@@ -1,0 +1,12 @@
+﻿{
+    "date":  "2026-10-22T14:52:52.3031657+07:00",
+    "status":  "PASS",
+    "label":  "restore-w-jump",
+    "heapMiB":  128,
+    "suites":  [
+                   "com.smashprofs.server.game.BossModeTest",
+                   "com.smashprofs.game.network.client.JumpBindingsTest",
+                   "com.smashprofs.game.network.client.FighterClientTest",
+                   "com.smashprofs.server.game.BossTcpIntegrationTest"
+               ]
+}

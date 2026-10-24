@@ -91,7 +91,7 @@ public class PlayerProfile {
         if (Gdx.app != null) {
             Preferences prefs = Gdx.app.getPreferences(PREF_NAME);
             this.profileId = prefs.getString(KEY_PROFILE_ID, "");
-            this.displayName = prefs.getString(KEY_DISPLAY_NAME, "");
+            this.displayName = com.smashprofs.common.model.DisplayName.sanitize(prefs.getString(KEY_DISPLAY_NAME, ""), null);
             this.avatar = prefs.getString(KEY_AVATAR, "Alex");
             String savedElo = prefs.getString(KEY_ELO, "1000");
             try { this.elo = Integer.parseInt(savedElo); } catch (NumberFormatException e) { this.elo = 1000; }
@@ -100,7 +100,7 @@ public class PlayerProfile {
                 this.profileId = generateDefaultProfileId();
             }
             if (this.displayName == null || this.displayName.isBlank()) {
-                this.displayName = "Chiến Binh " + (10 + new Random().nextInt(90));
+                this.displayName = randomDisplayName();
             }
             if (this.avatar == null || this.avatar.isBlank()) {
                 this.avatar = "Alex";
@@ -109,7 +109,7 @@ public class PlayerProfile {
         } else {
             // Môi trường test headless
             this.profileId = "test_player_01";
-            this.displayName = "Chiến Binh Test";
+            this.displayName = "Tester";
             this.avatar = "Alex";
         }
     }
@@ -134,7 +134,7 @@ public class PlayerProfile {
     public synchronized void resetToNew() {
         if(Gdx.app!=null) { Gdx.app.getPreferences(PREF_NAME).clear(); }
         this.profileId = generateDefaultProfileId();
-        this.displayName = "Chiến Binh " + (10 + new Random().nextInt(90));
+        this.displayName = randomDisplayName();
         this.avatar = "Alex";
         this.elo = 1000;
         save();
@@ -142,6 +142,10 @@ public class PlayerProfile {
 
     private String generateDefaultProfileId() {
         return "player_" + (1000 + new Random().nextInt(9000));
+    }
+
+    private static String randomDisplayName() {
+        return "Chi\u1ebfn S\u0129 " + (10 + new Random().nextInt(90));
     }
 
     public synchronized String getProfileId() {
@@ -159,8 +163,9 @@ public class PlayerProfile {
     }
 
     public synchronized void setDisplayName(String displayName) {
-        if (displayName != null && !displayName.isBlank()) {
-            this.displayName = displayName.trim();
+        String clean = com.smashprofs.common.model.DisplayName.sanitize(displayName, null);
+        if (clean != null) {
+            this.displayName = clean;
         }
     }
 

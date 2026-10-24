@@ -409,8 +409,10 @@ public class MainMenuScreen implements Screen {
         form.add(ui.small("TÊN HIỂN THỊ (DISPLAY NAME):", OnlineUi.BRAWL_CYAN));
         form.row();
         profileNameField = new TextField(PlayerProfile.get().getDisplayName(), ui.skin, "comic");
-        profileNameField.setMaxLength(64);profileNameField.setName("profile-display-name");
+        profileNameField.setMaxLength(com.smashprofs.common.model.DisplayName.MAX_LENGTH);profileNameField.setName("profile-display-name");
         form.add(profileNameField).growX().height(36).padBottom(8);
+        form.row();
+        form.add(ui.small("Tối đa " + com.smashprofs.common.model.DisplayName.MAX_LENGTH + " ký tự.", OnlineUi.MUTED)).padBottom(6);
         form.row();
 
         form.add(ui.small("MÃ HỒ SƠ (TỰ ĐỘNG LƯU):", OnlineUi.BRAWL_GOLD));
@@ -514,9 +516,10 @@ public class MainMenuScreen implements Screen {
 
     private void saveProfile() {
         var profile = PlayerProfile.get();
-        String name = profileNameField.getText().trim();
-        if (!name.isEmpty()) {
+        String name = com.smashprofs.common.model.DisplayName.sanitize(profileNameField.getText(), null);
+        if (name != null) {
             profile.setDisplayName(name);
+            profileNameField.setText(name);
         }
         profile.setAvatar(selectedAvatar);
         profile.save();

@@ -56,4 +56,10 @@ public class PlayerProfilePersistenceTest {
         var profile=new PlayerProfile();profile.acceptConnection(ProtocolV1.object().put("profileId",ID).put("profileToken",TOKEN),"host",54555);profile.resetToNew();
         var request=ProtocolV1.object();new PlayerProfile().prepareConnection(request,"host",54555);assertFalse(request.has("profileToken"));
     }
+    @Test public void longDisplayNameIsTruncatedOnSetAndReload() {
+        var profile=new PlayerProfile();profile.setDisplayName("ChampionAlexander");
+        assertEquals("ChampionAlex",profile.getDisplayName());
+        profile.save();
+        var reloaded=new PlayerProfile();assertEquals("ChampionAlex",reloaded.getDisplayName());
+    }
 }

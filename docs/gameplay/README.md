@@ -1,5 +1,7 @@
 # Super Smash Profs — Platform Fighter
 
+**Đồng bộ dev (24/10):** [Merge `b8ac628` vào nhánh web](24-DEV-MERGE.md), giữ sửa bậc/âm lượng/WebGL. Ghép trận mới đưa hai người vào phòng chọn nhân vật và xác nhận Sẵn sàng trước khi chơi.
+
 **Sửa bậc và cài đặt (24/10):** [Một lần S hai lần xuyên cả bậc, S+J đánh xuống, chỉnh âm lượng và kiểm tra WebGL](23-PLATFORM-AUDIO-WEBGL.md). Cài đặt C có âm lượng tổng/nhạc/hiệu ứng được lưu; giữ luật cầm súng chỉ bắn.
 
 **Bảng xếp hạng và hồ sơ:** [Bố cục gọn, tên tiếng Việt và giữ điểm khi mở lại game](22-PERSISTENT-GUEST-RANKING.md). Server cấp hồ sơ khách được lưu trên trình duyệt, nhiều phiên cộng vào cùng hồ sơ; mã kết nối gameplay vẫn riêng biệt.
@@ -8,7 +10,7 @@
 
 **Sảnh online:** [Ba lựa chọn chơi và hộp đổi máy chủ riêng](21-ONLINE-LOBBY-LAYOUT.md). Địa chỉ WSS dài không làm tràn khung; ghép nhanh, tạo phòng và nhập mã tách thành ba thẻ.
 
-**Ghép trận online:** [PvP 1 đấu 1 / Boss hai người](20-ONLINE-MATCHMAKING.md). Online → Ghép trận nhanh → chọn nhân vật/chế độ → Tìm trận. Đủ hai người cùng tìm thì tự vào trận, có Hủy tìm; vẫn giữ phòng riêng bằng mã.
+**Ghép trận online:** [PvP 1 đấu 1 / Boss hai người](20-ONLINE-MATCHMAKING.md). Online → Ghép trận nhanh → chọn chế độ → Tìm trận. Ghép đủ hai người thì vào phòng chọn nhân vật → Sẵn sàng; vẫn có Hủy tìm và phòng riêng bằng mã.
 
 **Client đầy đủ trên web:** [TeaVM: cách chạy, kiến trúc và hosting](18-TEAVM-WEB-CLIENT.md). Chạy `scripts/web/Run-Web.ps1` để mở menu thật, Local, Online PvP/Boss và bảng ELO từ code `dev`.
 

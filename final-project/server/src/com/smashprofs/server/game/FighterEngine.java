@@ -300,7 +300,7 @@ final class FighterEngine implements AutoCloseable {
             f.dodgeFrames=(int)Math.min(999,Math.max(0,tick-f.lastDodgeReadyTick+1));
             f.combo=f.lastDodgeUnavailable?"DODGE_UNAVAILABLE":f.dodgeFrames==0?"ZERO_WINDOW":"STRING";
         } else { f.dodgeFrames=-1;f.combo="UNVERIFIED"; }
-        double strength=FighterMoves.knockback(f.damage,base,scaling,f.stats.defense());double length=Math.hypot(ux,uy);
+        double strength=FighterMoves.knockback(f.damage,base,scaling,f.stats.defense())*(heavy?0.5:1.0);double length=Math.hypot(ux,uy);
         if(length==0) { ux=0;uy=1;length=1; }
         float vx=(float)(strength*ux/length),vy=(float)(strength*uy/length);f.frozen=false;f.hitstop=0;
         int stun;try { stun=FighterMoves.get(moveName).baseStun()+(int)Math.ceil(f.damage*scaling/10); }catch(IllegalArgumentException unknown) { stun=FighterMoves.hitstun(f.damage,scaling); }

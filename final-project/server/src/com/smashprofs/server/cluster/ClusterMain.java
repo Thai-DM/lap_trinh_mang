@@ -23,9 +23,18 @@ public final class ClusterMain {
             }
             case "standalone" -> {
                 var history = new FileMatchHistory(Path.of(config.getProperty("history.dir", "run/standalone-history")));
-                var server = new com.smashprofs.server.network.GameServer(config.getProperty("tcp.host", "127.0.0.1").strip(),
+                var rankingStore = createRankingStore(config);
+                var rankingService = new com.smashprofs.server.ranking.RankingService(rankingStore);
+                var broadcaster = new com.smashprofs.server.ranking.LeaderboardBroadcaster(rankingService);
+                com.smashprofs.server.game.RankingGateway compositeGateway = result -> {
+                    try { history.submitMatchResult(result); } catch (Exception e) { System.err.println("FileMatchHistory error: " + e.getMessage()); }
+                    rankingService.submitMatchResult(result);
+                };
+                var server = com.smashprofs.server.network.GameServer.withRanking(
+                        config.getProperty("tcp.host", "127.0.0.1").strip(),
                         WorkerRuntime.integer(config, "tcp.port", 9000, 0, 65535),
-                        WorkerRuntime.integer(config, "max.connections", 1024, 4, 10000), history);
+                        WorkerRuntime.integer(config, "max.connections", 1024, 4, 10000),
+                        rankingService, broadcaster, compositeGateway);
                 server.start(); var done = new CountDownLatch(1);
                 try (var admin = new HttpJson(WorkerRuntime.integer(config, "admin.port", 9200, 1, 65535), (path, body, credential) -> {
                     if (path.equals("/metrics")) { return Map.of("workers", List.of(Map.of("workerId", "standalone", "report", StandaloneMetrics.capture(server)))); }
@@ -38,9 +47,17 @@ public final class ClusterMain {
                     if (path.equals("/admin/shutdown")) { return new HttpJson.AfterResponse(Map.of("stopping", true), done::countDown); }
                     throw new HttpJson.Failure(404, "UNKNOWN_ENDPOINT");
                 })) {
-                    Runtime.getRuntime().addShutdownHook(new Thread(server::stop));
+                    Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                        server.stop();
+                        broadcaster.close();
+                        try { rankingStore.close(); } catch (Exception ignored) {}
+                    }));
                     System.out.println("STANDALONE_READY " + server.getBoundPort()); done.await();
-                } finally { server.stop(); }
+                } finally {
+                    server.stop();
+                    broadcaster.close();
+                    try { rankingStore.close(); } catch (Exception ignored) {}
+                }
             }
             case "control" -> {
                 double[] weights = Arrays.stream(config.getProperty("allocation.weights", ".20,.25,.20,.10,.15,.10").split(",")).mapToDouble(Double::parseDouble).toArray();
@@ -62,6 +79,18 @@ public final class ClusterMain {
                 }
             }
             default -> throw new IllegalArgumentException("Unknown mode: " + args[0]);
+        }
+    }
+
+    private static com.smashprofs.server.ranking.RankingStore createRankingStore(Properties config) {
+        try {
+            String dbPath = config.getProperty("ranking.db", "ranking.db");
+            Path parent = Path.of(dbPath).getParent();
+            if (parent != null) { Files.createDirectories(parent); }
+            return new com.smashprofs.server.ranking.SqliteRankingStore(dbPath);
+        } catch (Throwable t) {
+            System.err.println("SqliteRankingStore fallback to InMemory: " + t.getMessage());
+            return new com.smashprofs.server.ranking.InMemoryRankingStore();
         }
     }
 

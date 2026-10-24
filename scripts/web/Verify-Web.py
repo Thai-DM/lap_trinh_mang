@@ -51,13 +51,14 @@ def select(page,name,text):
 
 def main():
     global EVIDENCE
-    parser=argparse.ArgumentParser();parser.add_argument('--boot-only',action='store_true');parser.add_argument('--local-only',action='store_true');parser.add_argument('--pvp',action='store_true');parser.add_argument('--matchmaking',action='store_true');parser.add_argument('--lobby-layout',action='store_true');parser.add_argument('--ranking-profile',action='store_true');parser.add_argument('--settings-audio',action='store_true');args=parser.parse_args()
+    parser=argparse.ArgumentParser();parser.add_argument('--boot-only',action='store_true');parser.add_argument('--local-only',action='store_true');parser.add_argument('--pvp',action='store_true');parser.add_argument('--matchmaking',action='store_true');parser.add_argument('--lobby-layout',action='store_true');parser.add_argument('--ranking-profile',action='store_true');parser.add_argument('--settings-audio',action='store_true');parser.add_argument('--evidence-dir');args=parser.parse_args()
     if args.local_only: EVIDENCE=ROOT/'docs/gameplay/runs/20261023-web-local'
     if args.pvp: EVIDENCE=ROOT/'docs/gameplay/runs/20261023-web-pvp'
     if args.matchmaking: EVIDENCE=ROOT/'docs/gameplay/runs/20261023-web-matchmaking'
     if args.lobby_layout: EVIDENCE=ROOT/'docs/gameplay/runs/20261023-online-lobby-layout'
     if args.ranking_profile: EVIDENCE=ROOT/'docs/gameplay/runs/20261023-ranking-profile'
     if args.settings_audio: EVIDENCE=ROOT/'docs/gameplay/runs/20261024-audio-settings'
+    if args.evidence_dir: EVIDENCE=ROOT/args.evidence_dir
     EVIDENCE.mkdir(parents=True,exist_ok=True);b.EVIDENCE=EVIDENCE
     run=ROOT/'final-project/build'/('web-verify-'+str(int(time.time()*1000)));run.mkdir(parents=True)
     profile=run/'edge';profile.mkdir()
@@ -180,34 +181,39 @@ def main():
             def quick(page, boss=False, character='Alex'):
                 page.press('O');wait_state(page,lambda s:s['screen']=='OnlineLobbyScreen')
                 click(page,actor(page,name='quick-match'));wait_state(page,lambda s:s['screen']=='OnlineMatchmakingScreen')
-                select(page,'quick-character',character)
                 if boss: select(page,'quick-mode','Hợp tác Boss')
+            def ready_pair(first,second,first_character='Luca',second_character='Viktor'):
+                wait_state(first,lambda s:s['screen']=='OnlineRoomScreen' and s['phase']=='JOINED')
+                wait_state(second,lambda s:s['screen']=='OnlineRoomScreen' and s['phase']=='JOINED')
+                click(first,actor(first,text=first_character,kind='Label'));click(second,actor(second,text=second_character,kind='Label'))
+                click(first,actor(first,name='ready'));click(second,actor(second,name='ready'))
             quick(host,character='Luca');host.shot('16-quick-character-select.png')
             click(host,actor(host,name='find-match'))
-            first=wait_state(host,lambda s:s['phase']=='WAITING_FOR_START');states['waiting_first']=first
+            first=wait_state(host,lambda s:s['phase']=='JOINED');states['waiting_first']=first
             host.shot('17-waiting-for-opponent.png')
             click(host,actor(host,name='cancel-matchmaking'));wait_state(host,lambda s:not s['phase'])
             click(host,actor(host,name='find-match'))
-            second=wait_state(host,lambda s:s['phase']=='WAITING_FOR_START');assert second['room']!=first['room']
-            checks.append('Shared quick-match UI selects a character, waits, cancels and searches again')
+            second=wait_state(host,lambda s:s['phase']=='JOINED');assert second['room']!=first['room']
+            checks.append('Shared quick-match UI selects a mode, waits, cancels and searches again')
             peer=tab(isolated=True);quick(peer,character='Viktor');click(peer,actor(peer,name='find-match'))
+            ready_pair(host,peer)
             host.call('Page.bringToFront');time.sleep(.6);peer.call('Page.bringToFront');time.sleep(.6)
             a=wait_state(host,lambda s:s['screen']=='PlayScreen' and s['players']==2,45)
             p=wait_state(peer,lambda s:s['screen']=='PlayScreen' and s['players']==2,45)
             assert a['matchId']==p['matchId'] and a['room']==p['room'] and a['playerId']!=p['playerId']
             assert a['bossHp']==-1 and p['bossHp']==-1
             states['quick_pvp']=a;states['quick_pvp_peer']=p;host.shot('18-quick-pvp.png')
-            checks.append('Two independent browser clients automatically enter the same real PvP match without a room code or Ready click')
+            checks.append('Two independent browsers pair without a room code, select characters and ready into the same PvP match')
             host.press('D',.2);states['quick_pvp_moved']=state(host)
             esc(host);wait_state(host,lambda s:s['screen']=='OnlineLobbyScreen');esc(peer);wait_state(peer,lambda s:s['screen']=='OnlineLobbyScreen')
             click(host,actor(host,name='quick-match'));wait_state(host,lambda s:s['screen']=='OnlineMatchmakingScreen')
             select(host,'quick-mode','Hợp tác Boss');click(host,actor(host,name='find-match'))
-            waiting_boss=wait_state(host,lambda s:s['phase']=='WAITING_FOR_START')
+            waiting_boss=wait_state(host,lambda s:s['phase']=='JOINED')
             click(peer,actor(peer,name='quick-match'));wait_state(peer,lambda s:s['screen']=='OnlineMatchmakingScreen')
-            click(peer,actor(peer,name='find-match'));waiting_pvp=wait_state(peer,lambda s:s['phase']=='WAITING_FOR_START')
+            click(peer,actor(peer,name='find-match'));waiting_pvp=wait_state(peer,lambda s:s['phase']=='JOINED')
             assert waiting_boss['room']!=waiting_pvp['room'];checks.append('Boss and PvP searches stay in separate queues')
             click(peer,actor(peer,name='cancel-matchmaking'));wait_state(peer,lambda s:not s['phase'])
-            select(peer,'quick-mode','Hợp tác Boss');select(peer,'quick-character','Leo');click(peer,actor(peer,name='find-match'))
+            select(peer,'quick-mode','Hợp tác Boss');click(peer,actor(peer,name='find-match'));ready_pair(host,peer,'Alex','Leo')
             host.call('Page.bringToFront');time.sleep(.6);peer.call('Page.bringToFront');time.sleep(.6)
             a=wait_state(host,lambda s:s['screen']=='PlayScreen' and s['players']==2 and s['bossHp']>0,45)
             p=wait_state(peer,lambda s:s['screen']=='PlayScreen' and s['players']==2 and s['bossHp']>0,45)

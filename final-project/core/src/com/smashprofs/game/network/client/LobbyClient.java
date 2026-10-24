@@ -162,7 +162,7 @@ public final class LobbyClient implements ConnectionListener, AutoCloseable {
 
     /** Called explicitly by the local character selection UI, once per accepted/in-flight READY. */
     public synchronized boolean ready(String characterId) {
-        if(matchmaking) { return false; }
+
         if (closed || phase != Phase.JOINED) { return false; }
         if (characterId == null || !CHARACTERS.contains(characterId)) {
             fail("INVALID_CHARACTER", "Choose a valid character", true);
@@ -175,7 +175,6 @@ public final class LobbyClient implements ConnectionListener, AutoCloseable {
 
     /** Gameplay lobby can cancel readiness before the server starts the match. */
     public synchronized boolean unready() {
-        if(matchmaking) { return false; }
         if(!gameplay || closed || phase!=Phase.WAITING_FOR_START || pending!=null || selectedCharacter==null) { return false; }
         queuedCharacter = null;
         return request(MessageType.PLAYER_READY,ProtocolV1.object().put("roomId",roomId)
@@ -187,7 +186,6 @@ public final class LobbyClient implements ConnectionListener, AutoCloseable {
      * Both the local client and server will synchronize the chosen hero across all room members.
      */
     public synchronized boolean selectCharacter(String characterId) {
-        if(matchmaking) { return false; }
         if (closed || phase != Phase.JOINED) { return false; }
         if (characterId == null || !CHARACTERS.contains(characterId)) {
             return false;
@@ -329,7 +327,7 @@ public final class LobbyClient implements ConnectionListener, AutoCloseable {
         if (readyResponse) {
             require((local.ready() || acknowledgedRules!=null) && pending.characterId().equals(local.characterId()), "READY confirmation mismatch");
             if(found) {
-                require(local.ready() && acknowledgedRules!=null && acknowledgedRules.rules().fighter()
+                require(acknowledgedRules!=null && acknowledgedRules.rules().fighter()
                         && acknowledgedRules.rules().maxPlayers()==2 && acknowledgedRules.rules().boss()==bossRoom,"Invalid quick match rules/readiness");
             }
         }

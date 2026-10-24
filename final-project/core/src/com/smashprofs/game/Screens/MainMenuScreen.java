@@ -345,7 +345,7 @@ public class MainMenuScreen implements Screen {
 
         var textCol = new Table();
         profileDisplayLabel = ui.small(profile.getDisplayName(), Color.WHITE);
-        profileIdLabel = ui.small("ID: " + profile.getShortServerProfileId(), OnlineUi.BRAWL_GOLD);
+        profileIdLabel = ui.small("ID: " + profile.getShortServerProfileId() + " · " + profile.getElo() + " ELO", OnlineUi.BRAWL_GOLD);
         textCol.add(profileDisplayLabel).left();
         textCol.row();
         textCol.add(profileIdLabel).left();
@@ -421,7 +421,14 @@ public class MainMenuScreen implements Screen {
         form.row();
 
         var idHint = ui.small("Mở lại cùng trình duyệt để tiếp tục tích lũy điểm.", OnlineUi.MUTED);
-        form.add(idHint).padBottom(12);
+        form.add(idHint).padBottom(8);
+        form.row();
+
+        form.add(ui.small("ĐIỂM ELO XẾP HẠNG:", OnlineUi.BRAWL_GOLD));
+        form.row();
+        var eloField = new TextField(PlayerProfile.get().getElo() + " ELO", ui.skin, "comic");
+        eloField.setDisabled(true);eloField.setName("profile-elo");
+        form.add(eloField).growX().height(36).padBottom(12);
         form.row();
 
         dialog.add(form).growX();
@@ -533,7 +540,7 @@ public class MainMenuScreen implements Screen {
             profileDisplayLabel.setText(profile.getDisplayName());
         }
         if (profileIdLabel != null) {
-            profileIdLabel.setText("ID: " + profile.getShortServerProfileId());
+            profileIdLabel.setText("ID: " + profile.getShortServerProfileId() + " · " + profile.getElo() + " ELO");
         }
         if (profileAvatarImage != null) {
             profileAvatarImage.setDrawable(new TextureRegionDrawable(getAvatarRegion(profile.getAvatar())));

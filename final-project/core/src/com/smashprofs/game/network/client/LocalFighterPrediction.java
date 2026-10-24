@@ -77,7 +77,7 @@ public final class LocalFighterPrediction implements AutoCloseable {
                 boolean dropping=false;
                 if(grounded && (input.dropPressed() || (jump && input.fighter().downHeld()))) {
                     var platforms=geometry.stream().filter(Rect::oneWay).toList();
-                    for(var r:platforms) { if(body.getPosition().x>=r.x && body.getPosition().x<=r.x+r.width && Math.abs(body.getPosition().y-.05f-r.y-r.height)<.04f) {
+                    for(var r:platforms) { if(body.getPosition().x>=r.x && body.getPosition().x<=r.x+r.width && Math.abs(body.getPosition().y-.05f-r.y-r.height)<.06f) {
                         dropping=true;var surfaces=platforms.stream().map(p->new PlatformAssembly.Surface(p.x,p.y+p.height,p.width)).toList();
                         var assembly=new HashSet<Rect>();for(int index:PlatformAssembly.connected(surfaces,platforms.indexOf(r))) { assembly.add(platforms.get(index)); }
                         droppedPlatform=Set.copyOf(assembly);break;

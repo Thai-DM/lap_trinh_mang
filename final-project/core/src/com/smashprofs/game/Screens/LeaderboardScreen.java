@@ -86,7 +86,7 @@ public final class LeaderboardScreen implements Screen {
     }
     private void updateProfile() {
         var profile=PlayerProfile.get();
-        profileBadge.setText("BẠN: "+profile.getDisplayName()+" · "+shortId(profile.getServerProfileId(hostField.getText().trim(),port())));
+        profileBadge.setText("BẠN: "+profile.getDisplayName()+" · "+profile.getElo()+" ELO · "+shortId(profile.getServerProfileId(hostField.getText().trim(),port())));
         endpoint.setText(hostField.getText().trim());
     }
     private static String shortId(String id) { return id.length()<=18?id:id.substring(0,10)+"…"+id.substring(id.length()-4); }
@@ -124,6 +124,7 @@ public final class LeaderboardScreen implements Screen {
         String me=PlayerProfile.get().getServerProfileId(hostField.getText().trim(),port());
         for(int i=0;i<entries.size();i++) {
             var e=entries.get(i);boolean mine=e.playerId().value().equals(me);
+            if(mine) { PlayerProfile.get().setElo(e.rating()); }
             var item=row(mine?"103D36":i%2==0?"0C1B30":"12243B");item.setName("ranking-row-"+e.rank());
             Color accent=e.rank()==1?OnlineUi.BRAWL_GOLD:e.rank()<=3?OnlineUi.BRAWL_CYAN:Color.WHITE;
             var rank=bounded("#"+e.rank(),accent);rank.setAlignment(Align.center);item.add(rank).width(COLUMNS[0]);

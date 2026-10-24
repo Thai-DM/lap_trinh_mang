@@ -72,13 +72,20 @@ public final class GameServer {
     public static GameServer withRanking(String host, int port, int maxConnections,
                                          RankingService rankingService,
                                          LeaderboardBroadcaster broadcaster) {
+        return withRanking(host, port, maxConnections, rankingService, broadcaster, rankingService);
+    }
+
+    public static GameServer withRanking(String host, int port, int maxConnections,
+                                         RankingService rankingService,
+                                         LeaderboardBroadcaster broadcaster,
+                                         RankingGateway rankingGateway) {
         return new GameServer(FixedTickScheduler::new, System::nanoTime,
                 (connections, rooms) -> new TcpServerTransport(host, port, maxConnections, connections,
                         new TcpIoConfiguration(JsonTcpMessageCodec::new,
                                 MessageDispatcher.protocolV1(connections, rooms, null, rankingService, broadcaster),
                                 ProtocolV1.MAX_FRAME_BYTES, 5000)),
                 StateBroadcaster.DEFAULT_SNAPSHOTS_PER_SECOND, HeartbeatConfiguration.DEFAULT,
-                System::nanoTime, HeartbeatManager::newExecutor, Objects.requireNonNull(rankingService));
+                System::nanoTime, HeartbeatManager::newExecutor, Objects.requireNonNull(rankingGateway));
     }
 
     public GameServer() {

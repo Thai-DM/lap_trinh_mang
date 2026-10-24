@@ -24,12 +24,14 @@ public class PlayerProfile {
     private static final String KEY_PROFILE_ID = "profile_id";
     private static final String KEY_DISPLAY_NAME = "display_name";
     private static final String KEY_AVATAR = "avatar";
+    private static final String KEY_ELO = "elo";
 
     private static PlayerProfile instance;
 
     private String profileId;
     private String displayName;
     private String avatar;
+    private int elo = 1000;
 
     /** Guest credentials are scoped to the server, and never included in public profile labels. */
     private String serverKey(String host,int port) { return "server:"+host.trim()+":"+(host.startsWith("ws://") || host.startsWith("wss://")?0:port)+":"; }
@@ -91,6 +93,8 @@ public class PlayerProfile {
             this.profileId = prefs.getString(KEY_PROFILE_ID, "");
             this.displayName = prefs.getString(KEY_DISPLAY_NAME, "");
             this.avatar = prefs.getString(KEY_AVATAR, "Alex");
+            String savedElo = prefs.getString(KEY_ELO, "1000");
+            try { this.elo = Integer.parseInt(savedElo); } catch (NumberFormatException e) { this.elo = 1000; }
 
             if (this.profileId == null || this.profileId.isBlank()) {
                 this.profileId = generateDefaultProfileId();
@@ -119,6 +123,7 @@ public class PlayerProfile {
             prefs.putString(KEY_PROFILE_ID, this.profileId);
             prefs.putString(KEY_DISPLAY_NAME, this.displayName);
             prefs.putString(KEY_AVATAR, this.avatar);
+            prefs.putString(KEY_ELO, String.valueOf(this.elo));
             prefs.flush();
         }
     }
@@ -131,6 +136,7 @@ public class PlayerProfile {
         this.profileId = generateDefaultProfileId();
         this.displayName = "Chiến Binh " + (10 + new Random().nextInt(90));
         this.avatar = "Alex";
+        this.elo = 1000;
         save();
     }
 
@@ -166,5 +172,14 @@ public class PlayerProfile {
         if (avatar != null && !avatar.isBlank()) {
             this.avatar = avatar.trim();
         }
+    }
+
+    public synchronized int getElo() {
+        return elo;
+    }
+
+    public synchronized void setElo(int elo) {
+        this.elo = Math.max(0, elo);
+        save();
     }
 }

@@ -48,7 +48,7 @@ public final class FighterPhysics implements AutoCloseable {
         var pos=players.getPosition(id);
         for(var p:platforms) {
             float top=(p.yPixels()+p.heightPixels())/100;
-            if(pos.xMeters()>=p.xPixels()/100 && pos.xMeters()<=(p.xPixels()+p.widthPixels())/100 && Math.abs(pos.yMeters()-.05f-top)<.04f) {
+            if(pos.xMeters()>=p.xPixels()/100 && pos.xMeters()<=(p.xPixels()+p.widthPixels())/100 && Math.abs(pos.yMeters()-.05f-top)<.06f) {
                 var surfaces=platforms.stream().map(r->new com.smashprofs.common.model.PlatformAssembly.Surface(r.xPixels()/100,
                         (r.yPixels()+r.heightPixels())/100,r.widthPixels()/100)).toList();
                 var assembly=new HashSet<MapCollisionDefinition.CollisionRectangle>();

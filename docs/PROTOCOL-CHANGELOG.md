@@ -2,6 +2,12 @@
 
 All protocol changes require team agreement and corresponding updates to `NETWORK-PROTOCOL.md`.
 
+## TCP Wire v1 — GAME_START displayName (2026-10-24)
+
+- Add `displayName` (string, 1..12 chars, sanitized by server) to every `GAME_START.players[]` entry. Payload root and ROOM_STATE are unchanged.
+- Client parser accepts 3 fields (legacy server) or 4 fields. A legacy client rejects the 4-field player object, so deploy server and client together.
+- Display name is presentation only and never enters physics or match rules.
+
 ## TCP Wire v1 — Step 50 heartbeat (2026-10-11)
 
 - Activate the existing PING/PONG schema: payload `{}`, echo requestId; do not introduce pingId/timestamp fields, new enum values, framing/version or common DTO changes. Existing golden vectors remain byte-identical.

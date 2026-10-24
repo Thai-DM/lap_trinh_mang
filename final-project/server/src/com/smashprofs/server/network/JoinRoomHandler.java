@@ -76,6 +76,7 @@ public final class JoinRoomHandler {
                         return rejected(Status.ROOM_NOT_JOINABLE, roomId, room.getPhase());
                     }
                     boolean added = joined == GameRoom.JoinResult.JOINED;
+                    room.setDisplayName(playerId, session.getDisplayName());
                     try {
                         if (!isRegisteredAndOpen(session) || rooms.getRoom(roomId) != room) {
                             rollback(session, previousRoomId, room, playerId, added);

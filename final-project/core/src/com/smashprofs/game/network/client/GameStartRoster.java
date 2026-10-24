@@ -8,7 +8,10 @@ import java.util.*;
 /** Client value model of the existing v1 GAME_START payload. */
 public record GameStartRoster(String matchId, String roomId, List<Participant> players) {
     public static final Set<String> CHARACTERS = Set.of("Alex", "Luca", "Maurice", "Leo", "Viktor");
-    public record Participant(PlayerId playerId, int slotIndex, String characterId) { }
+    public record Participant(PlayerId playerId, int slotIndex, String characterId, String displayName) {
+        public Participant(PlayerId playerId, int slotIndex, String characterId) { this(playerId, slotIndex, characterId, null); }
+        public Participant { displayName = com.smashprofs.common.model.DisplayName.sanitize(displayName, characterId); }
+    }
 
     public GameStartRoster {
         require(matchId != null && !matchId.isBlank(), "Missing matchId");
@@ -37,8 +40,9 @@ public record GameStartRoster(String matchId, String roomId, List<Participant> p
         require(array != null && array.isArray(), "Missing GAME_START players");
         List<Participant> players = new ArrayList<>();
         for (var p : array) {
-            require(p.isObject() && p.size() == 3, "Invalid GAME_START player fields");
-            players.add(new Participant(new PlayerId(text(p, "playerId")), slot(p), text(p, "characterId")));
+            require(p.isObject() && (p.size() == 3 || p.size() == 4), "Invalid GAME_START player fields");
+            players.add(new Participant(new PlayerId(text(p, "playerId")), slot(p), text(p, "characterId"),
+                    p.size() == 4 ? text(p, "displayName") : null));
         }
         return new GameStartRoster(text(payload, "matchId"), text(payload, "roomId"), players);
     }

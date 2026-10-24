@@ -35,6 +35,7 @@ public final class GameRoom {
     private final Function<List<MatchSetup.Participant>, MatchSetup> setupFactory;
     private final PlayerSlot[] playerSlots = new PlayerSlot[4];
     private final Map<PlayerId, String> selectedCharacters = new HashMap<>();
+    private final Map<PlayerId, String> displayNames = new HashMap<>();
     private final Set<PlayerId> readyPlayers = new HashSet<>();
     private final Set<PlayerId> loadedPlayers=new HashSet<>(),rematchVotes=new HashSet<>();
     public synchronized void markLoaded(PlayerId id) {
@@ -58,7 +59,7 @@ public final class GameRoom {
             matchRuntime=null;preparedMatch=null;countdownComplete=false;countdownRemainingNanos=0;countdownStartedAtNanos=0;
             for(int i=0;i<playerSlots.length;i++) {
                 if(playerSlots[i]!=null && !available.contains(playerSlots[i].playerId())) {
-                    var departed=playerSlots[i].playerId();playerSlots[i]=null;selectedCharacters.remove(departed);readyPlayers.remove(departed);
+                    var departed=playerSlots[i].playerId();playerSlots[i]=null;selectedCharacters.remove(departed);displayNames.remove(departed);readyPlayers.remove(departed);
                 }
             }
             if(!available.contains(host)) { host=getPlayerSlots().get(0).playerId(); }
@@ -211,6 +212,7 @@ public final class GameRoom {
         settingsVersion++;
         if(playerId.equals(host)) { host=getPlayerSlots().stream().map(PlayerSlot::playerId).findFirst().orElse(null); settingsVersion++; }
         selectedCharacters.remove(playerId);
+        displayNames.remove(playerId);
         readyPlayers.remove(playerId);
         cancelCountdown();
         updateLobbyPhase();
@@ -226,6 +228,14 @@ public final class GameRoom {
      * @throws NullPointerException nếu characterId null
      * @throws IllegalArgumentException nếu characterId không hợp lệ
      */
+    /** Tên chỉ để hiển thị; luôn qua DisplayName.sanitize, không bao giờ ảnh hưởng vật lý hay luật chơi. */
+    public synchronized void setDisplayName(PlayerId playerId, String raw) {
+        Objects.requireNonNull(playerId, "playerId không được null");
+        String clean = com.smashprofs.common.model.DisplayName.sanitize(raw, null);
+        if (clean == null) { displayNames.remove(playerId); } else { displayNames.put(playerId, clean);
+        }
+    }
+
     public synchronized boolean selectCharacter(PlayerId playerId, String characterId) {
         PlayerSlot slot = getPlayerSlot(playerId);
         Objects.requireNonNull(characterId, "characterId không được null");
@@ -492,7 +502,7 @@ public final class GameRoom {
             List<MatchSetup.Participant> participants = new ArrayList<>();
             for (PlayerSlot slot : getPlayerSlots()) {
                 participants.add(new MatchSetup.Participant(
-                        slot.playerId(), slot.slotIndex(), selectedCharacters.get(slot.playerId())));
+                        slot.playerId(), slot.slotIndex(), selectedCharacters.get(slot.playerId()), displayNames.get(slot.playerId())));
             }
             preparedMatch = Objects.requireNonNull(setupFactory.apply(List.copyOf(participants)),
                     "setupFactory không được trả null");

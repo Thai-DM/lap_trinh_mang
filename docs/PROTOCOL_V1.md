@@ -120,12 +120,12 @@ Request `{}` rời phòng đã bind, không nhận arbitrary PlayerId/roomId. Fu
 ### GAME_START (đã implement từ Bước 48; schema v1 không đổi)
 
 ```json
-{"matchId":"m1","roomId":"arena","players":[{"playerId":"p1","slotIndex":0,"characterId":"Alex"},{"playerId":"p2","slotIndex":1,"characterId":"Leo"}]}
+{"matchId":"m1","roomId":"arena","players":[{"playerId":"p1","slotIndex":0,"characterId":"Alex","displayName":"Alice"},{"playerId":"p2","slotIndex":1,"characterId":"Leo","displayName":"Bob"}]}
 ```
 
 Từ MatchSetup, 2–4 participants, ID/slot duy nhất. Không có HP/physics/Body hay message do client yêu cầu start.
 
-Nguồn là instance bất biến `MatchRuntime.getMatchSetup()` đã dùng để khởi tạo runtime, không tạo setup/snapshot khác. Payload chỉ có `matchId`, `roomId`, `players`; mỗi player chỉ có `playerId`, `slotIndex`, `characterId`, sort theo slot. Không tự thêm serverTick hoặc spawn. Spawn thực tế đã do SpawnProvider/map và PlayerPhysicsFactory tạo trong runtime.start; vị trí authoritative gửi trong GAME_STATE. Runtime tick nội bộ bắt đầu 0, snapshot hoàn tất đầu tiên tick 1, default snapshot cadence tick 3/6/9.
+Nguồn là instance bất biến `MatchRuntime.getMatchSetup()` đã dùng để khởi tạo runtime, không tạo setup/snapshot khác. Payload chỉ có `matchId`, `roomId`, `players`; mỗi player có `playerId`, `slotIndex`, `characterId`, `displayName` (≤12 ký tự, server đã làm sạch; client cũ 3 field không còn tương thích), sort theo slot. Không tự thêm serverTick hoặc spawn. Spawn thực tế đã do SpawnProvider/map và PlayerPhysicsFactory tạo trong runtime.start; vị trí authoritative gửi trong GAME_STATE. Runtime tick nội bộ bắt đầu 0, snapshot hoàn tất đầu tiên tick 1, default snapshot cadence tick 3/6/9.
 
 Hook `StateBroadcaster` sau cycle scheduler hiện có quan sát runtime started/room PLAYING thành công ở cycle đầu, thường sau tick 1, và offer GAME_START trước bất kỳ offer snapshot nào. Không callback/polling thread hoặc lifecycle mới; không sửa countdown/start/tick. WAITING/READY/COUNTDOWN, countdown hủy, runtime start lỗi hoặc room/runtime closed/finished trước publication không phát start. Runtime chưa khởi tạo thành công không được báo PLAYING/start.
 

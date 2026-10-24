@@ -47,9 +47,10 @@ public class GameStartTcpTest {
             for (var candidate : p.get("players")) {
                 if (candidate.get("slotIndex").intValue() == participant.slotIndex()) { wire = candidate; break; }
             }
-            assertNotNull(wire); assertEquals(3, wire.size());
+            assertNotNull(wire); assertEquals(4, wire.size());
             assertEquals(participant.playerId().value(), wire.get("playerId").textValue()); assertEquals(participant.slotIndex(), wire.get("slotIndex").intValue());
             assertEquals(participant.characterId(), wire.get("characterId").textValue());
+            assertEquals(participant.displayName(), wire.get("displayName").textValue());
         }
         assertFalse(client.received().stream().anyMatch(m -> m.type() == MessageType.GAME_STATE || m.type() == MessageType.GAME_END));
         return start;

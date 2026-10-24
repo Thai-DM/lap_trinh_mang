@@ -11,7 +11,7 @@ public final class GameStartMessageMapper {
         var payload = ProtocolV1.object().put("matchId", setup.matchId()).put("roomId", setup.roomId());
         var players = payload.putArray("players");
         setup.participants().stream().sorted(Comparator.comparingInt(com.smashprofs.server.game.MatchSetup.Participant::slotIndex))
-                .forEach(p -> players.addObject().put("playerId", p.playerId().value()).put("slotIndex", p.slotIndex()).put("characterId", p.characterId()));
+                .forEach(p -> players.addObject().put("playerId", p.playerId().value()).put("slotIndex", p.slotIndex()).put("characterId", p.characterId()).put("displayName", p.displayName()));
         return new ProtocolMessage(MessageType.GAME_START, null, payload);
     }
 }

@@ -33,7 +33,8 @@ public record MatchSetup(String matchId, String roomId, List<Participant> partic
     }
 
     /** Bản sao player, slot và nhân vật đã được GameRoom xác thực, không liên kết state mutable. */
-    public record Participant(PlayerId playerId, int slotIndex, String characterId) {
+    public record Participant(PlayerId playerId, int slotIndex, String characterId, String displayName) {
+        public Participant(PlayerId playerId, int slotIndex, String characterId) { this(playerId, slotIndex, characterId, null); }
         public Participant {
             Objects.requireNonNull(playerId, "playerId không được null");
             requireNonBlank(playerId.value(), "playerId.value");
@@ -41,6 +42,7 @@ public record MatchSetup(String matchId, String roomId, List<Participant> partic
                 throw new IllegalArgumentException("slotIndex phải nằm trong khoảng 0 đến 3");
             }
             requireNonBlank(characterId, "characterId");
+            displayName = com.smashprofs.common.model.DisplayName.sanitize(displayName, characterId);
         }
     }
 

@@ -40,7 +40,7 @@ public final class FighterPhysics implements AutoCloseable {
     private void filter(Contact contact,PlayerId id,Fixture floor) {
         if(!(floor.getUserData() instanceof MapCollisionDefinition.CollisionRectangle r) || !oneWay(r)) { return; }
         var body=players.getBody(id);float top=(r.yPixels()+r.heightPixels())/100;
-        boolean droppingThis=dropTicks.getOrDefault(id,0)>0 && r.equals(droppedPlatform.get(id));
+        boolean droppingThis=dropTicks.getOrDefault(id,0)>0;
         if(droppingThis || body.getLinearVelocity().y>0 || body.getPosition().y-.05f<top-.025f) { contact.setEnabled(false); }
     }
     public void tick() { dropTicks.replaceAll((id,ticks)->{ int next=Math.max(0,ticks-1); if(next==0) { droppedPlatform.remove(id); } return next; }); }
@@ -48,7 +48,7 @@ public final class FighterPhysics implements AutoCloseable {
         var pos=players.getPosition(id);
         for(var p:platforms) {
             float top=(p.yPixels()+p.heightPixels())/100;
-            if(pos.xMeters()>=p.xPixels()/100 && pos.xMeters()<=(p.xPixels()+p.widthPixels())/100 && Math.abs(pos.yMeters()-.05f-top)<.04f) {
+            if(pos.xMeters()>=p.xPixels()/100 && pos.xMeters()<=(p.xPixels()+p.widthPixels())/100 && Math.abs(pos.yMeters()-.05f-top)<.06f) {
                 dropTicks.put(id,12);droppedPlatform.put(id,p);jumps.resetAfterRespawn(id);velocity(id,players.getVelocity(id).xMetersPerSecond(),-1);return true;
             }
         }

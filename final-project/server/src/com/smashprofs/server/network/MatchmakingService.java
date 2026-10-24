@@ -42,7 +42,7 @@ final class MatchmakingService {
     }
     private GameRoom enter(ClientSession session,GameRoom room,String character,String requestId) throws ProtocolException {
         if(!joins.handle(session,room.getRoomId()).isSuccess()) { throw failure("INVALID_ROOM_STATE",requestId); }
-        if(!ready.handle(session,new PlayerReadyHandler.ReadyRequest(room.getRoomId(),character,true)).isSuccess()) {
+        if(!ready.handle(session,new PlayerReadyHandler.ReadyRequest(room.getRoomId(),character,false)).isSuccess()) {
             room.leavePlayer(session.getPlayerId());session.leaveRoom();
             throw failure("INVALID_SESSION",requestId);
         }

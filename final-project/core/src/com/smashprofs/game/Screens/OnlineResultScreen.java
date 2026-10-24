@@ -63,6 +63,7 @@ public final class OnlineResultScreen implements Screen {
     private float stateTime = 0f;
     private boolean disposed;
     private Label rematchLabel;
+    private static String lastUpdatedMatchId = "";
 
     public OnlineResultScreen(Game game, WireMatchResult result, String localId) {
         this.game = game;
@@ -97,6 +98,15 @@ public final class OnlineResultScreen implements Screen {
         textures.add(pillarTexture);
         textures.add(discTexture);
         textures.add(fogTexture);
+
+        // 4.1 Update local Elo if PvP and not yet updated for this match
+        if (!result.isBoss() && !result.matchId().equals(lastUpdatedMatchId)) {
+            lastUpdatedMatchId = result.matchId();
+            boolean localWon = result.winner() != null && result.winner().playerId().equals(localId);
+            int localDelta = result.isDraw() ? 0 : (localWon ? 16 : -16);
+            var profile = com.smashprofs.game.profile.PlayerProfile.get();
+            profile.setElo(profile.getElo() + localDelta);
+        }
 
         // 4. Sort Participants: Winner first (Rank 1), then by rank
         sortedList = new ArrayList<>(result.participants());
@@ -160,8 +170,18 @@ public final class OnlineResultScreen implements Screen {
         var actionChips = new Table();
         actionChips.padTop(6);
 
-        var playAgainBtn = ui.comicButton("ĐẤU LẠI [ENTER]", "comic-gold", this::playAgain);
-        actionChips.add(playAgainBtn).height(34).padRight(12);
+        var lobby = game.getLobbyClient();
+        boolean isRanked = lobby != null && lobby.isMatchmaking();
+        if (!isRanked) {
+            var playAgainBtn = ui.comicButton("ĐẤU LẠI [ENTER]", "comic-gold", this::playAgain);
+            actionChips.add(playAgainBtn).height(34).padRight(12);
+        } else {
+            var rankedBadge = new Table();
+            rankedBadge.setBackground(ui.box("12243B", 4));
+            rankedBadge.pad(4, 10, 4, 10);
+            rankedBadge.add(ui.small("ĐẤU XẾP HẠNG · VỀ SẢNH ĐỂ GHÉP TRẬN MỚI", OnlineUi.BRAWL_GOLD));
+            actionChips.add(rankedBadge).height(34).padRight(12);
+        }
 
         var reason = switch (result.finishReason()) {
             case "BOSS_DEFEATED" -> "Đã hạ Demon Slime · Chiến thắng hợp tác";
@@ -215,7 +235,7 @@ public final class OnlineResultScreen implements Screen {
             // Card container attached to the front of each pillar
             var card = new Table();
             float cardW = pillarW - 14;
-            float cardH = 248;
+            float cardH = 270;
             float cardX = pillarX + 7;
             float cardY = platformY - 26 - cardH;
 
@@ -287,6 +307,19 @@ public final class OnlineResultScreen implements Screen {
             statsBox.add(createStatRow("DMG DONE", String.format(Locale.ROOT, "%.0f", dmgDone), Color.valueOf("FFE066"))).padTop(3).row();
             boolean fighter=result.gameplay()!=null && result.gameplay().fighter()!=null;
             statsBox.add(createStatRow("FINAL HP",Math.round(p.finalHp())+" HP",Color.valueOf("E0F2FE"))).padTop(3).row();
+            if (result.isBoss()) {
+                statsBox.add(createStatRow("ELO", "KHÔNG ĐỔI (BOSS)", Color.valueOf("94A3B8"))).padTop(3).row();
+            } else {
+                int delta = isDraw ? 0 : (isWinner ? 16 : -16);
+                String deltaStr = (delta >= 0 ? "+" : "") + delta;
+                Color eloColor = delta > 0 ? Color.valueOf("35F3B7") : (delta < 0 ? Color.valueOf("FF7A85") : Color.valueOf("CDE6FF"));
+                if (isLocal) {
+                    int elo = com.smashprofs.game.profile.PlayerProfile.get().getElo();
+                    statsBox.add(createStatRow("ELO", elo + " (" + deltaStr + ")", eloColor)).padTop(3).row();
+                } else {
+                    statsBox.add(createStatRow("ELO", deltaStr, eloColor)).padTop(3).row();
+                }
+            }
 
             card.add(statsBox).growX().padTop(2);
 
@@ -487,7 +520,8 @@ public final class OnlineResultScreen implements Screen {
             back();
             return;
         }
-        if(Gdx.input.isKeyJustPressed(Input.Keys.ENTER) || Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) { playAgain(); }
+        boolean isRanked = lobby != null && lobby.isMatchmaking();
+        if(!isRanked && (Gdx.input.isKeyJustPressed(Input.Keys.ENTER) || Gdx.input.isKeyJustPressed(Input.Keys.SPACE))) { playAgain(); }
 
         // 1. Clear with Deep Brawlhalla Space Blue
         ScreenUtils.clear(Color.valueOf("00224A"));

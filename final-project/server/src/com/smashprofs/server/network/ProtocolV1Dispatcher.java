@@ -124,9 +124,9 @@ final class ProtocolV1Dispatcher {
             case FIND_MATCH -> {
                 ProtocolV1.fields(payload,requestId,"mode","characterId");
                 if(admission!=null) { throw error("MATCHMAKING_UNAVAILABLE",requestId); }
-                if(!payload.path("mode").isTextual() || !java.util.Set.of("PVP","BOSS").contains(payload.path("mode").asText())
-                        || !payload.path("characterId").isTextual()) { throw ProtocolV1.invalid(requestId); }
-                var room=matchmaking.find(session,payload.path("mode").asText().equals("BOSS"),payload.path("characterId").asText(),requestId);
+                if(!payload.path("mode").isTextual() || !java.util.Set.of("PVP","BOSS").contains(payload.path("mode").asText())) { throw ProtocolV1.invalid(requestId); }
+                String character = payload.has("characterId") && payload.path("characterId").isTextual() ? payload.path("characterId").asText() : "Alex";
+                var room=matchmaking.find(session,payload.path("mode").asText().equals("BOSS"),character,requestId);
                 yield roomState(room.getRoomId(),requestId);
             }
             case LOAD_READY -> {
@@ -203,10 +203,6 @@ final class ProtocolV1Dispatcher {
                 yield settingsState(room,requestId);
             }
             case PLAYER_READY -> {
-                if(session.getRoomId()!=null) {
-                    var current=rooms.getRoom(session.getRoomId());
-                    if(current!=null && current.isMatchmaking()) { throw error("INVALID_ROOM_STATE",requestId); }
-                }
                 ProtocolV1.fields(payload, requestId, "roomId", "characterId", "ready");
                 String roomId = payload.has("roomId") ? ProtocolV1.roomId(payload, requestId) : null;
                 JsonNode character = payload.get("characterId");

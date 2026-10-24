@@ -34,7 +34,7 @@ public final class LocalFighterPrediction implements AutoCloseable {
             public void preSolve(Contact c,Manifold old) {
                 var a=c.getFixtureA();var b=c.getFixtureB();var floor=a.getBody()==body?b:a;
                 if(floor.getUserData() instanceof Rect r && r.oneWay()
-                        && ((dropTicks>0 && r==droppedPlatform) || body.getLinearVelocity().y>0 || body.getPosition().y-.05f<r.y+r.height-.025f)) { c.setEnabled(false); }
+                        && ((dropTicks>0) || body.getLinearVelocity().y>0 || body.getPosition().y-.05f<r.y+r.height-.025f)) { c.setEnabled(false); }
             }
         });
     }
@@ -76,7 +76,7 @@ public final class LocalFighterPrediction implements AutoCloseable {
                 previousWall=wall;
                 boolean dropping=false;
                 if(grounded && (input.dropPressed() || (jump && input.fighter().downHeld()))) {
-                    for(var r:geometry) { if(r.oneWay() && body.getPosition().x>=r.x && body.getPosition().x<=r.x+r.width && Math.abs(body.getPosition().y-.05f-r.y-r.height)<.04f) { dropping=true;droppedPlatform=r;break; } }
+                    for(var r:geometry) { if(r.oneWay() && body.getPosition().x>=r.x && body.getPosition().x<=r.x+r.width && Math.abs(body.getPosition().y-.05f-r.y-r.height)<.06f) { dropping=true;droppedPlatform=r;break; } }
                 }
                 if(dropping) { dropTicks=12;body.setLinearVelocity(v.x,-1);grounded=false;jumping=false; }
                 else if(jump) {

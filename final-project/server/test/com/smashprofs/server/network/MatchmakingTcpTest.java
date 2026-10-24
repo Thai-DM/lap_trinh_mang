@@ -52,7 +52,7 @@ public class MatchmakingTcpTest {
         var a=peer(true);var response=a.find("PVP","Luca");assertEquals(MessageType.ROOM_STATE,response.type());
         String room=response.payload().path("roomId").asText();var state=server.getRoomManager().getRoom(room);
         assertTrue(state.isMatchmaking());assertEquals(1,state.getPlayerCount());assertEquals(2,state.getRules().maxPlayers());
-        assertTrue(state.isPlayerReady(new com.smashprofs.common.model.PlayerId(a.player)));assertNull(state.getMatchRuntime());
+        assertFalse(state.isPlayerReady(new com.smashprofs.common.model.PlayerId(a.player)));assertNull(state.getMatchRuntime());
         assertEquals(room,a.find("PVP","Luca").payload().path("roomId").asText());assertEquals(1,server.getRoomManager().getRoomCount());
     }
     @Test public void twoPlayersStartWithoutRoomCodeOrReadyRequest() throws Exception { starts("PVP",false); }
@@ -60,7 +60,10 @@ public class MatchmakingTcpTest {
     private void starts(String mode,boolean boss) throws Exception {
         var a=peer(true);var b=peer(true);String room=a.find(mode,"Alex").payload().path("roomId").asText();
         var response=b.find(mode,"Luca");assertEquals(MessageType.ROOM_STATE,response.type());assertEquals(room,response.payload().path("roomId").asText());
-        assertEquals(2,response.payload().path("players").size());a.loaded(room);b.loaded(room);
+        assertEquals(2,response.payload().path("players").size());
+        a.request(MessageType.PLAYER_READY,ProtocolV1.object().put("roomId",room).put("characterId","Alex").put("ready",true));
+        b.request(MessageType.PLAYER_READY,ProtocolV1.object().put("roomId",room).put("characterId","Luca").put("ready",true));
+        a.loaded(room);b.loaded(room);
         var first=a.next(MessageType.GAME_START,null);var second=b.next(MessageType.GAME_START,null);
         assertEquals(first.payload().path("matchId"),second.payload().path("matchId"));
         assertEquals(boss,server.getRoomManager().getRoom(room).getRules().boss());

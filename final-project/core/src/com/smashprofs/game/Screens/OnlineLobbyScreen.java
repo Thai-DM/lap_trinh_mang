@@ -58,8 +58,8 @@ public final class OnlineLobbyScreen implements Screen {
         var header=new Table();header.defaults().minWidth(0);
         header.add(back).width(150).height(44);
         var title=ui.comicHeading("CHƠI ONLINE",Color.WHITE);header.add(title).expandX().center();
-        var profile=ui.small(com.smashprofs.game.profile.PlayerProfile.get().getDisplayName(),Color.WHITE);
-        profile.setEllipsis(true);profile.setAlignment(Align.right);header.add(profile).width(190).padRight(16);
+        var profile=ui.small(com.smashprofs.game.profile.PlayerProfile.get().getDisplayName() + " · " + com.smashprofs.game.profile.PlayerProfile.get().getElo() + " ELO", Color.WHITE);
+        profile.setEllipsis(true);profile.setAlignment(Align.right);header.add(profile).width(260).padRight(16);
         var ranking=ui.comicButton("BXH","comic-gold",()->game.setScreen(new LeaderboardScreen(game,this)));ranking.setName("leaderboard");
         header.add(ranking).width(78).height(44);root.add(header).growX().height(56).row();
 

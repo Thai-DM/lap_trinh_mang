@@ -23,7 +23,7 @@ final class OnlinePlayScreen implements Screen {
     private final Map<String, Sprite> players = new LinkedHashMap<>();
     private final Map<Long, Sprite> projectiles = new LinkedHashMap<>();
     private final SpriteBatch batch = new SpriteBatch();
-    private static final float NAME_SCALE=.0075f,NAME_OFFSET_Y=.34f,NAME_OUTLINE=.008f;
+    private static final float NAME_SCALE=.0048f,NAME_OFFSET_Y=.30f,NAME_OUTLINE=.006f;
     private static final float[][] NAME_OUTLINE_STEPS={{-1,0},{1,0},{0,-1},{0,1},{-1,-1},{1,-1},{-1,1},{1,1}};
     private static final Color NAME_OUTLINE_COLOR=new Color(0,0,0,.85f);
     private final BitmapFont nameFont = new BitmapFont(Gdx.files.internal("ui/online/small.fnt"));

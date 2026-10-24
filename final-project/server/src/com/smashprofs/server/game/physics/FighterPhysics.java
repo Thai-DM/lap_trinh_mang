@@ -30,7 +30,7 @@ public final class FighterPhysics implements AutoCloseable {
         jumps.setContactPolicy(this::filter);
     }
     public static boolean oneWay(MapCollisionDefinition.CollisionRectangle r) {
-        return r.heightPixels()>0 && r.heightPixels()<=40 && r.widthPixels()>=30 && (r.yPixels()+r.heightPixels())/100>.65f;
+        return r.heightPixels()>0 && r.heightPixels()<=40 && r.widthPixels()>=8 && (r.yPixels()+r.heightPixels())/100>.65f;
     }
     private void filter(Contact contact) {
         Fixture a=contact.getFixtureA(),b=contact.getFixtureB();

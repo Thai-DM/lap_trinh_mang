@@ -8,7 +8,7 @@ import java.util.*;
 /** Render-owned, isolated movement world. It never writes authoritative HP, stocks or hits. */
 public final class LocalFighterPrediction implements AutoCloseable {
     public record Rect(float x,float y,float width,float height) {
-        boolean oneWay() { return height>0 && height<=.4f && width>=.3f && y+height>.65f; }
+        boolean oneWay() { return height>0 && height<=.4f && width>=.08f && y+height>.65f; }
     }
     public record Position(float x,float y) { }
     private final World world;

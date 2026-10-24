@@ -15,6 +15,7 @@ import java.util.*;
 /** PlayScreen's online branch. No Player, World, combat, local respawn or local victory code. */
 final class OnlinePlayScreen implements Screen {
     private final Game game;
+    private final com.smashprofs.game.Helper.SoundManager audio=com.smashprofs.game.Helper.SoundManager.getSoundManager_INSTANCE();
     private final ClientMatchSession session;
     private final OnlineMatchPresentation presentation;
     private final OnlineSpriteAssets assets;
@@ -73,6 +74,7 @@ final class OnlinePlayScreen implements Screen {
 
     OnlinePlayScreen(Game game, ClientMatchSession session) {
         this.game = game; this.session = session;
+        audio.setupMusic("music/beste music ever.wav");
         presentation = new OnlineMatchPresentation(session);
         arena=game.takeOnlineAssets();map=arena.map;assets=arena.sprites;
         for(var object:map.getLayers().get("obj").getObjects()) {
@@ -139,9 +141,9 @@ final class OnlinePlayScreen implements Screen {
         var gameplay=authoritative==null?null:authoritative.gameplay();
         if(gameplay!=null && gameplay.boss()!=null && arena.boss!=null) {
             var boss=gameplay.boss();
-            if(boss.hitSerial()>bossHitSerial && Game.soundEffects) { hitSound.play(.2f); }bossHitSerial=boss.hitSerial();
-            if(boss.phase()!=bossPhase && Game.soundEffects) { readySound.play(.5f); }bossPhase=boss.phase();
-            if(boss.hp()==0 && !bossDeathPlayed) { bossDeathPlayed=true;if(Game.soundEffects) { koSound.play(.5f); } }
+            if(boss.hitSerial()>bossHitSerial && Game.soundEffects) { audio.playEffect(hitSound,.2f); }bossHitSerial=boss.hitSerial();
+            if(boss.phase()!=bossPhase && Game.soundEffects) { audio.playEffect(readySound,.5f); }bossPhase=boss.phase();
+            if(boss.hp()==0 && !bossDeathPlayed) { bossDeathPlayed=true;if(Game.soundEffects) { audio.playEffect(koSound,.5f); } }
             arena.boss.update(boss,authoritative.serverTick(),delta);
             shapes.setProjectionMatrix(camera.combined);arena.boss.warnings(shapes,gameplay.boss());
         }
@@ -156,9 +158,9 @@ final class OnlinePlayScreen implements Screen {
         if(gameplay!=null && gameplay.fighter()!=null) {
             for(var p:gameplay.fighter().players()) {
                 double hp=authoritative.player(p.playerId()).hp();Double previous=lastDamage.put(p.playerId(),hp);
-                if(previous!=null && hp<previous) { flashes.put(p.playerId(),animationTime+.08f);if(Game.soundEffects) { hitSound.play(.35f); } }
+                if(previous!=null && hp<previous) { flashes.put(p.playerId(),animationTime+.08f);if(Game.soundEffects) { audio.playEffect(hitSound,.35f); } }
                 Integer stocks=lastStocks.put(p.playerId(),gameplay.player(p.playerId()).lives());
-                if(stocks!=null && stocks>gameplay.player(p.playerId()).lives()) { koFlash=.18f;if(Game.soundEffects) { koSound.play(.5f); } }
+                if(stocks!=null && stocks>gameplay.player(p.playerId()).lives()) { koFlash=.18f;if(Game.soundEffects) { audio.playEffect(koSound,.5f); } }
             }
             shapes.setProjectionMatrix(camera.combined);shapes.begin(com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType.Filled);
             for(var r:predictionGeometry) {
@@ -213,7 +215,7 @@ final class OnlinePlayScreen implements Screen {
         }
         if(gameplay!=null) {
             var local=gameplay.player(session.getLocalPlayerId().value());boolean ready=local.status().equals("ACTIVE") && local.ultimateTicks()==0;
-            if(ready && !ultimateWasReady && Game.soundEffects) { readySound.play(.4f); }
+            if(ready && !ultimateWasReady && Game.soundEffects) { audio.playEffect(readySound,.4f); }
             ultimateWasReady=ready;
             shapes.setProjectionMatrix(camera.combined);shapes.begin(com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType.Filled);
             for(var shot:gameplay.shots()) {
@@ -275,7 +277,7 @@ final class OnlinePlayScreen implements Screen {
             for(var shot:gameplay.shots()) {
                 if(shot.type().equals("EXPLOSION") && seenExplosions.add(shot.id())) {
                     activeExplosions.add(new ActiveExplosion(shot.id(), shot.x(), shot.y()));
-                    if(Game.soundEffects) { stompSound.play(0.45f); }
+                    if(Game.soundEffects) { audio.playEffect(stompSound,0.45f); }
                 }
                 float angle=(float)Math.toDegrees(Math.atan2(shot.vy(),shot.vx()));
                 switch(shot.type()) {

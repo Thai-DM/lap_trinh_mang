@@ -1,5 +1,7 @@
 # Super Smash Profs — Platform Fighter
 
+**Sửa bậc và cài đặt (24/10):** [Một lần S hai lần xuyên cả bậc, S+J đánh xuống, chỉnh âm lượng và kiểm tra WebGL](23-PLATFORM-AUDIO-WEBGL.md). Cài đặt C có âm lượng tổng/nhạc/hiệu ứng được lưu; giữ luật cầm súng chỉ bắn.
+
 **Bảng xếp hạng và hồ sơ:** [Bố cục gọn, tên tiếng Việt và giữ điểm khi mở lại game](22-PERSISTENT-GUEST-RANKING.md). Server cấp hồ sơ khách được lưu trên trình duyệt, nhiều phiên cộng vào cùng hồ sơ; mã kết nối gameplay vẫn riêng biệt.
 
 **AI Boss:** Boss ưu tiên đuổi người đang sống có HP thấp nhất, giữ mục tiêu khi bằng HP và bám nhanh hơn ở pha 2. [Chi tiết truy đuổi và chiêu](15-BOSS-MODE.md).

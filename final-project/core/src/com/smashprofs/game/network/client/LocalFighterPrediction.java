@@ -15,7 +15,7 @@ public final class LocalFighterPrediction implements AutoCloseable {
     private final Body body;
     private final List<Rect> geometry;
     private int dropTicks;
-    private Rect droppedPlatform;
+    private Set<Rect> droppedPlatform=Set.of();
     private Position shown;
     private String lastAction;
     public LocalFighterPrediction(List<Rect> geometry) {
@@ -34,12 +34,12 @@ public final class LocalFighterPrediction implements AutoCloseable {
             public void preSolve(Contact c,Manifold old) {
                 var a=c.getFixtureA();var b=c.getFixtureB();var floor=a.getBody()==body?b:a;
                 if(floor.getUserData() instanceof Rect r && r.oneWay()
-                        && ((dropTicks>0 && r==droppedPlatform) || body.getLinearVelocity().y>0 || body.getPosition().y-.05f<r.y+r.height-.025f)) { c.setEnabled(false); }
+                        && ((dropTicks>0 && droppedPlatform.contains(r)) || body.getLinearVelocity().y>0 || body.getPosition().y-.05f<r.y+r.height-.025f)) { c.setEnabled(false); }
             }
         });
     }
     public Position sample(WireGameSnapshot.Player authoritative,FighterSnapshot.Player fighter,List<PlayerInput> inputs,float delta) {
-        body.setTransform(authoritative.x(),authoritative.y(),0);body.setLinearVelocity(authoritative.velocityX(),authoritative.velocityY());dropTicks=0;droppedPlatform=null;
+        body.setTransform(authoritative.x(),authoritative.y(),0);body.setLinearVelocity(authoritative.velocityX(),authoritative.velocityY());dropTicks=0;droppedPlatform=Set.of();
         boolean grounded=authoritative.grounded(),jumping=body.getLinearVelocity().y>1.8f;
         var air=new AirActionBudget(fighter.airJumps(),fighter.detail().recoveries(),fighter.detail().aerialActionsUsed());
         int wallJumps=fighter.wallJumps(),wall=0,wallLock=fighter.detail().wallLockTicks(),dashTicks=fighter.detail().dashTicks(),lavaStun=0;
@@ -76,7 +76,12 @@ public final class LocalFighterPrediction implements AutoCloseable {
                 previousWall=wall;
                 boolean dropping=false;
                 if(grounded && (input.dropPressed() || (jump && input.fighter().downHeld()))) {
-                    for(var r:geometry) { if(r.oneWay() && body.getPosition().x>=r.x && body.getPosition().x<=r.x+r.width && Math.abs(body.getPosition().y-.05f-r.y-r.height)<.04f) { dropping=true;droppedPlatform=r;break; } }
+                    var platforms=geometry.stream().filter(Rect::oneWay).toList();
+                    for(var r:platforms) { if(body.getPosition().x>=r.x && body.getPosition().x<=r.x+r.width && Math.abs(body.getPosition().y-.05f-r.y-r.height)<.04f) {
+                        dropping=true;var surfaces=platforms.stream().map(p->new PlatformAssembly.Surface(p.x,p.y+p.height,p.width)).toList();
+                        var assembly=new HashSet<Rect>();for(int index:PlatformAssembly.connected(surfaces,platforms.indexOf(r))) { assembly.add(platforms.get(index)); }
+                        droppedPlatform=Set.copyOf(assembly);break;
+                    } }
                 }
                 if(dropping) { dropTicks=12;body.setLinearVelocity(v.x,-1);grounded=false;jumping=false; }
                 else if(jump) {

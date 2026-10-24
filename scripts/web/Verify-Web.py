@@ -6,6 +6,7 @@ from functools import partial
 from threading import Thread
 from http.server import ThreadingHTTPServer
 import importlib.util, json, os, subprocess, time, urllib.parse, argparse, sqlite3
+from datetime import datetime, timezone, timedelta
 
 spec=importlib.util.spec_from_file_location('browser_tools',Path(__file__).with_name('Verify-TeaVm.py'))
 b=importlib.util.module_from_spec(spec);spec.loader.exec_module(b)
@@ -50,12 +51,13 @@ def select(page,name,text):
 
 def main():
     global EVIDENCE
-    parser=argparse.ArgumentParser();parser.add_argument('--boot-only',action='store_true');parser.add_argument('--local-only',action='store_true');parser.add_argument('--pvp',action='store_true');parser.add_argument('--matchmaking',action='store_true');parser.add_argument('--lobby-layout',action='store_true');parser.add_argument('--ranking-profile',action='store_true');args=parser.parse_args()
+    parser=argparse.ArgumentParser();parser.add_argument('--boot-only',action='store_true');parser.add_argument('--local-only',action='store_true');parser.add_argument('--pvp',action='store_true');parser.add_argument('--matchmaking',action='store_true');parser.add_argument('--lobby-layout',action='store_true');parser.add_argument('--ranking-profile',action='store_true');parser.add_argument('--settings-audio',action='store_true');args=parser.parse_args()
     if args.local_only: EVIDENCE=ROOT/'docs/gameplay/runs/20261023-web-local'
     if args.pvp: EVIDENCE=ROOT/'docs/gameplay/runs/20261023-web-pvp'
     if args.matchmaking: EVIDENCE=ROOT/'docs/gameplay/runs/20261023-web-matchmaking'
     if args.lobby_layout: EVIDENCE=ROOT/'docs/gameplay/runs/20261023-online-lobby-layout'
     if args.ranking_profile: EVIDENCE=ROOT/'docs/gameplay/runs/20261023-ranking-profile'
+    if args.settings_audio: EVIDENCE=ROOT/'docs/gameplay/runs/20261024-audio-settings'
     EVIDENCE.mkdir(parents=True,exist_ok=True);b.EVIDENCE=EVIDENCE
     run=ROOT/'final-project/build'/('web-verify-'+str(int(time.time()*1000)));run.mkdir(parents=True)
     profile=run/'edge';profile.mkdir()
@@ -106,7 +108,33 @@ def main():
             return page
         host=tab();states['menu']=state(host);host.shot('01-main-menu.png');checks.append('Real shared MainMenuScreen boots in Edge/WebGL')
         print('PASS main menu',flush=True)
-        if args.lobby_layout:
+        if args.settings_audio:
+            host.press('C');wait_state(host,lambda s:any(a.get('name')=='volume-master' for a in s['ui']))
+            values={}
+            for channel in ['master','music','effects']:
+                slider=actor(host,name='volume-'+channel)
+                target=dict(slider);target['x']=slider['x']-slider['width']*.22
+                click(host,target);values[channel]=actor(host,name='volume-value-'+channel)['text']
+                assert 15<=int(values[channel].rstrip('%'))<=40,values
+            host.shot('01-audio-controls.png')
+            for width,height in [(960,540),(1024,768),(1280,720)]:
+                host.call('Emulation.setDeviceMetricsOverride',dict(width=width,height=height,deviceScaleFactor=1,mobile=False));time.sleep(.3)
+                scale=min(width/1280,height/720)
+                for channel in ['master','music','effects']:
+                    slider=actor(host,name='volume-'+channel)
+                    assert slider['x']-slider['width']*scale/2>=0 and slider['x']+slider['width']*scale/2<=width
+                    assert slider['y']-slider['height']*scale/2>=0 and slider['y']+slider['height']*scale/2<=height
+                host.shot(f'02-settings-{width}x{height}.png')
+            checks.append('Three audio sliders respond to real mouse input and fit three viewport sizes')
+            esc(host);host.call('Page.reload');wait_state(host,lambda s:s['screen']=='MainMenuScreen',45);host.press('C')
+            wait_state(host,lambda s:any(a.get('name')=='volume-master' for a in s['ui']))
+            assert all(actor(host,name='volume-value-'+channel)['text']==value for channel,value in values.items())
+            checks.append('Master, music and effects volumes survive reload in real browser Preferences')
+            slider=actor(host,name='volume-master');target=dict(slider);target['x']=slider['x']-slider['width']/2+1;click(host,target)
+            assert actor(host,name='volume-value-master')['text']=='0%'
+            checks.append('Master slider reaches complete mute')
+            states['settings']=state(host)
+        elif args.lobby_layout:
             host.press('O');wait_state(host,lambda s:s['screen']=='OnlineLobbyScreen')
             assert any(a['text']=='CHƠI ONLINE' for a in state(host)['ui']), 'Vietnamese lobby title lost its accents'
             assert actor(host,name='game-mode')['text']=='Đối kháng PvP'
@@ -327,7 +355,7 @@ def main():
         failed=[e['params']['response']['url'] for page in pages for e in page.events if e.get('method')=='Network.responseReceived' and e['params']['response']['status']>=400 and 'favicon' not in e['params']['response']['url']]
         assert not errors,errors;assert not failed,failed
         checks.append('No JavaScript exceptions or failed assets')
-        (EVIDENCE/'verification.json').write_text(json.dumps(dict(status='PASS',date='2026-10-23',checks=checks,states=states),indent=2,ensure_ascii=False)+'\n',encoding='utf-8')
+        (EVIDENCE/'verification.json').write_text(json.dumps(dict(status='PASS',date=datetime.now(timezone(timedelta(hours=7))).date().isoformat(),checks=checks,states=states),indent=2,ensure_ascii=False)+'\n',encoding='utf-8')
         print('PASS web client: '+str(len(checks))+' checks.',flush=True)
     except Exception:
         for i,page in enumerate(pages):

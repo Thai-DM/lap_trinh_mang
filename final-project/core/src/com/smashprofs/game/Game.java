@@ -175,6 +175,7 @@ public class Game extends com.badlogic.gdx.Game {
 	
 	@Override
 	public void dispose () {
+        com.smashprofs.game.Helper.SoundManager.getSoundManager_INSTANCE().dispose();
         if(pendingArenaAssets!=null) { pendingArenaAssets.close();pendingArenaAssets=null; }
 		if (getScreen() != null) { getScreen().dispose(); }
 		batch.dispose();

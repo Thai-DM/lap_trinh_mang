@@ -1,5 +1,6 @@
 param([string]$JavaHome='E:\2026-2\lap-trinh-mang\baitap')
 $server=@(
+    'com.smashprofs.server.game.PlatformDropThroughTest',
     'com.smashprofs.server.ranking.GuestProfileTest',
     'com.smashprofs.server.ranking.RankingEndToEndTcpTest',
     'com.smashprofs.server.ranking.RankingServiceTest',
@@ -43,6 +44,7 @@ $server=@(
     'com.smashprofs.server.cluster.WorkerMetricsFreshnessTest'
 )
 $client=@(
+    'com.smashprofs.game.Helper.AudioSettingsTest',
     'com.smashprofs.game.profile.PlayerProfilePersistenceTest',
     'com.smashprofs.tests.network.MatchmakingClientTest',
     'com.smashprofs.game.network.client.JumpBindingsTest',

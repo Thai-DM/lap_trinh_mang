@@ -106,7 +106,7 @@ public final class OnlineHud implements AutoCloseable {
         bagHint=ui.small("");bagHint.setWrap(true);
         bag.add(bagHint).colspan(2).width(310).padTop(12);bag.setVisible(false);bagRoot.add(bag).width(350);stage.addActor(bagRoot);
         var helpRoot=new Table();helpRoot.setFillParent(true);helpRoot.bottom().left().padLeft(12).padBottom(unarmed?92:68);
-        help=ui.panel();help.pad(12);helpText=ui.small("");help.add(helpText);help.setVisible(false);helpRoot.add(help);stage.addActor(helpRoot);
+        help=ui.panel();help.pad(12);helpText=ui.small("");helpText.setWrap(true);help.add(helpText).width(740);help.setVisible(false);helpRoot.add(help);stage.addActor(helpRoot);
     }
     private void addClock(Table strip) { strip.add().expandX();var clock=ui.panel();clock.pad(5);clock.add(timer);clock.row();clock.add(remaining).padTop(3);strip.add(clock).width(106).height(52).padLeft(5).padRight(10);strip.add().expandX(); }
     public void toggleInventory() { bag.setVisible(!bag.isVisible()); }

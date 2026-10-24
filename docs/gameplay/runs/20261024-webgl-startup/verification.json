@@ -1,0 +1,49 @@
+{
+  "status": "PASS",
+  "date": "2026-10-24",
+  "checks": [
+    "disabled: unavailable WebGL stops before TeaVM initialization and shows actionable help",
+    "throws: unavailable WebGL stops before TeaVM initialization and shows actionable help",
+    "low-power: real shared menu starts with the selected graphics context",
+    "legacy-name: real shared menu starts with the selected graphics context",
+    "normal: real shared menu starts with the selected graphics context",
+    "Lost context stops rendering and offers reload without deleting browser profile"
+  ],
+  "states": {
+    "disabled": {
+      "graphics": {
+        "mode": "unavailable",
+        "attempts": 4
+      },
+      "failure": "webgl-unavailable"
+    },
+    "throws": {
+      "graphics": {
+        "mode": "unavailable",
+        "attempts": 4
+      },
+      "failure": "webgl-unavailable"
+    },
+    "low-power": {
+      "graphics": {
+        "mode": "low-power",
+        "attempts": 3
+      },
+      "failure": null
+    },
+    "legacy-name": {
+      "graphics": {
+        "mode": "default",
+        "attempts": 2
+      },
+      "failure": null
+    },
+    "normal": {
+      "graphics": {
+        "mode": "default",
+        "attempts": 1
+      },
+      "failure": null
+    }
+  }
+}

@@ -16,6 +16,7 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.Touchable;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Slider;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
@@ -220,7 +221,7 @@ public class MainMenuScreen implements Screen {
         menuCard.row();
 
         // Button 4: Cài đặt phím
-        var settingsBtn = ui.comicButton("CÀI ĐẶT PHÍM  [C]", "comic-white", () -> {
+        var settingsBtn = ui.comicButton("CÀI ĐẶT  [C]", "comic-white", () -> {
             playSound();
             openSettings();
         });
@@ -581,7 +582,7 @@ public class MainMenuScreen implements Screen {
 
         // Header: Title + Close button
         var dlgHeader = new Table();
-        var dlgTitle = ui.comicHeading("CÀI ĐẶT PHÍM ĐIỀU KHIỂN", Color.WHITE);
+        var dlgTitle = ui.comicHeading("CÀI ĐẶT", Color.WHITE);
         var closeBtn = ui.comicButton("X", "comic-white", () -> {
             playSound();
             closeSettings();
@@ -590,6 +591,25 @@ public class MainMenuScreen implements Screen {
         dlgHeader.add(closeBtn).size(40, 40).right();
         dialog.add(dlgHeader).growX().padBottom(8);
         dialog.row();
+
+        var audio=com.smashprofs.game.Helper.AudioSettings.get();
+        var volumeGrid=new Table();volumeGrid.defaults().minWidth(0);
+        String[] channelNames={"Âm lượng tổng","Nhạc nền","Hiệu ứng"};
+        String[] channelIds={"master","music","effects"};
+        float[] values={audio.master(),audio.music(),audio.effects()};
+        Slider[] sliders=new Slider[3];Label[] volumeLabels=new Label[3];
+        for(int i=0;i<3;i++) {
+            volumeGrid.add(ui.small(channelNames[i],Color.WHITE)).width(140).left();
+            sliders[i]=new Slider(0,100,1,false,ui.skin);sliders[i].setValue(Math.round(values[i]*100));sliders[i].setName("volume-"+channelIds[i]);
+            volumeGrid.add(sliders[i]).width(360).height(26).padLeft(10).padRight(14);
+            volumeLabels[i]=ui.small(Math.round(values[i]*100)+"%",OnlineUi.BRAWL_CYAN);volumeLabels[i].setName("volume-value-"+channelIds[i]);
+            volumeGrid.add(volumeLabels[i]).width(55).right();volumeGrid.row().padTop(4);
+        }
+        for(var slider:sliders) { slider.addListener(OnlineUi.action(()->{
+            audio.set(sliders[0].getValue()/100,sliders[1].getValue()/100,sliders[2].getValue()/100);sound.applyVolumes();
+            for(int i=0;i<3;i++) { volumeLabels[i].setText(Math.round(sliders[i].getValue())+"%"); }
+        })); }
+        dialog.add(volumeGrid).growX().padBottom(10).row();
 
         var instruction = ui.small("Bấm vào ô phím muốn đổi, sau đó ấn phím bất kỳ trên bàn phím để gán", OnlineUi.BRAWL_GOLD);
         dialog.add(instruction).center().padBottom(6);
@@ -617,7 +637,7 @@ public class MainMenuScreen implements Screen {
                 refreshKeyButtons();
             });
             actionButtons.put(actionLeft, btnLeft);
-            grid.add(btnLeft).width(125).height(38).padRight(28);
+            grid.add(btnLeft).width(125).height(32).padRight(28);
 
             // Col 2 (right)
             if (i + half < actions.length) {
@@ -632,9 +652,9 @@ public class MainMenuScreen implements Screen {
                     refreshKeyButtons();
                 });
                 actionButtons.put(actionRight, btnRight);
-                grid.add(btnRight).width(125).height(38);
+                grid.add(btnRight).width(125).height(32);
             }
-            grid.row().padTop(6);
+            grid.row().padTop(4);
         }
 
         refreshKeyButtons();
@@ -643,21 +663,21 @@ public class MainMenuScreen implements Screen {
 
         // Bottom presets and close buttons
         var footer = new Table();
-        var wasdBtn = ui.comicButton("MẶC ĐỊNH (WASD)", "comic-white", () -> {
+        var wasdBtn = ui.comicButton("WASD", "comic-white", () -> {
             playSound();
             KeyBindingConfig.getInstance().resetDefaults();
             currentlyRebinding = null;
             if (waitingActionLabel != null) waitingActionLabel.setText("Đã khôi phục cài đặt WASD mặc định!");
             refreshKeyButtons();
         });
-        var arrowsBtn = ui.comicButton("MẪU MŨI TÊN", "comic-white", () -> {
+        var arrowsBtn = ui.comicButton("MŨI TÊN", "comic-white", () -> {
             playSound();
             KeyBindingConfig.getInstance().applyPreset(KeyBindingConfig.Preset.ARROWS);
             currentlyRebinding = null;
             if (waitingActionLabel != null) waitingActionLabel.setText("Đã áp dụng mẫu phím Mũi tên!");
             refreshKeyButtons();
         });
-        var saveBtn = ui.comicButton("LƯU & ĐÓNG  [ESC]", "comic-primary", () -> {
+        var saveBtn = ui.comicButton("LƯU & ĐÓNG", "comic-primary", () -> {
             playSound();
             closeSettings();
         });

@@ -15,6 +15,7 @@ public final class BuildWeb {
             .setOptimizationLevel(TeaVMOptimizationLevel.SIMPLE).setObfuscated(false)
             .build(new File("build/dist"));
         Files.copy(Path.of("src/main/web/index.html"),Path.of("build/dist/webapp/index.html"),StandardCopyOption.REPLACE_EXISTING);
+        Files.copy(Path.of("src/main/web/boot.js"),Path.of("build/dist/webapp/boot.js"),StandardCopyOption.REPLACE_EXISTING);
         Files.copy(Path.of("src/main/web/web-config.js"),Path.of("build/dist/webapp/web-config.js"),StandardCopyOption.REPLACE_EXISTING);
     }
 }

@@ -11,7 +11,7 @@ public final class FighterPhysics implements AutoCloseable {
     private final PlayerPhysicsFactory.PlayerPhysicsBodies players;
     private final PlayerJumpController jumps;
     private final Map<PlayerId,Integer> dropTicks=new HashMap<>();
-    private final Map<PlayerId,MapCollisionDefinition.CollisionRectangle> droppedPlatform=new HashMap<>();
+    private final Map<PlayerId,Set<MapCollisionDefinition.CollisionRectangle>> droppedPlatform=new HashMap<>();
     private final Map<PlayerId,Float> hurtboxHigh=new HashMap<>();
     private final List<MapCollisionDefinition.CollisionRectangle> platforms;
     public record Hurtbox(PlayerId id) { }
@@ -40,7 +40,7 @@ public final class FighterPhysics implements AutoCloseable {
     private void filter(Contact contact,PlayerId id,Fixture floor) {
         if(!(floor.getUserData() instanceof MapCollisionDefinition.CollisionRectangle r) || !oneWay(r)) { return; }
         var body=players.getBody(id);float top=(r.yPixels()+r.heightPixels())/100;
-        boolean droppingThis=dropTicks.getOrDefault(id,0)>0 && r.equals(droppedPlatform.get(id));
+        boolean droppingThis=dropTicks.getOrDefault(id,0)>0 && droppedPlatform.getOrDefault(id,Set.of()).contains(r);
         if(droppingThis || body.getLinearVelocity().y>0 || body.getPosition().y-.05f<top-.025f) { contact.setEnabled(false); }
     }
     public void tick() { dropTicks.replaceAll((id,ticks)->{ int next=Math.max(0,ticks-1); if(next==0) { droppedPlatform.remove(id); } return next; }); }
@@ -49,7 +49,11 @@ public final class FighterPhysics implements AutoCloseable {
         for(var p:platforms) {
             float top=(p.yPixels()+p.heightPixels())/100;
             if(pos.xMeters()>=p.xPixels()/100 && pos.xMeters()<=(p.xPixels()+p.widthPixels())/100 && Math.abs(pos.yMeters()-.05f-top)<.04f) {
-                dropTicks.put(id,12);droppedPlatform.put(id,p);jumps.resetAfterRespawn(id);velocity(id,players.getVelocity(id).xMetersPerSecond(),-1);return true;
+                var surfaces=platforms.stream().map(r->new com.smashprofs.common.model.PlatformAssembly.Surface(r.xPixels()/100,
+                        (r.yPixels()+r.heightPixels())/100,r.widthPixels()/100)).toList();
+                var assembly=new HashSet<MapCollisionDefinition.CollisionRectangle>();
+                for(int index:com.smashprofs.common.model.PlatformAssembly.connected(surfaces,platforms.indexOf(p))) { assembly.add(platforms.get(index)); }
+                dropTicks.put(id,12);droppedPlatform.put(id,Set.copyOf(assembly));jumps.resetAfterRespawn(id);velocity(id,players.getVelocity(id).xMetersPerSecond(),-1);return true;
             }
         }
         return false;

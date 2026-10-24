@@ -31,6 +31,19 @@ public class JumpBindingsTest {
         });
     }
     @After public void restore() { Gdx.app=previousApplication;previousBindings.forEach(config::setKey); }
+    @Test public void downLightKeepsAttackAndDoesNotBecomeADoubleTapDrop() {
+        config.load();
+        UnarmedControls.sample(UnarmedControls.Preset.B,k->k==Input.Keys.S,k->k==Input.Keys.S);
+        UnarmedControls.sample(UnarmedControls.Preset.B,k->false,k->false);
+        var attack=UnarmedControls.sample(UnarmedControls.Preset.B,k->k==Input.Keys.S || k==Input.Keys.J,k->k==Input.Keys.S || k==Input.Keys.J);
+        assertTrue(attack.lightPressed());assertTrue(attack.fighter().downHeld());assertFalse(attack.dropPressed());assertFalse(attack.jumpPressed());
+    }
+    @Test public void doubleTapDownWithoutAttackStillRequestsPlatformDrop() {
+        config.load();UnarmedControls.sample(UnarmedControls.Preset.B,k->k==Input.Keys.S,k->k==Input.Keys.S);
+        UnarmedControls.sample(UnarmedControls.Preset.B,k->false,k->false);
+        var drop=UnarmedControls.sample(UnarmedControls.Preset.B,k->k==Input.Keys.S,k->k==Input.Keys.S);
+        assertTrue(drop.dropPressed());assertFalse(drop.lightPressed());
+    }
     @Test public void defaultSpaceJumpsOnceAndWAimsWithoutJumping() {
         config.load();
         var jump=UnarmedControls.sample(UnarmedControls.Preset.B,k->k==Input.Keys.SPACE,k->k==Input.Keys.SPACE);

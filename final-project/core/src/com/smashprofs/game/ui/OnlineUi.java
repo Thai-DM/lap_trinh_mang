@@ -70,6 +70,9 @@ public final class OnlineUi implements AutoCloseable {
         var select=new SelectBox.SelectBoxStyle(skin.getFont("body"),TEXT,selectBackground("26364F"),scroll,list);
         select.backgroundOver=selectBackground("354C6A");select.backgroundDisabled=selectBackground("1B2638");select.disabledFontColor=MUTED;
         skin.add("default",select);
+        var slider=new Slider.SliderStyle();slider.background=box("26364F",0);slider.background.setMinHeight(8);
+        slider.knob=box("6DE4D0",0);slider.knob.setMinWidth(18);slider.knob.setMinHeight(22);
+        slider.knobBefore=box("4EBAAE",0);slider.knobBefore.setMinHeight(8);skin.add("default-horizontal",slider);
         var progress=new ProgressBar.ProgressBarStyle();progress.background=box("29354B",0);progress.background.setMinHeight(7);
         progress.knobBefore=box("6DE4D0",0);progress.knobBefore.setMinHeight(7);skin.add("default-horizontal",progress);
     }

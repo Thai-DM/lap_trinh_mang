@@ -38,7 +38,8 @@ public final class UnarmedControls {
         long now=System.currentTimeMillis();
         boolean doubleTapDown=downPressed && (now-lastDownPressTime<=350);
         if(downPressed) { lastDownPressTime=now; }
-        boolean dropPressed=pressed.test(drop) || doubleTapDown;
+        boolean attacking=pressed.test(light) || pressed.test(heavy);
+        boolean dropPressed=pressed.test(drop) || doubleTapDown && !attacking;
         boolean jumpPressed=pressed.test(jump);
         boolean jumpHeld=held.test(jump);
         boolean upHeld=held.test(up) || pressed.test(up);
@@ -57,7 +58,7 @@ public final class UnarmedControls {
         String hv=com.smashprofs.game.Helper.KeyBindingConfig.keyName(cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.HEAVY));
         String dg=com.smashprofs.game.Helper.KeyBindingConfig.keyName(cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.DODGE));
         String ab=com.smashprofs.game.Helper.KeyBindingConfig.keyName(cfg.getKey(com.smashprofs.game.Helper.KeyBindingConfig.Action.ABILITY));
-        return u+"/"+l+"/"+d+"/"+r+" ngắm 8 hướng (2 phím góc 45°) • "+jm+" nhảy • "+d+" 2 lần xuống sàn • "+lt+" nhẹ • "+hv+" mạnh • "+dg+" né • "+ab+" kỹ năng";
+        return u+"/"+l+"/"+d+"/"+r+" ngắm • "+jm+" nhảy • "+d+" 2 lần xuống sàn • "+d+"+"+lt+" đánh xuống / bắn xuống khi cầm súng • "+hv+" mạnh • "+dg+" né • "+ab+" kỹ năng";
     }
     public static String hint(Preset preset) { return hint(); }
 }

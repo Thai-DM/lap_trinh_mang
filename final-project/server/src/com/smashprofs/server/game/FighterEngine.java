@@ -121,7 +121,7 @@ final class FighterEngine implements AutoCloseable {
                     }
                     f.wasDownHeld=true;
                 } else { f.wasDownHeld=false; }
-                boolean dropIntent=input.dropPressed() || doubleTapDown;
+                boolean dropIntent=!attackIntent && (input.dropPressed() || doubleTapDown);
                 if(grounded && dropIntent && physics.dropThrough(id)) {
                     grounded=false;f.jumping=false;
                 } else if(!shooting && input.jumpPressed()) {
@@ -160,7 +160,7 @@ final class FighterEngine implements AutoCloseable {
         else {
             float effectiveAxis=shooting?0:f.axis;
             f.runTicks=grounded && effectiveAxis!=0 && !locked?Math.min(18,f.runTicks+1):0;
-            var move=FighterMovement.step(v.xMetersPerSecond(),v.yMetersPerSecond(),effectiveAxis,f.stats.speed(),grounded,f.held.downHeld(),
+            var move=FighterMovement.step(v.xMetersPerSecond(),v.yMetersPerSecond(),effectiveAxis,f.stats.speed(),grounded,f.held.downHeld() && !locked && !shooting,
                     f.jumping && !f.held.jumpHeld(),!locked && tick>=f.nextWallJump-8,f.runTicks>=18);
             float x=f.dashUntil>tick && !shooting?f.dashX:(shooting?0:move.x()),y=move.y();f.fastFall=move.fastFalling();
             if(f.jumping && !f.held.jumpHeld()) { f.jumping=false; }

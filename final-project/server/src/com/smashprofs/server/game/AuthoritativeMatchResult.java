@@ -4,7 +4,7 @@ import com.smashprofs.common.model.PlayerId;
 
 import java.util.List;
 
-/** Kết quả nội bộ bất biến; không thay common.MatchResult hoặc tự tạo timestamp/score/ranking. */
+/** K?t qu? n?i b? b?t bi?n; kh?ng thay common.MatchResult ho?c t? t?o timestamp/score/ranking. */
 public record AuthoritativeMatchResult(
         String matchId,
         String roomId,
@@ -24,7 +24,12 @@ public record AuthoritativeMatchResult(
 
     public enum FinishReason { LAST_PLAYER_STANDING, ALL_PLAYERS_ELIMINATED, TIME_LIMIT, BOSS_DEFEATED, TEAM_ELIMINATED, BOSS_TIMEOUT }
 
-    /** eliminated là bản sao dead authoritative tại tick cuối, không phải nguồn death state mới. */
+    /** eliminated la ban sao dead authoritative tai tick cuoi, khong phai nguon death state moi. displayName chi de hien thi. */
     public record ParticipantResult(PlayerId playerId, int slotIndex, String characterId,
-                                    float finalHp, boolean eliminated) { }
+                                    float finalHp, boolean eliminated, String displayName) {
+        public ParticipantResult(PlayerId playerId, int slotIndex, String characterId, float finalHp, boolean eliminated) {
+            this(playerId, slotIndex, characterId, finalHp, eliminated, null);
+        }
+        public ParticipantResult { displayName = com.smashprofs.common.model.DisplayName.sanitize(displayName, characterId); }
+    }
 }

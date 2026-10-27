@@ -407,7 +407,7 @@ public final class MatchRuntime implements AutoCloseable {
         metrics.record(com.smashprofs.server.metrics.PerformanceMetrics.Stage.SNAPSHOT_BUILD,System.nanoTime()-phaseStarted);
         long elapsedNanos = Math.max(0L, nanoClock.getAsLong() - matchStartedAtNanos);
         boolean expired=gameplay==null?elapsedNanos>=MATCH_DURATION_NANOS:setup.rules().matchSeconds()>0 && matchState.getServerTick()>=setup.rules().matchSeconds()*60L;
-        var result = MatchEndEvaluator.evaluate(completedSnapshot, expired);
+        var result = MatchEndEvaluator.evaluate(completedSnapshot, expired, displayNames());
         latestSnapshot = completedSnapshot;
         if (result != null) {
             if(gameplay!=null) { gameplay.finished(); }
@@ -455,7 +455,7 @@ public final class MatchRuntime implements AutoCloseable {
         matchState.advanceTick();gameplay.fighter.checkBlastZones();gameplay.afterTick();
         var base=GameSnapshotBuilder.build(matchState,playerBodies,jumpController,projectileManager);
         var snapshot=new AuthoritativeGameSnapshot(getMatchId(),getRoomId(),tick,base.players(),base.projectiles(),gameplay.snapshot());
-        var result=MatchEndEvaluator.evaluate(snapshot,setup.rules().matchSeconds()>0 && tick>=setup.rules().matchSeconds()*60L);
+        var result=MatchEndEvaluator.evaluate(snapshot,setup.rules().matchSeconds()>0 && tick>=setup.rules().matchSeconds()*60L,displayNames());
         latestSnapshot=snapshot;
         if(result!=null) { gameplay.finished();heldInputs.clear();inputQueue.clear();matchResult=result;releaseNativeResources(); }
         return inputs;
@@ -613,5 +613,11 @@ public final class MatchRuntime implements AutoCloseable {
     /** Danh sách đã bất biến từ MatchSetup, không để caller sửa roster của trận. */
     public List<MatchSetup.Participant> getParticipants() {
         return setup.participants();
+    }
+
+    private java.util.Map<com.smashprofs.common.model.PlayerId, String> displayNames() {
+        var names = new java.util.HashMap<com.smashprofs.common.model.PlayerId, String>();
+        for (var participant : setup.participants()) { names.put(participant.playerId(), participant.displayName()); }
+        return names;
     }
 }

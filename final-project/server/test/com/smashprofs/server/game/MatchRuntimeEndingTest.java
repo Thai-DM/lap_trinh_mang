@@ -202,6 +202,24 @@ public class MatchRuntimeEndingTest {
         assertTrue(result.participants().get(1).eliminated());
     }
 
+    @Test public void matchResultNamesPreservedFromSetup() {
+        var p1 = new MatchSetup.Participant(id(0), 0, "Viktor", "Hung");
+        var p2 = new MatchSetup.Participant(id(1), 1, "Luca", "Lan");
+        var setup = new MatchSetup("name-match", "name-room", java.util.List.of(p1, p2));
+        Probe p = new Probe(setup);
+        probes.add(p); p.runtime.start();
+        p.place(0, 5f, 3f); p.place(1, 5.15f, 3f);
+        p.player(1).applyDamage(90);
+        p.send(0, 0, false, false, true, false, false);
+        p.runtime.tick();
+        assertTrue(p.runtime.isFinished());
+        var result = p.runtime.getMatchResult();
+        var names = result.participants().stream().collect(java.util.stream.Collectors.toMap(
+            r -> r.playerId(), r -> r.displayName()));
+        assertEquals("Hung", names.get(id(0)));
+        assertEquals("Lan", names.get(id(1)));
+    }
+
     @Test public void matchResultHasCorrectWinner() {
         Probe p = create(new int[]{2, 0, 3}, "Viktor", "Leo", "Luca");
         p.player(0).applyDamage(100);

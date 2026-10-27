@@ -196,4 +196,16 @@ public class RankingServiceTest {
         assertEquals("alice", leaderboard.get(0).profileId());
         assertTrue(leaderboard.get(0).rating() > leaderboard.get(1).rating());
     }
+
+    @Test
+    public void testResolveProfiles_PreservesDisplayName() {
+        var original = new AuthoritativeMatchResult("m-name", "r1", 100L, new PlayerId("p1"), FinishReason.LAST_PLAYER_STANDING,
+                List.of(
+                        new ParticipantResult(new PlayerId("p1"), 0, "Alex", 100f, false, "Hero1"),
+                        new ParticipantResult(new PlayerId("p2"), 1, "Luca", 0f, true, "Hero2")
+                ));
+        var resolved = rankingService.resolveProfiles(original);
+        assertEquals("Hero1", resolved.participants().get(0).displayName());
+        assertEquals("Hero2", resolved.participants().get(1).displayName());
+    }
 }

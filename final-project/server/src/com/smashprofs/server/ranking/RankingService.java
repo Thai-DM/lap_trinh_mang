@@ -188,9 +188,9 @@ public class RankingService implements RankingGateway {
                 store.displayName(e.playerId().value()),e.wins(),e.losses(),e.totalMatches(),e.winRate(),e.rating())).toList();
     }
 
-    private AuthoritativeMatchResult resolveProfiles(AuthoritativeMatchResult result) {
+    AuthoritativeMatchResult resolveProfiles(AuthoritativeMatchResult result) {
         var participants=result.participants().stream().map(p->new AuthoritativeMatchResult.ParticipantResult(
-                new PlayerId(store.rankingProfile(p.playerId().value())),p.slotIndex(),p.characterId(),p.finalHp(),p.eliminated())).toList();
+                new PlayerId(store.rankingProfile(p.playerId().value())),p.slotIndex(),p.characterId(),p.finalHp(),p.eliminated(),p.displayName())).toList();
         PlayerId winner=result.winnerId()==null?null:new PlayerId(store.rankingProfile(result.winnerId().value()));
         return new AuthoritativeMatchResult(result.matchId(),result.roomId(),result.finishedAtTick(),winner,result.finishReason(),participants,result.gameplay());
     }

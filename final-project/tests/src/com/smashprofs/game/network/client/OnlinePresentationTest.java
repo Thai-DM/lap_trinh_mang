@@ -206,11 +206,37 @@ public class OnlinePresentationTest {
                 p -> p.put("extra", true), p -> ((com.fasterxml.jackson.databind.node.ObjectNode)p.get("participants").get(0)).put("finalHp", "92.75"),
                 p -> ((com.fasterxml.jackson.databind.node.ObjectNode)p.get("participants").get(0)).put("finalHp", 101),
                 p -> ((com.fasterxml.jackson.databind.node.ObjectNode)p.get("participants").get(0)).put("eliminated", 0),
-                p -> ((com.fasterxml.jackson.databind.node.ObjectNode)p.get("participants").get(1)).put("slotIndex", 0));
+                p -> ((com.fasterxml.jackson.databind.node.ObjectNode)p.get("participants").get(1)).put("slotIndex", 0),
+                p -> ((com.fasterxml.jackson.databind.node.ObjectNode)p.get("participants").get(0)).put("displayName", 123),
+                p -> ((com.fasterxml.jackson.databind.node.ObjectNode)p.get("participants").get(0)).put("extraField", "xyz"),
+                p -> { var o = (com.fasterxml.jackson.databind.node.ObjectNode)p.get("participants").get(0); o.remove("displayName"); o.put("extraField", "xyz"); });
         for (var change : mutations) {
             var p = end(2, 12, null, "TIME_LIMIT", 92.75f, false).payload(); change.accept(p);
             assertThrows(IllegalArgumentException.class, () -> WireMatchResult.parse(p));
         }
+    }
+
+    @Test public void matchResultParsesBothFiveAndSixFieldsAndSanitizesDisplayName() {
+        var p6 = end(2, 12, null, "TIME_LIMIT", 92.75f, false).payload();
+        ((com.fasterxml.jackson.databind.node.ObjectNode)p6.get("participants").get(0)).put("displayName", "Hero42");
+        var res6 = WireMatchResult.parse(p6);
+        assertEquals("Hero42", res6.participants().get(0).displayName());
+
+        ((com.fasterxml.jackson.databind.node.ObjectNode)p6.get("participants").get(0)).put("displayName", "VeryLongPlayerName123");
+        var resLong = WireMatchResult.parse(p6);
+        assertEquals(12, resLong.participants().get(0).displayName().length());
+
+        ((com.fasterxml.jackson.databind.node.ObjectNode)p6.get("participants").get(0)).put("displayName", "   ");
+        var resBlank = WireMatchResult.parse(p6);
+        assertEquals(resBlank.participants().get(0).characterId(), resBlank.participants().get(0).displayName());
+
+        var p5 = end(2, 12, null, "TIME_LIMIT", 92.75f, false).payload();
+        for (var node : p5.get("participants")) {
+            ((com.fasterxml.jackson.databind.node.ObjectNode)node).remove("displayName");
+        }
+        var res5 = WireMatchResult.parse(p5);
+        assertEquals(res5.participants().get(0).characterId(), res5.participants().get(0).displayName());
+        assertEquals(res5.participants().get(1).characterId(), res5.participants().get(1).displayName());
     }
 
     @Test public void closingPresentationDoesNotCloseSessionAndPreventsLateResultTransition() {

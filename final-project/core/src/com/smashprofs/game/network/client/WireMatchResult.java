@@ -10,7 +10,12 @@ public record WireMatchResult(String matchId, String roomId, long finishedAtTick
     public WireMatchResult(String matchId,String roomId,long finishedAtTick,String winnerId,String finishReason,List<Participant> participants) {
         this(matchId,roomId,finishedAtTick,winnerId,finishReason,participants,null);
     }
-    public record Participant(String playerId, int slotIndex, String characterId, float finalHp, boolean eliminated) { }
+    public record Participant(String playerId, int slotIndex, String characterId, float finalHp, boolean eliminated, String displayName) {
+        public Participant(String playerId, int slotIndex, String characterId, float finalHp, boolean eliminated) {
+            this(playerId, slotIndex, characterId, finalHp, eliminated, null);
+        }
+        public Participant { displayName = com.smashprofs.common.model.DisplayName.sanitize(displayName, characterId); }
+    }
     private static final Set<String> REASONS = Set.of("LAST_PLAYER_STANDING", "ALL_PLAYERS_ELIMINATED", "TIME_LIMIT", "BOSS_DEFEATED", "TEAM_ELIMINATED", "BOSS_TIMEOUT");
     public WireMatchResult {
         require(matchId != null && !matchId.isBlank() && finishedAtTick >= 0, "Invalid result identity/tick");
@@ -55,11 +60,13 @@ public record WireMatchResult(String matchId, String roomId, long finishedAtTick
         var array = payload.get("participants"); require(array != null && array.isArray(), "Missing participants");
         List<Participant> participants = new ArrayList<>();
         for (var p : array) {
-            require(p.isObject() && p.size() == 5, "Invalid result participant fields");
+            require(p.isObject() && (p.size() == 5 || p.size() == 6), "Invalid result participant fields");
             var hp = p.get("finalHp"); var eliminated = p.get("eliminated");
             require(hp != null && hp.isNumber() && Double.isFinite(hp.doubleValue()) && Float.isFinite(hp.floatValue()), "Invalid finalHp");
             require(eliminated != null && eliminated.isBoolean(), "Invalid eliminated");
-            participants.add(new Participant(text(p, "playerId"), slot(p), text(p, "characterId"), hp.floatValue(), eliminated.booleanValue()));
+            String name = null;
+            if (p.size() == 6) { var node = p.get("displayName"); require(node != null && node.isTextual(), "Invalid displayName"); name = node.textValue(); }
+            participants.add(new Participant(text(p, "playerId"), slot(p), text(p, "characterId"), hp.floatValue(), eliminated.booleanValue(), name));
         }
         return new WireMatchResult(text(payload, "matchId"), text(payload, "roomId"), tick.longValue(),
                 winner.isNull() ? null : winner.textValue(), text(payload, "finishReason"), participants,

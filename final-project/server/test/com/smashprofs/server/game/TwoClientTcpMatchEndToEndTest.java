@@ -139,7 +139,7 @@ public class TwoClientTcpMatchEndToEndTest {
         for (var participant : result.participants()) {
             var wire = p.get("participants").get(participant.slotIndex()); assertEquals(participant.playerId().value(), wire.get("playerId").textValue());
             assertEquals(participant.slotIndex(), wire.get("slotIndex").intValue()); assertEquals(participant.characterId(), wire.get("characterId").textValue());
-            assertEquals(participant.finalHp(), wire.get("finalHp").doubleValue(), EPS); assertEquals(participant.eliminated(), wire.get("eliminated").booleanValue());
+            assertEquals(participant.finalHp(), wire.get("finalHp").doubleValue(), EPS); assertEquals(participant.eliminated(), wire.get("eliminated").booleanValue()); assertEquals(participant.displayName(), wire.get("displayName").textValue());
         }
         for (var client : List.of(a, b)) {
             var history = client.received(); int index = history.indexOf(first); assertTrue(index > 0);

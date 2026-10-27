@@ -19,6 +19,7 @@ public final class GameEndMessageMapper {
         result.participants().stream().sorted(java.util.Comparator.comparingInt(AuthoritativeMatchResult.ParticipantResult::slotIndex))
                 .forEach(player -> participants.addObject().put("playerId", player.playerId().value())
                         .put("slotIndex", player.slotIndex()).put("characterId", player.characterId())
+                        .put("displayName", player.displayName())
                         .put("finalHp", player.finalHp()).put("eliminated", player.eliminated()));
         if(result.gameplay()!=null) { payload.set("gameplay",com.smashprofs.common.protocol.GameplayProtocol.snapshot(result.gameplay())); }
         return new ProtocolMessage(MessageType.GAME_END, null, payload);

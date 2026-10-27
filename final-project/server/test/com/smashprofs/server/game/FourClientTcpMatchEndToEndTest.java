@@ -180,7 +180,7 @@ public class FourClientTcpMatchEndToEndTest {
                 var wire = payload.get("participants").get(p.slotIndex());
                 assertEquals(p.playerId().value(), wire.get("playerId").textValue()); assertEquals(p.slotIndex(), wire.get("slotIndex").intValue());
                 assertEquals(p.characterId(), wire.get("characterId").textValue()); assertEquals(p.finalHp(), wire.get("finalHp").doubleValue(), EPS);
-                assertEquals(p.eliminated(), wire.get("eliminated").booleanValue());
+                assertEquals(p.eliminated(), wire.get("eliminated").booleanValue()); assertEquals(p.displayName(), wire.get("displayName").textValue());
             }
             var history = client.received(); assertEquals(finalState, history.get(history.indexOf(end) - 1));
             assertEquals(1, history.stream().filter(m -> m.type() == MessageType.GAME_END).count());

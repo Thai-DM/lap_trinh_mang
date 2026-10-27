@@ -76,7 +76,7 @@ public class GameEndTcpDeliveryTest {
             var wire = end.payload().get("participants").get(p.slotIndex());
             assertEquals(p.playerId().value(), wire.get("playerId").textValue()); assertEquals(p.slotIndex(), wire.get("slotIndex").intValue());
             assertEquals(p.characterId(), wire.get("characterId").textValue()); assertEquals(p.finalHp(), wire.get("finalHp").doubleValue(), 0.00001);
-            assertEquals(p.eliminated(), wire.get("eliminated").booleanValue());
+            assertEquals(p.eliminated(), wire.get("eliminated").booleanValue()); assertEquals(p.displayName(), wire.get("displayName").textValue());
         }
         return end;
     }

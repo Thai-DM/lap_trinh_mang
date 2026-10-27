@@ -15,7 +15,7 @@ public class GameEndMessageMapperTest {
     private AuthoritativeMatchResult result(boolean draw) {
         return new AuthoritativeMatchResult("match", "arena", 7200, draw ? null : winner,
                 AuthoritativeMatchResult.FinishReason.TIME_LIMIT, List.of(
-                new AuthoritativeMatchResult.ParticipantResult(winner, 0, "Alex", 99.5f, false),
+                new AuthoritativeMatchResult.ParticipantResult(winner, 0, "Alex", 99.5f, false, "Chiên Sứ 42"),
                 new AuthoritativeMatchResult.ParticipantResult(new PlayerId("b"), 1, "Leo", 91.25f, false)));
     }
     @Test public void gameEndUsesProtocolV1() throws Exception {
@@ -41,6 +41,9 @@ public class GameEndMessageMapperTest {
         assertEquals(0, participants.get(0).get("slotIndex").intValue()); assertEquals("Alex", participants.get(0).get("characterId").textValue());
         assertEquals(99.5, participants.get(0).get("finalHp").doubleValue(), 0); assertFalse(participants.get(0).get("eliminated").booleanValue());
         assertEquals(91.25, participants.get(1).get("finalHp").doubleValue(), 0);
+        assertEquals(6, participants.get(0).size());
+        assertEquals("Chiên Sứ 42", participants.get(0).get("displayName").textValue());
+        assertEquals("Leo", participants.get(1).get("displayName").textValue());
     }
     @Test public void gameEndDoesNotMutateMatchResult() {
         var original = result(false); var expected = result(false);

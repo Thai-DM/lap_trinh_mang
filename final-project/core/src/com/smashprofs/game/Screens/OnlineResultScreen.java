@@ -278,8 +278,11 @@ public final class OnlineResultScreen implements Screen {
             var nameLbl = ui.small(pName, isWinner ? OnlineUi.BRAWL_GOLD : (isLocal ? OnlineUi.BRAWL_CYAN : Color.WHITE));
             nameCol.add(nameLbl).row();
 
-            String subtitle = "Player " + (p.slotIndex() + 1) + (isLocal ? " (Bạn)" : "");
-            nameCol.add(ui.small(subtitle, isLocal ? OnlineUi.BRAWL_CYAN : Color.valueOf("7EA2C7")));
+            String shownName = displayNameOf(p);
+            String subtitle = shownName + (isLocal ? " (Bạn)" : "");
+            var subtitleLbl = ui.small(subtitle, isLocal ? OnlineUi.BRAWL_CYAN : Color.valueOf("7EA2C7"));
+            subtitleLbl.setEllipsis(true);
+            nameCol.add(subtitleLbl).width(cardW - 16 - 28 - 6 - 4).row();
             nameBox.add(nameCol).left();
 
             card.add(nameBox).growX().left().padBottom(6).row();
@@ -634,5 +637,18 @@ public final class OnlineResultScreen implements Screen {
         crownFont.dispose();
         ui.close();
         textures.forEach(Texture::dispose);
+    }
+
+    private String displayNameOf(com.smashprofs.game.network.client.WireMatchResult.Participant p) {
+        String name = p.displayName();
+        if (!name.equals(p.characterId())) { return name; }
+        var lobby = game.getLobbyClient();
+        var session = lobby == null ? null : lobby.getMatchSession();
+        if (session != null) {
+            for (var member : session.getRoster().players()) {
+                if (member.playerId().value().equals(p.playerId())) { return member.displayName(); }
+            }
+        }
+        return name;
     }
 }

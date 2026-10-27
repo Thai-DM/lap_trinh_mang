@@ -177,7 +177,7 @@ Publisher chỉ đọc immutable cached `MatchRuntime.getLatestSnapshot()` sau c
 
 Payload: `matchId:string`, `roomId:string`, `finishedAtTick:integer64>=0`, `winnerId:string|null`, `finishReason:"LAST_PLAYER_STANDING"|"ALL_PLAYERS_ELIMINATED"|"TIME_LIMIT"`, `participants:list[2..4]`.
 
-Participant: `playerId:string`, `slotIndex:integer0..3`, `characterId:string`, `finalHp:finite number0..100`, `eliminated:boolean`. ID/slot duy nhất, winner nếu có thuộc roster; null là hòa. Khớp `AuthoritativeMatchResult`, không tạo timestamp epoch giả, không tính ranking. Timeout 120 giây/HP tie và elimination giữ nguyên gameplay hiện có.
+Participant: `playerId:string`, `slotIndex:integer0..3`, `characterId:string`, `displayName:string` (<= 12 ký tự, optional ở parser client để tương thích server cũ), `finalHp:finite number0..100`, `eliminated:boolean`. ID/slot duy nhất, winner nếu có thuộc roster; null là hòa. Khớp `AuthoritativeMatchResult`, không tạo timestamp epoch giả, không tính ranking. Timeout 120 giây/HP tie và elimination giữ nguyên gameplay hiện có.
 
 #### Delivery, ordering và idempotency Bước 45
 

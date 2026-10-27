@@ -2,6 +2,12 @@
 
 All protocol changes require team agreement and corresponding updates to `NETWORK-PROTOCOL.md`.
 
+## TCP Wire v1 — GAME_END displayName (Unreleased)
+
+- Add `displayName` (string, 1..12 chars, sanitized by server) to every `GAME_END.participants[]` entry. Server sends 6 fields per participant; client parser accepts 5 fields (legacy server) or 6 fields.
+- Legacy client rejects the 6-field participant object, so deploy server and client together.
+- Display name is presentation only, does not alter ranking, Elo calculation, or database schema.
+
 ## TCP Wire v1 — GAME_START displayName (2026-10-24)
 
 - Add `displayName` (string, 1..12 chars, sanitized by server) to every `GAME_START.players[]` entry. Payload root and ROOM_STATE are unchanged.

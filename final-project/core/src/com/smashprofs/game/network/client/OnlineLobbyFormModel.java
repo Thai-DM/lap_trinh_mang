@@ -7,9 +7,12 @@ public final class OnlineLobbyFormModel implements AutoCloseable {
     private boolean error;
 
     public boolean connect(String host, String port, String room, LobbyConfiguration.Mode mode) {
-        return connect(host,port,room,mode,false);
+        return connect(host,port,room,mode,false,4);
     }
     public boolean connect(String host,String port,String room,LobbyConfiguration.Mode mode,boolean boss) {
+        return connect(host,port,room,mode,boss,4);
+    }
+    public boolean connect(String host,String port,String room,LobbyConfiguration.Mode mode,boolean boss,int maxPlayers) {
         if (pending != null) { return false; }
         try {
             String address = host == null ? "" : host.strip();
@@ -21,6 +24,7 @@ public final class OnlineLobbyFormModel implements AutoCloseable {
             catch (NumberFormatException invalid) { throw new IllegalArgumentException("Cổng phải là số từ 1 đến 65535."); }
             var configuration = new LobbyConfiguration(address, number, room, mode);
             pending = new LobbyClient(configuration);
+            pending.setPreferredMaxPlayers(maxPlayers);
             if(boss && mode==LobbyConfiguration.Mode.CREATE) { pending.enableBoss(); }else { pending.enableBossSupport(); }
             error = false;
             pending.startAsync();

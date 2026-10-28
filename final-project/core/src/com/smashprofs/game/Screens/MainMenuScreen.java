@@ -181,10 +181,10 @@ public class MainMenuScreen implements Screen {
         // 2. Center Action Menu Card
         var menuCard = new Table();
         menuCard.setBackground(ui.comicBox(Color.valueOf("09182E"), OnlineUi.BRAWL_BORDER, 4f, 6, 8));
-        menuCard.pad(10, 32, 10, 32);
+        menuCard.pad(16, 32, 16, 32);
 
         var menuTitle = ui.comicHeading("CHỌN CHẾ ĐỘ CHƠI", Color.WHITE);
-        menuCard.add(menuTitle).center().padBottom(8);
+        menuCard.add(menuTitle).center().padBottom(16);
         menuCard.row();
 
         // Button 1: Chơi Local
@@ -192,10 +192,7 @@ public class MainMenuScreen implements Screen {
             playSound();
             openLocal();
         });
-        menuCard.add(localBtn).size(420, 44);
-        menuCard.row();
-        var localHint = ui.small("2 người chơi đối kháng trên cùng một bàn phím", Color.valueOf("FFE8A3"));
-        menuCard.add(localHint).center().padTop(2).padBottom(6);
+        menuCard.add(localBtn).size(420, 48).padBottom(10);
         menuCard.row();
 
         // Button 2: Chơi Online
@@ -203,10 +200,7 @@ public class MainMenuScreen implements Screen {
             playSound();
             openOnline();
         });
-        menuCard.add(onlineBtn).size(420, 44);
-        menuCard.row();
-        var onlineHint = ui.small("Sảnh đấu trực tuyến qua mạng LAN / Internet (2-4 người)", Color.valueOf("94FFE5"));
-        menuCard.add(onlineHint).center().padTop(2).padBottom(6);
+        menuCard.add(onlineBtn).size(420, 48).padBottom(10);
         menuCard.row();
 
         // Button 3: Bảng Xếp Hạng
@@ -214,10 +208,7 @@ public class MainMenuScreen implements Screen {
             playSound();
             openLeaderboard();
         });
-        menuCard.add(rankBtn).size(420, 44);
-        menuCard.row();
-        var rankHint = ui.small("Top cao thủ, điểm Elo và lịch sử tỉ lệ thắng", Color.valueOf("FFE8A3"));
-        menuCard.add(rankHint).center().padTop(2).padBottom(6);
+        menuCard.add(rankBtn).size(420, 48).padBottom(10);
         menuCard.row();
 
         // Button 4: Cài đặt phím
@@ -225,7 +216,7 @@ public class MainMenuScreen implements Screen {
             playSound();
             openSettings();
         });
-        menuCard.add(settingsBtn).size(420, 38);
+        menuCard.add(settingsBtn).size(420, 48).padBottom(10);
         menuCard.row();
 
         // Button 5: Thoát
@@ -233,7 +224,7 @@ public class MainMenuScreen implements Screen {
             playSound();
             Gdx.app.exit();
         });
-        menuCard.add(exitBtn).size(420, 36).padTop(6);
+        menuCard.add(exitBtn).size(420, 48);
 
         centerRow.add(menuCard).width(484).height(415);
 

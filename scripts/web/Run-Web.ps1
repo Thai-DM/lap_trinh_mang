@@ -1,5 +1,5 @@
 param(
-    [string]$JavaHome='E:\2026-2\lap-trinh-mang\baitap',
+    [string]$JavaHome=$(if ($env:JAVA_HOME -and (Test-Path "$env:JAVA_HOME\bin\java.exe")) { $env:JAVA_HOME } elseif (Test-Path 'C:\Program Files\Java\jdk-17\bin\java.exe') { 'C:\Program Files\Java\jdk-17' } else { 'E:\2026-2\lap-trinh-mang\baitap' }),
     [ValidateRange(1,65535)][int]$Port=8088,
     [ValidateRange(1,65535)][int]$GatewayPort=8090,
     [switch]$SkipBuild,[switch]$BuildOnly,[switch]$ClientOnly

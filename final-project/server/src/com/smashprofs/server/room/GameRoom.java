@@ -48,9 +48,9 @@ public final class GameRoom {
     public record Rematch(int votes,int required,boolean started) { }
     public synchronized Rematch requestRematch(PlayerId id,String matchId,Set<PlayerId> connectedPlayers) {
         refreshMatchCompletion();
-        if(!rules.fighter() || closed || phase!=RoomPhase.FINISHED || !containsPlayer(id) || matchRuntime==null || !matchRuntime.getMatchId().equals(matchId) || getPlayerCount()<2) { throw new IllegalStateException("Rematch requires a finished match and its roster"); }
+        if(!rules.fighter() || closed || phase!=RoomPhase.FINISHED || !containsPlayer(id) || matchRuntime==null || !matchRuntime.getMatchId().equals(matchId) || getPlayerCount()<(rules.boss()?1:2)) { throw new IllegalStateException("Rematch requires a finished match and its roster"); }
         var available=getPlayerSlots().stream().map(PlayerSlot::playerId).filter(connectedPlayers::contains).collect(java.util.stream.Collectors.toSet());
-        if(available.size()<2 || !available.contains(id)) { throw new IllegalStateException("At least two connected players required"); }
+        if(available.size()<(rules.boss()?1:2) || !available.contains(id)) { throw new IllegalStateException("At least two connected players required"); }
         rematchVotes.retainAll(available);rematchVotes.add(id);int votes=rematchVotes.size(),required=available.size();
         boolean start=votes==required;
         if(start) {
@@ -100,7 +100,7 @@ public final class GameRoom {
         if(matchmaking) { throw new SecurityException("Quick match rules are fixed"); }
         if(!rules.gameplay() || !Objects.equals(host,actor) || getPlayerSlot(actor)==null) { throw new SecurityException("Only room host may update settings"); }
         if(closed || phase==RoomPhase.COUNTDOWN || isMatchLocked()) { throw new IllegalStateException("Rules locked"); }
-        if(!next.gameplay() || next.fighter()!=rules.fighter() || next.boss()!=rules.boss() || next.maxPlayers()<getPlayerCount() || next.maxPlayers()<minimumPlayers) { throw new IllegalArgumentException("Invalid mode/capacity"); }
+        if(!next.gameplay() || next.fighter()!=rules.fighter() || next.boss()!=rules.boss() || next.maxPlayers()<getPlayerCount() || next.maxPlayers()<(next.boss()?1:minimumPlayers)) { throw new IllegalArgumentException("Invalid mode/capacity"); }
         if(next.equals(rules)) { return; }
         rules=next; readyPlayers.clear(); cancelCountdown(); updateLobbyPhase(); settingsVersion++;rulesVersion++;
     }
@@ -323,7 +323,8 @@ public final class GameRoom {
             return false;
         }
         int playerCount = getPlayerCount();
-        if (playerCount < minimumPlayers || playerCount > 4) {
+        int min = rules.boss() ? 1 : minimumPlayers;
+        if (playerCount < min || playerCount > 4) {
             return false;
         }
         for (PlayerSlot slot : playerSlots) {

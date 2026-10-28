@@ -50,6 +50,9 @@ public final class LobbyClient implements ConnectionListener, AutoCloseable {
     }
     public synchronized void enableBossSupport() { enableFighter();networkClient.enableBossSupport(); }
     public synchronized void enableBoss() { enableBossSupport();bossRoom=true; }
+    private int preferredMaxPlayers = 4;
+    public void setPreferredMaxPlayers(int max) { this.preferredMaxPlayers = Math.max(2, Math.min(4, max)); }
+    public int getPreferredMaxPlayers() { return preferredMaxPlayers; }
     public record Settings(String hostId,com.smashprofs.common.model.MatchRules rules,int playerCount,long version,long rulesVersion,List<Member> members) {
         public Settings { members=List.copyOf(members); }
         public Settings(String hostId,com.smashprofs.common.model.MatchRules rules,int playerCount,long version,long rulesVersion) {

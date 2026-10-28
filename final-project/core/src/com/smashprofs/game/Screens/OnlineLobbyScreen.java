@@ -22,7 +22,6 @@ public final class OnlineLobbyScreen implements Screen {
     private final OnlineLobbyFormModel model=new OnlineLobbyFormModel();
     private final TextField address,port,code;
     private final TextButton create,join,back,quickMatch,serverSettings;
-    private final SelectBox<String> gameMode;
     private final Label status,serverBadge;
     private final Table serverModal=new Table();
     private final Texture bgTexture;
@@ -36,18 +35,23 @@ public final class OnlineLobbyScreen implements Screen {
         var leo=portrait("Sprites/Leo/leo_stand.png",0);
         var luca=portrait("Sprites/Luca/luca_stand.png",0);
         var saved=Gdx.app.getPreferences("online-server");
-        address=new TextField(System.getProperty("smashprofs.server.host",saved.getString("host","127.0.0.1")),ui.skin,"comic");
+        String initHost=System.getProperty("smashprofs.server.host",saved.getString("host","127.0.0.1"));
+        if(initHost==null || initHost.isBlank()) { initHost="127.0.0.1"; }
+        address=new TextField(initHost,ui.skin,"comic");
         address.setMaxLength(253);address.setName("server-host");
-        port=new TextField(System.getProperty("smashprofs.server.port",saved.getString("port","54555")),ui.skin,"comic");
+        String initPort=System.getProperty("smashprofs.server.port",saved.getString("port","54555"));
+        if(initPort==null || initPort.isBlank()) { initPort="54555"; }
+        port=new TextField(initPort,ui.skin,"comic");
         port.setMaxLength(5);port.setName("server-port");port.setTextFieldFilter((field,c)->c>='0' && c<='9');
         code=new TextField("",ui.skin,"comic");code.setName("room-code");code.setMaxLength(64);
         code.setMessageText("NHẬP MÃ PHÒNG");code.setAlignment(Align.center);
         code.setTextFieldFilter((field,c)->Character.isLetterOrDigit(c) && c<128 || c=='-' || c=='_');
-        gameMode=new SelectBox<>(ui.skin);gameMode.setName("game-mode");gameMode.setItems("Đối kháng PvP","Hợp tác đánh Boss");
         create=ui.comicButton("TẠO PHÒNG RIÊNG","comic-white",()->connect(LobbyConfiguration.Mode.CREATE));create.setName("create-room");
         join=ui.comicButton("VÀO PHÒNG","comic-primary",()->connect(LobbyConfiguration.Mode.JOIN));join.setName("join-room");
         quickMatch=ui.comicButton("GHÉP TRẬN NHANH","comic-gold",()->{
-            if(!model.isConnecting()) { game.setScreen(new OnlineMatchmakingScreen(game,address.getText(),port.getText(),gameMode.getSelectedIndex()==1)); }
+            if(!model.isConnecting()) {
+                game.setScreen(new OnlineMatchmakingScreen(game,getHost(),getPort(),false));
+            }
         });quickMatch.setName("quick-match");
         back=ui.comicButton("< VỀ MENU","comic-white",this::back);back.setName("back");
         serverSettings=ui.comicButton("ĐỔI MÁY CHỦ","comic-white",()->{serverModal.setVisible(true);stage.setKeyboardFocus(address);});serverSettings.setName("server-settings");
@@ -63,12 +67,9 @@ public final class OnlineLobbyScreen implements Screen {
         var ranking=ui.comicButton("BXH","comic-gold",()->game.setScreen(new LeaderboardScreen(game,this)));ranking.setName("leaderboard");
         header.add(ranking).width(78).height(44);root.add(header).growX().height(56).row();
 
-        var modeRow=new Table();modeRow.add(ui.small("CHẾ ĐỘ CHƠI",OnlineUi.BRAWL_CYAN)).padRight(14);
-        modeRow.add(gameMode).width(300).height(38);
-        modeRow.add(ui.small("Chọn chế độ trước khi ghép hoặc tạo phòng",Color.valueOf("D0E6FF"))).padLeft(20);
-        root.add(modeRow).growX().height(44).padTop(12).row();
 
-        var quickCard=card("GHÉP TRẬN",alex,OnlineUi.BRAWL_GOLD,"Tìm đối thủ hoặc đồng đội online.\nĐủ hai người là tự vào trận.");
+
+        var quickCard=card("GHÉP TRẬN",alex,OnlineUi.BRAWL_GOLD,"Tìm đối thủ hoặc đồng đội online.\nĐủ người theo chế độ là tự vào trận.");
         quickCard.add(quickMatch).growX().height(50).padTop(8);
         var createCard=card("TẠO PHÒNG",luca,OnlineUi.BRAWL_CYAN,"Chơi cùng bạn bè, tự chỉnh luật.\nGửi mã phòng để mời mọi người.");
         createCard.add(create).growX().height(50).padTop(8);
@@ -116,6 +117,8 @@ public final class OnlineLobbyScreen implements Screen {
         var done=ui.comicButton("XONG","comic-primary",this::closeServerModal);done.setName("close-server-settings");
         panel.add(done).width(180).height(46).right().padTop(18);serverModal.add(panel).width(700);
     }
+    private String getHost() { String h=address.getText().strip();return h.isBlank()?"127.0.0.1":h; }
+    private String getPort() { String p=port.getText().strip();return p.isBlank()?"54555":p; }
     private void closeServerModal() { serverModal.setVisible(false);stage.setKeyboardFocus(code); }
     private void updateBadge() {
         String host=address.getText().strip();
@@ -124,11 +127,11 @@ public final class OnlineLobbyScreen implements Screen {
     private void connect(LobbyConfiguration.Mode mode) {
         String room=mode==LobbyConfiguration.Mode.CREATE?OnlineRoomPresentation.newRoomCode():code.getText().strip();
         if(mode==LobbyConfiguration.Mode.JOIN && room.isEmpty()) { status.setText("Hãy nhập mã phòng trước khi bấm Vào phòng.");status.setColor(OnlineUi.DANGER);return; }
-        model.connect(address.getText(),port.getText(),room,mode,gameMode.getSelectedIndex()==1);refresh();
+        model.connect(getHost(),getPort(),room,mode,false,4);refresh();
     }
     private void refresh() {
         boolean busy=model.isConnecting();address.setDisabled(busy);port.setDisabled(busy);code.setDisabled(busy);
-        create.setDisabled(busy);gameMode.setDisabled(busy);quickMatch.setDisabled(busy);join.setDisabled(busy);back.setDisabled(busy);serverSettings.setDisabled(busy);
+        create.setDisabled(busy);quickMatch.setDisabled(busy);join.setDisabled(busy);back.setDisabled(busy);serverSettings.setDisabled(busy);
         status.setText(model.getStatus());status.setColor(model.hasError()?OnlineUi.DANGER:Color.WHITE);
     }
     private void back() {
@@ -141,7 +144,7 @@ public final class OnlineLobbyScreen implements Screen {
         if(disposed) { return; }
         var client=model.takeJoinedClient();
         if(client!=null) {
-            Gdx.app.getPreferences("online-server").putString("host",address.getText().strip()).putString("port",port.getText().strip()).flush();
+            Gdx.app.getPreferences("online-server").putString("host",getHost()).putString("port",getPort()).flush();
             game.openOnlineLobby(client);return;
         }
         if(Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) { back();if(disposed) { return; } }

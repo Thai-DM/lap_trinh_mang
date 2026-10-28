@@ -81,6 +81,7 @@ public class OnlineRoomScreen implements Screen {
     private final TextButton applyRulesBtn, resetRulesBtn;
     private final Label ownershipLabel, draftNoticeLabel;
     private long displayedRules = -1;
+    private boolean initialRuleSync = true;
 
     private final Texture bgTexture;
     private boolean disposed;
@@ -460,6 +461,22 @@ public class OnlineRoomScreen implements Screen {
             initialCharacterSynced = true;
         }
 
+        // Initial rule sync from lobby preference if host
+        if (host && initialRuleSync && settings != null) {
+            initialRuleSync = false;
+            if (!settings.rules().boss() && lobby.getPreferredMaxPlayers() != settings.rules().maxPlayers()) {
+                lobby.updateSettings(new com.smashprofs.common.model.MatchRules(
+                    lobby.getPreferredMaxPlayers(),
+                    settings.rules().matchSeconds(),
+                    settings.rules().lives(),
+                    settings.rules().dropRate(),
+                    settings.rules().gameplay(),
+                    settings.rules().fighter(),
+                    settings.rules().keepWeaponOnThrow(),
+                    settings.rules().boss()
+                ));
+            }
+        }
         // Sync rules from server if updated by host
         if (settings != null && settings.rulesVersion() != displayedRules) {
             sync(settings.rules());
@@ -601,10 +618,12 @@ public class OnlineRoomScreen implements Screen {
 
         // Ready Hint & Status Text
         readyHint.setText(
-            lobby.isMatchmaking() ? (waiting ? "Đang chờ đối phương sẵn sàng..." : "Chọn nhân vật yêu thích rồi bấm Sẵn sàng!") :members.size() < 2 ? "Cần ít nhất 2 người để bắt đầu. Hãy sao chép mã phòng để mời bạn bè!" :
-            waiting ? "Cả phòng sẵn sàng → nạp đấu trường → đếm ngược 3 giây!" :
+            lobby.isMatchmaking() ? (waiting ? "Đang chờ đối phương sẵn sàng..." : "Chọn nhân vật yêu thích rồi bấm Sẵn sàng!") :
+            (settings != null && settings.rules().boss()) ? (waiting ? "Cả phòng sẵn sàng — đếm ngược 3 giây vào trận đánh Boss!" : "Cùng hạ Boss trước khi hết giờ · Bao nhiêu người trong phòng sẵn sàng cũng vào trận được!") :
+            members.size() < 2 ? "Cần ít nhất 2 người để bắt đầu. Hãy sao chép mã phòng để mời bạn bè!" :
+            waiting ? "Cả phòng sẵn sàng — nạp đấu trường — đếm ngược 3 giây!" :
             dirty && host ? "Bạn đang chỉnh luật: Hãy bấm Lưu luật phòng trước khi bấm Sẵn sàng." :
-            settings!=null && settings.rules().boss()?"Cùng hạ boss trước khi hết giờ · Có sẵn súng, tự nạp đạn · Chọn nhân vật rồi Sẵn sàng.":"Mỗi người hãy chọn một nhân vật yêu thích rồi bấm Sẵn sàng."
+            "Mọi người hãy chọn một nhân vật yêu thích rồi bấm Sẵn sàng."
         );
 
         String message = state.errorCode() != null ? OnlineRoomPresentation.error(state.errorCode(), state.statusText()) : switch (state.phase()) {

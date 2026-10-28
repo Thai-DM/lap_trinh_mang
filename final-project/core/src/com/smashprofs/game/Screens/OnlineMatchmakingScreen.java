@@ -28,13 +28,17 @@ public final class OnlineMatchmakingScreen implements Screen {
     public LobbyClient getLobbyClient() { return client; }
 
     public OnlineMatchmakingScreen(Game game, String host, String port, boolean boss) {
+        this(game, host, port, boss, false);
+    }
+
+    public OnlineMatchmakingScreen(Game game, String host, String port, boolean boss, boolean fourPlayers) {
         this.game = game;
         this.host = host;
         this.port = port;
 
         mode = new SelectBox<>(ui.skin);
-        mode.setItems("Đối kháng PvP · 1 đấu 1", "Hợp tác Boss · 2 người");
-        mode.setSelectedIndex(boss ? 1 : 0);
+        mode.setItems("Đối kháng 1 vs 1", "Đối kháng 4 người", "Hợp tác đánh Boss");
+        mode.setSelectedIndex(boss ? 2 : (fourPlayers ? 1 : 0));
         mode.setName("quick-mode");
 
         // Keep character selectbox hidden for backwards compatibility with tests and scripts
@@ -103,9 +107,12 @@ public final class OnlineMatchmakingScreen implements Screen {
     }
 
     private void updateModeDesc() {
-        if (mode.getSelectedIndex() == 1) {
-            modeDesc.setText("Hợp tác 2 người chơi · Cùng sinh tồn và tiêu diệt Demon Slime Boss!");
+        if (mode.getSelectedIndex() == 2) {
+            modeDesc.setText("Hợp tác đánh Demon Slime Boss · Bao nhiêu người cũng vào được!");
             modeDesc.setColor(Color.valueOf("FF7A85"));
+        } else if (mode.getSelectedIndex() == 1) {
+            modeDesc.setText("Đại chiến 4 người hỗn chiến · 3 mạng · Tranh tài sinh tồn khốc liệt!");
+            modeDesc.setColor(Color.valueOf("FFE066"));
         } else {
             modeDesc.setText("Đấu trường đối kháng 1 vs 1 · 3 mạng · Thi đấu tính điểm Elo xếp hạng!");
             modeDesc.setColor(OnlineUi.BRAWL_CYAN);
@@ -115,10 +122,18 @@ public final class OnlineMatchmakingScreen implements Screen {
     private void search() {
         if (client != null) { return; }
         try {
-            var config = new LobbyConfiguration(host.strip(), Integer.parseInt(port.strip()), "matchmaking", LobbyConfiguration.Mode.JOIN);
+            String targetHost = (host == null || host.isBlank()) ? "127.0.0.1" : host.strip();
+            int targetPort;
+            try {
+                String p = (port == null || port.isBlank()) ? "54555" : port.strip();
+                targetPort = Integer.parseInt(p);
+            } catch (NumberFormatException e) {
+                targetPort = 54555;
+            }
+            var config = new LobbyConfiguration(targetHost, targetPort, "matchmaking", LobbyConfiguration.Mode.JOIN);
             client = new LobbyClient(config);
             String chosenChar = character.getSelected() != null ? character.getSelected() : "Alex";
-            client.enableMatchmaking(mode.getSelectedIndex() == 1, chosenChar);
+            client.enableMatchmaking(mode.getSelectedIndex() == 2, chosenChar);
             elapsed = 0;
             client.startAsync();
             status.setColor(Color.WHITE);
@@ -162,7 +177,7 @@ public final class OnlineMatchmakingScreen implements Screen {
             } else {
                 status.setText(state.phase() == LobbyClient.Phase.CONNECTING || state.phase() == LobbyClient.Phase.JOINING
                         ? "Đang kết nối máy chủ…"
-                        : (mode.getSelectedIndex() == 1 ? "Đang tìm đồng đội…" : "Đang tìm đối thủ…") + " 1/2\nGhép đủ 2 người sẽ vào phòng chọn nhân vật.");
+                        : (mode.getSelectedIndex() == 2 ? "Đang tìm đồng đội…" : "Đang tìm đối thủ…") + " 1/2\nGhép đủ người sẽ vào phòng chọn nhân vật.");
             }
         }
         boolean searching = client != null;

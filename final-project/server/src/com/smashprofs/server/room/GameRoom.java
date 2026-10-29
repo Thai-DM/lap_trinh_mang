@@ -76,8 +76,19 @@ public final class GameRoom {
     public synchronized boolean isMatchmaking() { return matchmaking; }
     /** Casual quick match uses fixed rules and exactly two participants. */
     public synchronized void configureMatchmaking(PlayerId creator, boolean boss) {
-        if(boss) { configureBoss(creator); } else { configureGameplay(creator,true); }
-        rules=new com.smashprofs.common.model.MatchRules(2,rules.matchSeconds(),rules.lives(),rules.dropRate(),true,true,rules.keepWeaponOnThrow(),boss);
+        configureMatchmaking(creator, boss, 2);
+    }
+    public synchronized void configureMatchmaking(PlayerId creator, boolean boss, int targetPlayers) {
+        if(boss) {
+            configureBoss(creator);
+            rules=new com.smashprofs.common.model.MatchRules(2,180,rules.lives(),com.smashprofs.common.model.MatchRules.DropRate.HIGH,true,true,rules.keepWeaponOnThrow(),true);
+        } else if(targetPlayers == 4) {
+            configureGameplay(creator,true);
+            rules=new com.smashprofs.common.model.MatchRules(4,360,3,com.smashprofs.common.model.MatchRules.DropRate.VERY_HIGH,true,true,rules.keepWeaponOnThrow(),false);
+        } else {
+            configureGameplay(creator,true);
+            rules=new com.smashprofs.common.model.MatchRules(2,180,3,com.smashprofs.common.model.MatchRules.DropRate.HIGH,true,true,rules.keepWeaponOnThrow(),false);
+        }
         matchmaking=true;
     }
     private long settingsVersion;

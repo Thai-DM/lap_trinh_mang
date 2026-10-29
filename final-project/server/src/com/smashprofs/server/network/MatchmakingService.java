@@ -15,18 +15,25 @@ final class MatchmakingService {
         this.rooms=rooms;this.joins=joins;this.ready=ready;
     }
     synchronized GameRoom find(ClientSession session,boolean boss,String character,String requestId) throws ProtocolException {
+        return find(session, boss ? "BOSS" : "PVP", character, requestId);
+    }
+    synchronized GameRoom find(ClientSession session,String mode,String character,String requestId) throws ProtocolException {
+        boolean boss = mode.equals("BOSS");
+        boolean fourPlayers = mode.equals("FOUR_PLAYERS");
+        int targetPlayers = fourPlayers ? 4 : 2;
         if(!session.supportsFighter() || boss && !session.supportsBoss()) { throw failure("GAMEPLAY_CAPABILITY_REQUIRED",requestId); }
         if(!CHARACTERS.contains(character)) { throw failure("INVALID_PAYLOAD",requestId); }
         if(session.getRoomId()!=null) {
             var current=rooms.getRoom(session.getRoomId());
-            if(current!=null && current.isMatchmaking() && current.getRules().boss()==boss
+            if(current!=null && current.isMatchmaking() && current.getRules().boss()==boss && current.getRules().maxPlayers()==targetPlayers
                     && character.equals(current.getSelectedCharacter(session.getPlayerId()))) { return current; }
             throw failure("INVALID_ROOM_STATE",requestId);
         }
         for(var room:rooms.getRooms()) {
             synchronized(room) {
                 if(room.isClosed() || rooms.getRoom(room.getRoomId())!=room || !room.isMatchmaking()
-                        || room.getRules().boss()!=boss || room.getPlayerCount()==0 || room.getPlayerCount()>=2
+                        || room.getRules().boss()!=boss || room.getRules().maxPlayers()!=targetPlayers
+                        || room.getPlayerCount()==0 || room.getPlayerCount()>=targetPlayers
                         || room.getPhase()!=RoomPhase.WAITING && room.getPhase()!=RoomPhase.READY) { continue; }
                 return enter(session,room,character,requestId);
             }
@@ -35,7 +42,7 @@ final class MatchmakingService {
         try { room=rooms.createRoom("quick-"+UUID.randomUUID()); }
         catch(IllegalStateException full) { throw failure("MATCHMAKING_FULL",requestId); }
         synchronized(room) {
-            room.configureMatchmaking(session.getPlayerId(),boss);
+            room.configureMatchmaking(session.getPlayerId(),boss,targetPlayers);
             try { return enter(session,room,character,requestId); }
             catch(ProtocolException failure) { if(room.getPlayerCount()==0) { rooms.removeRoom(room.getRoomId()); }throw failure; }
         }

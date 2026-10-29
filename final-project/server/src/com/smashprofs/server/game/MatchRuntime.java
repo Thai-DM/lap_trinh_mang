@@ -10,6 +10,7 @@ import com.smashprofs.server.game.projectile.ServerProjectile;
 import com.smashprofs.server.game.physics.HeadlessPhysicsWorld;
 import com.smashprofs.server.game.physics.PhysicsWorldFactory;
 import com.smashprofs.server.game.physics.MapCollisionBuilder;
+import com.smashprofs.server.game.physics.MapCollisionDefinition;
 import com.smashprofs.server.game.physics.TmxCollisionLoader;
 import com.smashprofs.server.game.physics.PlayerPhysicsFactory;
 import com.smashprofs.server.game.physics.PlayerMovementController;
@@ -168,12 +169,13 @@ public final class MatchRuntime implements AutoCloseable {
             try {
                 candidate = Objects.requireNonNull(physicsFactory.get(), "physicsFactory không được trả null");
                 candidate.getWorld(); // Không nhận wrapper đã dispose.
-                var geometry = new TmxCollisionLoader().loadOriginalMap();
+                String mapRes = System.getProperty("ssprofs.map", TmxCollisionLoader.ORIGINAL_MAP_RESOURCE);
+                var geometry = new TmxCollisionLoader().loadResource(mapRes);
                 candidateArena = new MapCollisionBuilder().build(candidate, geometry,setup.rules().fighter());
                 candidatePlayers = new PlayerPhysicsFactory().build(candidate, setup, geometry);
                 candidateProjectiles = new ProjectileManager(candidate, initialState, candidatePlayers);
                 candidateJump = new PlayerJumpController(candidatePlayers, candidateProjectiles);
-                candidateBoundary = new ArenaBoundaryController(candidatePlayers, candidateJump);
+                candidateBoundary = new ArenaBoundaryController(candidatePlayers, candidateJump, mapBounds(geometry));
                 candidateMelee = new MeleeCombatController(initialState, candidatePlayers, meleeCooldownTicks);
                 candidateStomp = new StompCombatController(initialState, candidatePlayers, candidateJump);
                 if(setup.rules().gameplay()) { candidateGameplay=new GameplayMatch(setup,initialState,candidatePlayers,candidateJump,geometry);candidateProjectiles.enableGameplayLimits(); }
@@ -342,7 +344,9 @@ public final class MatchRuntime implements AutoCloseable {
             PlayerInput input = inputByPlayer.get(attackerId);
             if(gameplay!=null && input!=null) { gameplay.items.interact(input,upcomingTick); }
             // Cùng slot: melee trước stomp; giữa các player giữ policy slot-order/HP có hiệu lực ngay.
-            if (input != null && input.meleePressed() && (gameplay==null || !gameplay.items.attack(attackerId,upcomingTick))) {
+            boolean hasWeapon = gameplay != null && !gameplay.progress.get(attackerId).weapon.equals("NONE");
+            boolean attackAction = input != null && (input.meleePressed() || (hasWeapon && input.blockHeld()));
+            if (attackAction && (gameplay==null || !gameplay.items.attack(attackerId,upcomingTick))) {
                 var hit = meleeController.attack(attackerId, serverTick);
                 if (hit != null) {
                     // Player.applyForces gốc cộng gravity hiện tại của target vào impulse knockback.
@@ -541,6 +545,36 @@ public final class MatchRuntime implements AutoCloseable {
                 arenaBodies = null;
             }
         }
+    }
+
+    /**
+     * Arena limits follow the collision geometry of the selected map instead of the old
+     * 3.0..8.5 baseline, so side platforms remain reachable. The 0.5 m margin keeps the
+     * original push-back feel while still allowing players to fall off outer ledges.
+     */
+    private static ArenaBoundaryController.Bounds mapBounds(MapCollisionDefinition geometry) {
+        // Giữ nguyên hành vi arena của map gốc; chỉ map mới suy ra biên từ collision thật.
+        if (TmxCollisionLoader.ORIGINAL_MAP_RESOURCE.equals(geometry.sourceName())) {
+            return ArenaBoundaryController.ORIGINAL_BOUNDS;
+        }
+        float minX = Float.POSITIVE_INFINITY;
+        float maxX = Float.NEGATIVE_INFINITY;
+        for (var rectangle : geometry.rectangles()) {
+            float left = rectangle.xPixels() / MapCollisionBuilder.PIXELS_PER_METER;
+            float right = (rectangle.xPixels() + rectangle.widthPixels()) / MapCollisionBuilder.PIXELS_PER_METER;
+            if (right > left) {
+                minX = Math.min(minX, left);
+                maxX = Math.max(maxX, right);
+            }
+        }
+        if (!Float.isFinite(minX) || !Float.isFinite(maxX) || minX >= maxX) {
+            return ArenaBoundaryController.ORIGINAL_BOUNDS;
+        }
+        float width = geometry.mapWidthPixels() / MapCollisionBuilder.PIXELS_PER_METER;
+        float left = Math.max(0.2f, minX - 0.5f);
+        float right = Math.min(width - 0.2f, maxX + 0.5f);
+        return left < right ? new ArenaBoundaryController.Bounds(left, right, 0.0f)
+                : ArenaBoundaryController.ORIGINAL_BOUNDS;
     }
 
     @FunctionalInterface

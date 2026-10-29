@@ -7,7 +7,7 @@ import java.util.*;
 
 /** Code-drawn pixel art shared by pickups, held weapons, projectiles and equipment slots. */
 public final class CombatIcons implements AutoCloseable {
-    private static final String[] TYPES={"NONE","SHOTGUN","LASER","BAZOOKA","GRENADE","HEALTH","SHIELD","ABILITY","PELLET","MISSILE","ORBIT","SWORD","WARHAMMER","DUAL_DAGGERS","SPEAR"};
+    private static final String[] TYPES={"NONE","SHOTGUN","LASER","BAZOOKA","GRENADE","HEALTH","SHIELD","ABILITY","PELLET","MISSILE","ORBIT","SWORD","WARHAMMER","DUAL_DAGGERS","SPEAR","RIFLE","BULLET"};
     private final Texture texture;
     private final Map<String,TextureRegion> regions=new HashMap<>();
     private final Map<String,Sprite> sprites=new HashMap<>();
@@ -94,6 +94,21 @@ public final class CombatIcons implements AutoCloseable {
                 rect("593618",4,15,17,3);rect("8B5A2B",5,16,16,1);
                 rect("B45309",2,22,4,3);
             }
+            case "RIFLE"->{
+                rect("0F172A",2,11,28,10);
+                rect("64748B",12,13,18,2);rect("94A3B8",14,13,15,1);rect("334155",28,12,2,4);
+                rect("1E293B",16,12,9,4);rect("475569",17,13,7,2);
+                rect("334155",9,12,8,6);rect("475569",10,13,6,3);
+                rect("1E293B",14,17,4,6);rect("475569",13,19,4,4);rect("64748B",12,22,4,2);
+                rect("1E293B",8,17,4,6);rect("334155",7,19,3,4);
+                rect("1E293B",2,13,7,5);rect("334155",3,14,5,3);rect("0F172A",2,14,2,7);
+            }
+            case "BULLET"->{
+                rect("78350F",4,14,22,4);
+                rect("F59E0B",8,14,18,4);
+                rect("FDE68A",14,15,12,2);
+                rect("FFFFFF",22,15,4,2);
+            }
             default->{rect("9D6547",8,10,16,14);rect("E8B18A",9,9,14,12);rect("F4C6A0",10,8,4,8);rect("F4C6A0",15,7,4,9);rect("F4C6A0",20,9,4,8);rect("C68F67",7,17,6,7);rect("60473D",11,24,11,3);}
         }
     }
@@ -102,7 +117,7 @@ public final class CombatIcons implements AutoCloseable {
         var sprite=sprites.getOrDefault(type,sprites.get("NONE"));sprite.setBounds(x-width/2,y-height/2,width,height);sprite.setOriginCenter();sprite.setRotation(rotation);sprite.setFlip(flip,false);sprite.setColor(Color.WHITE);sprite.draw(batch);
     }
     public static String name(String type) { return switch(type) {
-        case "SHOTGUN"->"Shotgun";case "LASER"->"Súng laser";case "BAZOOKA"->"Bazooka";case "GRENADE"->"Lựu đạn";case "SWORD"->"Thanh kiếm";case "WARHAMMER"->"Búa đại chiến";case "DUAL_DAGGERS"->"Song dao găm";case "SPEAR"->"Thương dài";case "HEALTH"->"Bình máu";case "SHIELD"->"Khiên";default->"Tay không";
+        case "RIFLE"->"Súng trường";case "SHOTGUN"->"Shotgun";case "LASER"->"Súng laser";case "BAZOOKA"->"Bazooka";case "GRENADE"->"Lựu đạn";case "SWORD"->"Thanh kiếm";case "WARHAMMER"->"Búa đại chiến";case "DUAL_DAGGERS"->"Song dao găm";case "SPEAR"->"Thương dài";case "HEALTH"->"Bình máu";case "SHIELD"->"Khiên";default->"Tay không";
     }; }
     @Override public void close() { texture.dispose();regions.clear();sprites.clear(); }
 }

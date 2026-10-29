@@ -1,7 +1,6 @@
 package com.smashprofs.server.game.physics;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
@@ -16,22 +15,69 @@ public final class SpawnProvider {
         if (!Float.isFinite(polygonSkinMeters) || polygonSkinMeters < 0) {
             throw new IllegalArgumentException("polygonSkinMeters phải hợp lệ");
         }
-        // PlayerFactory gốc: (450,85) và (725,50) pixel, không lấy vị trí từ client.
+        if (TmxCollisionLoader.ORIGINAL_MAP_RESOURCE.equals(geometry.sourceName())) {
+            List<SpawnPosition> orig = new ArrayList<>();
+            orig.add(clearAbove(geometry, new SpawnPosition(4.5f, 0.85f), polygonSkinMeters));
+            orig.add(clearAbove(geometry, new SpawnPosition(7.25f, 0.5f), polygonSkinMeters));
+            var origPlatform = geometry.rectangles().stream()
+                    .filter(rectangle -> rectangle.heightPixels() > 0
+                            && rectangle.widthPixels() / MapCollisionBuilder.PIXELS_PER_METER
+                            > 8 * PlayerPhysicsFactory.PLAYER_RADIUS_METERS)
+                    .max(java.util.Comparator.comparingDouble(MapCollisionDefinition.CollisionRectangle::widthPixels)
+                            .thenComparingInt(MapCollisionDefinition.CollisionRectangle::objectId))
+                    .orElseThrow(() -> new IllegalArgumentException("Map không có platform đủ rộng cho spawn bổ sung"));
+            for (float fraction : new float[]{0.25f, 0.75f}) {
+                float x = (origPlatform.xPixels() + fraction * origPlatform.widthPixels()) / MapCollisionBuilder.PIXELS_PER_METER;
+                float y = (origPlatform.yPixels() + origPlatform.heightPixels()) / MapCollisionBuilder.PIXELS_PER_METER
+                        + PlayerPhysicsFactory.PLAYER_RADIUS_METERS + polygonSkinMeters + CLEARANCE_METERS;
+                orig.add(clearAbove(geometry, new SpawnPosition(x, y), polygonSkinMeters));
+            }
+            positions = List.copyOf(orig);
+            respawnCandidates = safePlatformCandidates(geometry, polygonSkinMeters);
+            return;
+        }
+
+        // PlayerFactory gốc dùng (450,85) và (725,50) pixel. Chỉ giữ các điểm này khi map
+        // thực sự có platform bên dưới; map mới đặt đảo chính cao hơn nên phải suy ra spawn
+        // từ platform thay vì thả người chơi vào khoảng không.
         List<SpawnPosition> candidates = new ArrayList<>();
-        candidates.add(clearAbove(geometry, new SpawnPosition(4.5f, 0.85f), polygonSkinMeters));
-        candidates.add(clearAbove(geometry, new SpawnPosition(7.25f, 0.5f), polygonSkinMeters));
-        var platform = geometry.rectangles().stream()
-                .filter(rectangle -> rectangle.heightPixels() > 0
-                        && rectangle.widthPixels() / MapCollisionBuilder.PIXELS_PER_METER
-                        > 8 * PlayerPhysicsFactory.PLAYER_RADIUS_METERS)
-                .max(Comparator.comparingDouble(MapCollisionDefinition.CollisionRectangle::widthPixels)
-                        .thenComparingInt(MapCollisionDefinition.CollisionRectangle::objectId))
-                .orElseThrow(() -> new IllegalArgumentException("Map không có platform đủ rộng cho spawn bổ sung"));
-        for (float fraction : new float[]{0.25f, 0.75f}) {
+        SpawnPosition legacyA = clearAbove(geometry, new SpawnPosition(4.5f, 0.85f), polygonSkinMeters);
+        SpawnPosition legacyB = clearAbove(geometry, new SpawnPosition(7.25f, 0.5f), polygonSkinMeters);
+        if (hasSupportBelow(geometry, legacyA) && hasSupportBelow(geometry, legacyB)) {
+            candidates.add(legacyA);
+            candidates.add(legacyB);
+        }
+        MapCollisionDefinition.CollisionRectangle platform = spawnPlatform(geometry);
+        if (platform == null) {
+            throw new IllegalArgumentException("Map không có platform đủ rộng cho spawn");
+        }
+        float minSeparation = 2 * PlayerPhysicsFactory.PLAYER_RADIUS_METERS + CLEARANCE_METERS;
+        float[] fractions = candidates.isEmpty()
+                ? new float[]{0.16f, 0.38f, 0.62f, 0.84f}
+                : new float[]{0.25f, 0.75f, 0.12f, 0.38f, 0.5f, 0.62f, 0.88f};
+        for (float fraction : fractions) {
+            if (candidates.size() >= 4) {
+                break;
+            }
             float x = (platform.xPixels() + fraction * platform.widthPixels()) / MapCollisionBuilder.PIXELS_PER_METER;
             float y = (platform.yPixels() + platform.heightPixels()) / MapCollisionBuilder.PIXELS_PER_METER
                     + PlayerPhysicsFactory.PLAYER_RADIUS_METERS + polygonSkinMeters + CLEARANCE_METERS;
-            candidates.add(clearAbove(geometry, new SpawnPosition(x, y), polygonSkinMeters));
+            SpawnPosition candidate = clearAbove(geometry, new SpawnPosition(x, y), polygonSkinMeters);
+            boolean clear = true;
+            for (SpawnPosition previous : candidates) {
+                float dx = candidate.xMeters() - previous.xMeters();
+                float dy = candidate.yMeters() - previous.yMeters();
+                if (dx * dx + dy * dy < minSeparation * minSeparation) {
+                    clear = false;
+                    break;
+                }
+            }
+            if (clear) {
+                candidates.add(candidate);
+            }
+        }
+        if (candidates.size() < 4) {
+            throw new IllegalArgumentException("Map không đủ spawn không chồng nhau");
         }
         for (int index = 0; index < candidates.size(); index++) {
             SpawnPosition position = candidates.get(index);
@@ -65,6 +111,64 @@ public final class SpawnProvider {
 
     /** Precomputed once per match: supported platform tops, clear of every solid and lava. */
     public List<SpawnPosition> getRespawnCandidates() { return respawnCandidates; }
+
+    /** Widest playable top surface, excluding the lava/cloud surface and map-edge ledges. */
+    private static MapCollisionDefinition.CollisionRectangle spawnPlatform(MapCollisionDefinition geometry) {
+        float minWidthPixels = 10 * PlayerPhysicsFactory.PLAYER_RADIUS_METERS
+                * MapCollisionBuilder.PIXELS_PER_METER;
+        float mapHeight = geometry.mapHeightPixels() / MapCollisionBuilder.PIXELS_PER_METER;
+        MapCollisionDefinition.CollisionRectangle best = null;
+        for (var rectangle : geometry.rectangles()) {
+            if (rectangle.widthPixels() < minWidthPixels || rectangle.heightPixels() <= 0
+                    || isLavaSurface(geometry, rectangle)) {
+                continue;
+            }
+            float top = (rectangle.yPixels() + rectangle.heightPixels()) / MapCollisionBuilder.PIXELS_PER_METER;
+            if (top <= 0.1f || top >= mapHeight - 0.1f) {
+                continue;
+            }
+            if (best == null || rectangle.widthPixels() > best.widthPixels()
+                    || (rectangle.widthPixels() == best.widthPixels()
+                    && rectangle.objectId() < best.objectId())) {
+                best = rectangle;
+            }
+        }
+        return best;
+    }
+
+    /** Legacy spawn coordinates are only valid when a solid top exists below them. */
+    private static boolean hasSupportBelow(MapCollisionDefinition geometry, SpawnPosition spawn) {
+        float radius = PlayerPhysicsFactory.PLAYER_RADIUS_METERS;
+        for (var rectangle : geometry.rectangles()) {
+            float left = rectangle.xPixels() / MapCollisionBuilder.PIXELS_PER_METER;
+            float right = (rectangle.xPixels() + rectangle.widthPixels()) / MapCollisionBuilder.PIXELS_PER_METER;
+            float top = (rectangle.yPixels() + rectangle.heightPixels()) / MapCollisionBuilder.PIXELS_PER_METER;
+            if (spawn.xMeters() + radius <= left || spawn.xMeters() - radius >= right
+                    || top > spawn.yMeters() + radius || spawn.yMeters() - top > 2.5f
+                    || isLavaSurface(geometry, rectangle)) {
+                continue;
+            }
+            return true;
+        }
+        return false;
+    }
+
+    private static boolean isLavaSurface(MapCollisionDefinition geometry,
+                                         MapCollisionDefinition.CollisionRectangle platform) {
+        float left = platform.xPixels() / MapCollisionBuilder.PIXELS_PER_METER;
+        float right = (platform.xPixels() + platform.widthPixels()) / MapCollisionBuilder.PIXELS_PER_METER;
+        float top = (platform.yPixels() + platform.heightPixels()) / MapCollisionBuilder.PIXELS_PER_METER;
+        for (var lava : geometry.lavaZones()) {
+            float lavaLeft = lava.xPixels() / MapCollisionBuilder.PIXELS_PER_METER;
+            float lavaRight = (lava.xPixels() + lava.widthPixels()) / MapCollisionBuilder.PIXELS_PER_METER;
+            float lavaTop = (lava.yPixels() + lava.heightPixels()) / MapCollisionBuilder.PIXELS_PER_METER;
+            if (right > lavaLeft && left < lavaRight && top <= lavaTop + 0.02f) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private static List<SpawnPosition> safePlatformCandidates(MapCollisionDefinition geometry,float skin) {
         var result=new ArrayList<SpawnPosition>();float radius=PlayerPhysicsFactory.PLAYER_RADIUS_METERS+skin;
         float width=geometry.mapWidthPixels()/100,height=geometry.mapHeightPixels()/100;

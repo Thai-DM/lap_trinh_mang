@@ -6,6 +6,45 @@ import java.util.*;
 import static org.junit.Assert.*;
 
 public class ItemGameplayTest {
+    @Test public void assaultRifleHas12RoundsAndFiresSingleOrAutomaticRapidBurst() {
+        var g=game();var position=g.bodies.getPosition(id(0));
+        g.items.drop("RIFLE",position.xMeters(),position.yMeters(),0);
+        runtime.submitInput(action(0,true,false));runtime.tick();
+        assertEquals("RIFLE",g.snapshot().player("p0").weapon());
+        assertEquals(12,g.snapshot().player("p0").ammo());
+
+        // 1. Nhấp nút (Tap): bắn 1 phát, tiêu tốn 1 viên, kích hoạt cooldown 8 tick
+        assertTrue(g.items.attack(id(0),1));
+        assertEquals(11,g.snapshot().player("p0").ammo());
+        assertEquals(1,g.items.shotViews().size());
+        assertEquals("RIFLE",g.items.shotViews().get(0).type());
+
+        // Nhấp tiếp khi chưa hết cooldown (tick 2..8) không bắn thêm đạn
+        assertTrue(g.items.attack(id(0),2));
+        assertEquals(11,g.snapshot().player("p0").ammo());
+        assertEquals(1,g.items.shotViews().size());
+
+        // Phát thứ 2 bắn tại tick 9 (1 + 8 tick cooldown)
+        assertTrue(g.items.attack(id(0),9));
+        assertEquals(10,g.snapshot().player("p0").ammo());
+        assertEquals(2,g.items.shotViews().size());
+
+        // 2. Dí nút (Hold liên thanh): bắn liên tiếp mỗi 8 tick cho đến hết 12 viên
+        for(int i=0;i<10;i++) {
+            long tick=17+i*8;
+            assertTrue(g.items.attack(id(0),tick));
+            assertEquals(9-i,g.snapshot().player("p0").ammo());
+        }
+        assertEquals(0,g.snapshot().player("p0").ammo());
+        assertEquals("NONE",g.snapshot().player("p0").weapon());
+    }
+    @Test public void assaultRifleDealsDamageAndPushesOpponent() {
+        var g=game();g.bodies.respawn(id(1),4.9f,3);
+        pickup("RIFLE");g.items.attack(id(0),1);
+        for(int tick=2;tick<10;tick++) { g.beforeTick(tick);g.items.update(tick); }
+        assertEquals(92,g.state.getPlayer(id(1)).getHp(),0);
+        assertEquals(8,g.snapshot().player("p0").damageDealt(),.001);
+    }
     @Test public void equippedAmmoIsAuthoritativeAndClearedWhenTheLastRoundIsUsed() {
         var game=runtime.gameplay();var position=game.bodies.getPosition(id(0));
         game.items.drop("SHOTGUN",position.xMeters(),position.yMeters(),0);

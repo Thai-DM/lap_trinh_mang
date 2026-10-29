@@ -15,7 +15,9 @@ public class GameplayClientModelTest {
         assertEquals(5,GameplayProtocol.snapshot(encoded).player("p0").ammo());
         player.put("weapon","DUAL_DAGGERS");player.put("ammo",8);
         assertEquals(8,GameplayProtocol.snapshot(encoded).player("p0").ammo());
-        player.put("ammo",9);assertThrows(IllegalArgumentException.class,()->GameplayProtocol.snapshot(encoded));
+        player.put("weapon","RIFLE");player.put("ammo",12);
+        assertEquals(12,GameplayProtocol.snapshot(encoded).player("p0").ammo());
+        player.put("ammo",13);assertThrows(IllegalArgumentException.class,()->GameplayProtocol.snapshot(encoded));
         player.put("ammo",-1);assertThrows(IllegalArgumentException.class,()->GameplayProtocol.snapshot(encoded));
     }
     private GameplaySnapshot state() {

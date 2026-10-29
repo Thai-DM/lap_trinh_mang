@@ -7,6 +7,20 @@ import static org.junit.Assert.*;
 
 /** Equipment and Unarmed actions share the real simulation, ammo and hit registration. */
 public class FighterEquipmentTest {
+    @Test public void rifleHoldingAttackKeyFiresContinuousBursts() {
+        pickup("RIFLE");assertEquals(12,game.progress.get(a).ammo);
+        // Nhấp phát đầu tiên: meleePressed=true, blockHeld=true
+        send(new PlayerInput(a,sequence++,sequence,0,false,false,true,true,false,false,false,FighterInput.NONE));
+        assertEquals(11,game.progress.get(a).ammo);
+        // Người chơi tiếp tục dí nút (blockHeld=true, meleePressed=false) trong 7 tick tiếp theo
+        for(int t=0;t<7;t++) {
+            send(new PlayerInput(a,sequence++,sequence,0,false,false,false,true,false,false,false,FighterInput.NONE));
+            assertEquals(11,game.progress.get(a).ammo);
+        }
+        // Đến tick thứ 8 sau phát đầu (cooldown 8 tick kết thúc): tự động bắn phát thứ 2
+        send(new PlayerInput(a,sequence++,sequence,0,false,false,false,true,false,false,false,FighterInput.NONE));
+        assertEquals(10,game.progress.get(a).ammo);
+    }
     private final PlayerId a=new PlayerId("a"),b=new PlayerId("b");
     private MatchRuntime runtime;private GameplayMatch game;private long sequence;
     @Before public void start() {

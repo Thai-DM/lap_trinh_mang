@@ -412,7 +412,8 @@ public class PlayScreen implements Screen {
      */
     private void createTileMap() {
         mapLoader = new TmxMapLoader();
-        map = mapLoader.load("1/Map1New2Remake.tmx");
+        String mapRes = System.getProperty("ssprofs.map", "1/Map1New2Remake.tmx");
+        map = mapLoader.load(mapRes);
         tiledMapRenderer = new OrthogonalTiledMapRenderer(map, 1 / PPM);
         //tiledMapRenderer.setBlending(true);
 

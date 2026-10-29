@@ -302,6 +302,7 @@ final class OnlinePlayScreen implements Screen {
                 float angle=(float)Math.toDegrees(Math.atan2(shot.vy(),shot.vx()));
                 switch(shot.type()) {
                     case "SHOTGUN"->combatIcons.draw(batch,"PELLET",shot.x(),shot.y(),.09f,.055f,angle,false);
+                    case "RIFLE"->combatIcons.draw(batch,"BULLET",shot.x(),shot.y(),.12f,.045f,angle,false);
                     case "BAZOOKA"->combatIcons.draw(batch,"MISSILE",shot.x(),shot.y(),.20f,.13f,angle,false);
                     case "GRENADE"->combatIcons.draw(batch,"GRENADE",shot.x(),shot.y(),.12f,.12f,animationTime*150,false);
                     case "ORBIT"->combatIcons.draw(batch,"ORBIT",shot.x(),shot.y(),.15f,.15f,animationTime*300,false);

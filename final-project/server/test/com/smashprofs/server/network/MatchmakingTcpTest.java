@@ -11,6 +11,14 @@ import static org.junit.Assert.*;
 
 /** Real TCP, production routing and lifecycle. No fake match results or player identities. */
 public class MatchmakingTcpTest {
+    @Test public void fourPlayerMatchmakingUses6MinutesAnd4SecondDrops() throws Exception {
+        var a=peer(true);var response=a.find("FOUR_PLAYERS","Alex");
+        assertEquals(MessageType.ROOM_STATE,response.type());
+        String room=response.payload().path("roomId").asText();var state=server.getRoomManager().getRoom(room);
+        assertTrue(state.isMatchmaking());assertEquals(4,state.getRules().maxPlayers());
+        assertEquals(360,state.getRules().matchSeconds());
+        assertEquals(com.smashprofs.common.model.MatchRules.DropRate.VERY_HIGH,state.getRules().dropRate());
+    }
     private GameServer server;
     private final List<Peer> peers=new ArrayList<>();
     @Before public void start() { server=new GameServer("127.0.0.1",0,32);server.start(); }
@@ -51,7 +59,7 @@ public class MatchmakingTcpTest {
     @Test public void firstPlayerWaitsAndDuplicateRequestIsIdempotent() throws Exception {
         var a=peer(true);var response=a.find("PVP","Luca");assertEquals(MessageType.ROOM_STATE,response.type());
         String room=response.payload().path("roomId").asText();var state=server.getRoomManager().getRoom(room);
-        assertTrue(state.isMatchmaking());assertEquals(1,state.getPlayerCount());assertEquals(2,state.getRules().maxPlayers());
+        assertTrue(state.isMatchmaking());assertEquals(1,state.getPlayerCount());assertEquals(2,state.getRules().maxPlayers());assertEquals(180,state.getRules().matchSeconds());assertEquals(com.smashprofs.common.model.MatchRules.DropRate.HIGH,state.getRules().dropRate());
         assertFalse(state.isPlayerReady(new com.smashprofs.common.model.PlayerId(a.player)));assertNull(state.getMatchRuntime());
         assertEquals(room,a.find("PVP","Luca").payload().path("roomId").asText());assertEquals(1,server.getRoomManager().getRoomCount());
     }

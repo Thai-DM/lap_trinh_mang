@@ -40,13 +40,16 @@ public final class LobbyClient implements ConnectionListener, AutoCloseable {
     private GameStartRoster match;
     private volatile ClientMatchSession matchSession;
     private Pending pending;
-    private boolean gameplay,bossRoom;
+    private boolean gameplay,bossRoom,fourPlayersRoom;
     private boolean matchmaking;
     private String matchmakingCharacter,roomId;
     public boolean isMatchmaking() { return matchmaking; }
     public synchronized void enableMatchmaking(boolean boss,String character) {
+        enableMatchmaking(boss,false,character);
+    }
+    public synchronized void enableMatchmaking(boolean boss,boolean fourPlayers,String character) {
         if(phase!=Phase.IDLE || !CHARACTERS.contains(character)) { throw new IllegalArgumentException("Choose a valid character before searching"); }
-        enableBossSupport();matchmaking=true;bossRoom=boss;matchmakingCharacter=character;
+        enableBossSupport();matchmaking=true;bossRoom=boss;fourPlayersRoom=fourPlayers;matchmakingCharacter=character;
     }
     public synchronized void enableBossSupport() { enableFighter();networkClient.enableBossSupport(); }
     public synchronized void enableBoss() { enableBossSupport();bossRoom=true; }
@@ -151,7 +154,8 @@ public final class LobbyClient implements ConnectionListener, AutoCloseable {
         localId = networkClient.getPlayerId();
         if (localId == null) { fail("INVALID_SESSION", "Missing server-issued player identity", false); return; }
         if(matchmaking) {
-            request(MessageType.FIND_MATCH,ProtocolV1.object().put("mode",bossRoom?"BOSS":"PVP").put("characterId",matchmakingCharacter),matchmakingCharacter);
+            String modeStr = bossRoom ? "BOSS" : (fourPlayersRoom ? "FOUR_PLAYERS" : "PVP");
+            request(MessageType.FIND_MATCH,ProtocolV1.object().put("mode",modeStr).put("characterId",matchmakingCharacter),matchmakingCharacter);
         } else if (configuration.mode() == LobbyConfiguration.Mode.CREATE) {
             var payload=ProtocolV1.object().put("roomId",roomId);if(gameplay) { payload.put("gameplay",true); }
             if(bossRoom) { payload.put("boss",true); }
@@ -330,8 +334,9 @@ public final class LobbyClient implements ConnectionListener, AutoCloseable {
         if (readyResponse) {
             require((local.ready() || acknowledgedRules!=null) && pending.characterId().equals(local.characterId()), "READY confirmation mismatch");
             if(found) {
+                int expectedPlayers = fourPlayersRoom ? 4 : 2;
                 require(acknowledgedRules!=null && acknowledgedRules.rules().fighter()
-                        && acknowledgedRules.rules().maxPlayers()==2 && acknowledgedRules.rules().boss()==bossRoom,"Invalid quick match rules/readiness");
+                        && acknowledgedRules.rules().maxPlayers()==expectedPlayers && acknowledgedRules.rules().boss()==bossRoom,"Invalid quick match rules/readiness");
             }
         }
         members = roster.stream().sorted(Comparator.comparingInt(Member::slotIndex)).toList();

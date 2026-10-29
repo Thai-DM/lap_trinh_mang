@@ -19,7 +19,7 @@ public final class OnlineRoomPresentation {
     public static String stockRule() { return "Dung nham: -10 HP và bật lên. HP về 0: mất 1 mạng, hồi sinh sau 1,5 giây với 100 HP."; }
     public static String stockRule(MatchRules rules) { return rules.boss()?"Đồng đội không gây sát thương nhau. Có sẵn Laser, hết đạn tự nạp sau 1,5 giây. Dung nham -10 HP; hết HP mất mạng.":rules.fighter()?"Hết HP hoặc vượt biên mất 1 mạng; hồi sinh 100 HP sau 1,5 giây. Có nhặt và dùng vũ khí.":stockRule(); }
     public static String dropRate(MatchRules.DropRate rate) { return switch(rate) {
-        case NONE->"Tắt vật phẩm";case LOW->"Thấp · 30 giây/lần";case MEDIUM->"Vừa · 15 giây/lần";case HIGH->"Cao · 8 giây/lần";
+        case NONE->"Tắt vật phẩm";case LOW->"Thấp · 30 giây/lần";case MEDIUM->"Vừa · 15 giây/lần";case HIGH->"Cao · 8 giây/lần";case VERY_HIGH->"Rất cao · 4 giây/lần";
     }; }
     public static String error(String code,String fallback) {
         if(code==null) { return fallback; }

@@ -7,13 +7,14 @@ import java.util.*;
 /** Bounded simulation-time item/projectile system. Ballistic grenades use fixed-step gravity and swept collisions. */
 final class ItemSystem implements AutoCloseable {
     static final int MAX_ITEMS=16,MAX_SHOTS=64;
-    private static final String[] TYPES={"SHOTGUN","LASER","BAZOOKA","GRENADE","SWORD","WARHAMMER","DUAL_DAGGERS","SPEAR","HEALTH","SHIELD"};
+    private static final String[] TYPES={"SHOTGUN","LASER","BAZOOKA","GRENADE","SWORD","WARHAMMER","DUAL_DAGGERS","SPEAR","RIFLE","HEALTH","SHIELD"};
     static int ammoFor(String type) {
         return switch(type) {
             case "GRENADE"->1;
             case "WARHAMMER"->4;
             case "SWORD","SPEAR"->6;
             case "DUAL_DAGGERS"->8;
+            case "RIFLE"->12;
             default->6;
         };
     }
@@ -194,6 +195,10 @@ final class ItemSystem implements AutoCloseable {
                     if(bossCollision) { game.boss.damage(shot.owner,12); }
                     else { shot.hit.add(firstTarget);game.damage(shot.owner,firstTarget,shot.type,12,shot.vx>=0?1:-1,1.5f); }
                 }
+                if(collision && shot.type.equals("RIFLE")) {
+                    if(bossCollision) { game.boss.damage(shot.owner,8); }
+                    else { shot.hit.add(firstTarget);game.damage(shot.owner,firstTarget,shot.type,8,shot.vx>=0?0.8f:-0.8f,0.8f); }
+                }
             }
             if(shot.type.equals("THROWN")) {
                 if(bossCollision) { game.boss.damage(shot.owner,8); }
@@ -318,7 +323,7 @@ final class ItemSystem implements AutoCloseable {
         int count=p.weapon.equals("SHOTGUN")?3:1;
         if(shots.size()+count>MAX_SHOTS) { return true; }
         float baseAngle=(float)Math.atan2(uy,ux);
-        float speed=p.weapon.equals("LASER")?40:p.weapon.equals("GRENADE")?1.8f:p.weapon.equals("BAZOOKA")?2:4;
+        float speed=p.weapon.equals("LASER")?40:p.weapon.equals("RIFLE")?18:p.weapon.equals("GRENADE")?1.8f:p.weapon.equals("BAZOOKA")?2:4;
         for(int i=0;i<count;i++) {
             float vx, vy;
             if(!hasAim) {
@@ -334,7 +339,8 @@ final class ItemSystem implements AutoCloseable {
             var shot=new Shot(nextId++,p.weapon,id,tick,pos.xMeters(),pos.yMeters(),vx,vy,0);
             shots.add(shot);
         }
-        p.nextShot=tick+24;if(--p.ammo==0) { if(game.boss!=null) { p.nextShot=tick+90; }else { p.weapon="NONE"; } }
+        int cooldown = p.weapon.equals("RIFLE") ? 8 : 24;
+        p.nextShot=tick+cooldown;if(--p.ammo==0) { if(game.boss!=null) { p.nextShot=tick+90; }else { p.weapon="NONE"; } }
         return true;
     }
     private static boolean isMeleeWeapon(String weapon) {

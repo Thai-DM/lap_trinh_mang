@@ -7,7 +7,7 @@ sourceSets.main.java.srcDirs = [ "src/" ]
 sourceSets.test.java.srcDirs = [ "test/" ]
 // Đóng gói từ TMX gốc duy nhất; không tải/copy bộ texture hoặc tạo bản map riêng cho server.
 sourceSets.main.resources.srcDirs = [ "../assets" ]
-sourceSets.main.resources.includes = [ "1/Map1New2Remake.tmx" ]
+sourceSets.main.resources.includes = [ "1/*.tmx" ]
 
 dependencies {
     // World xuất hiện trong API wrapper; gdx-box2d kéo theo gdx cùng phiên bản.

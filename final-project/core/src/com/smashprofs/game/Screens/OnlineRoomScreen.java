@@ -38,7 +38,7 @@ public class OnlineRoomScreen implements Screen {
         "Sprites/Leo/leo_stand.png",
         "Sprites/Viktor/viktor_stand.png"
     };
-    private static final Integer[] TIMES = {0, 60, 90, 120, 180, 300}, LIVES = {1, 2, 3, 5};
+    private static final Integer[] TIMES = {0, 60, 90, 120, 180, 300, 360}, LIVES = {1, 2, 3, 5};
 
     private final Game game;
     private final LobbyClient lobby;
@@ -257,9 +257,9 @@ public class OnlineRoomScreen implements Screen {
 
         // ================= GAME RULES MODAL OVERLAY =================
         maxSelect = select("2 người", "3 người", "4 người");
-        timeSelect = lobby.getSettings()!=null && lobby.getSettings().rules().boss()?select("60 giây", "90 giây", "120 giây", "180 giây", "300 giây"):select("Không giới hạn", "60 giây", "90 giây", "120 giây", "180 giây", "300 giây");
+        timeSelect = lobby.getSettings()!=null && lobby.getSettings().rules().boss()?select("60 giây", "90 giây", "120 giây", "180 giây", "300 giây", "360 giây (6 phút)"):select("Không giới hạn", "60 giây", "90 giây", "120 giây", "180 giây", "300 giây", "360 giây (6 phút)");
         livesSelect = select("1 mạng", "2 mạng", "3 mạng", "5 mạng");
-        dropsSelect = select("Tắt", "Thấp · 30s/lần", "Vừa · 15s/lần", "Cao · 8s/lần");
+        dropsSelect = select("Tắt", "Thấp · 30s/lần", "Vừa · 15s/lần", "Cao · 8s/lần", "Rất cao · 4s/lần");
         throwSelect = select("Ném mất vũ khí (Mặc định)", "Ném giữ lại vũ khí");
         maxSelect.setName("max-players");timeSelect.setName("match-time");livesSelect.setName("lives");dropsSelect.setName("drops");throwSelect.setName("throw-rule");
 

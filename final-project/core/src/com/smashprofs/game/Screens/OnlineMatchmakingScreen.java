@@ -111,10 +111,10 @@ public final class OnlineMatchmakingScreen implements Screen {
             modeDesc.setText("Hợp tác đánh Demon Slime Boss · Bao nhiêu người cũng vào được!");
             modeDesc.setColor(Color.valueOf("FF7A85"));
         } else if (mode.getSelectedIndex() == 1) {
-            modeDesc.setText("Đại chiến 4 người hỗn chiến · 3 mạng · Tranh tài sinh tồn khốc liệt!");
+            modeDesc.setText("Đại chiến 4 người hỗn chiến · 3 mạng · 6 phút · Thả vũ khí 4s/lần · Tranh tài sinh tồn!");
             modeDesc.setColor(Color.valueOf("FFE066"));
         } else {
-            modeDesc.setText("Đấu trường đối kháng 1 vs 1 · 3 mạng · Thi đấu tính điểm Elo xếp hạng!");
+            modeDesc.setText("Đấu trường đối kháng 1 vs 1 · 3 mạng · 3 phút · Thả vũ khí 8s/lần · Thi đấu Elo xếp hạng!");
             modeDesc.setColor(OnlineUi.BRAWL_CYAN);
         }
     }
@@ -133,7 +133,7 @@ public final class OnlineMatchmakingScreen implements Screen {
             var config = new LobbyConfiguration(targetHost, targetPort, "matchmaking", LobbyConfiguration.Mode.JOIN);
             client = new LobbyClient(config);
             String chosenChar = character.getSelected() != null ? character.getSelected() : "Alex";
-            client.enableMatchmaking(mode.getSelectedIndex() == 2, chosenChar);
+            client.enableMatchmaking(mode.getSelectedIndex() == 2, mode.getSelectedIndex() == 1, chosenChar);
             elapsed = 0;
             client.startAsync();
             status.setColor(Color.WHITE);

@@ -100,12 +100,12 @@ final class FighterEngine implements AutoCloseable {
             f.pending=new Pending(input,tick+bufferFrames);
         }
         boolean hasWeapon=!game.progress.get(id).weapon.equals("NONE");
-        boolean attackIntent=input!=null && (input.meleePressed() || input.fighter().heavyPressed() || (hasWeapon && input.blockHeld()));
+        boolean attackIntent=input!=null && (input.meleePressed() || input.fighter().heavyPressed() || (hasWeapon && (input.blockHeld() || input.fighter().heavyHeld())));
         boolean shooting=hasWeapon && (attackIntent || tick<f.shootingUntil);
         if(f.attack==null && !dodging) {
             if(!UnarmedInputResolver.hasAction(input) && f.pending!=null) {
                 input=f.pending.input;f.pending=null;
-                attackIntent=input!=null && (input.meleePressed() || input.fighter().heavyPressed() || (hasWeapon && input.blockHeld()));
+                attackIntent=input!=null && (input.meleePressed() || input.fighter().heavyPressed() || (hasWeapon && (input.blockHeld() || input.fighter().heavyHeld())));
                 shooting=hasWeapon && (attackIntent || tick<f.shootingUntil);
             }
             boolean usedDodge=false;
@@ -191,7 +191,7 @@ final class FighterEngine implements AutoCloseable {
             float aimX=input.moveAxis();
             float aimY=(input.fighter().upHeld()?1f:0f)-(input.fighter().downHeld()?1f:0f);
             if(aimX!=0) { game.state.getPlayer(id).updateFacing(aimX); }
-            game.items.attack(id,aimX,aimY,tick);f.shootingUntil=tick+10;f.pending=null;return;
+            game.items.attack(id,aimX,aimY,tick);f.shootingUntil=tick+(game.progress.get(id).weapon.equals("RIFLE")?6:10);f.pending=null;return;
         }
         boolean heavy=input.fighter().heavyPressed();
         boolean up=input.fighter().upHeld();

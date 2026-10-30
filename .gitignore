@@ -1,0 +1,25 @@
+# Build products and local tools. The Gradle wrapper JAR remains versioned.
+**/build/
+**/.gradle/
+**/__pycache__/
+*.py[cod]
+.idea/
+.vscode/
+
+# Runtime state and credentials, never required to build from source.
+*.log
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+.cluster-secret
+
+# Local report editing, templates and downloaded archive.
+/New folder/
+/baocaobtl*.docx
+/boss_demon_slime_FREE_v1.0.zip

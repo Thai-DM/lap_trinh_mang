@@ -2,7 +2,7 @@ name: Build and deploy TeaVM game
 on:
   workflow_dispatch:
   push:
-    branches: [dev, feature/teavm-web-test]
+    branches: [main, dev, feature/teavm-web-test]
   pull_request:
     paths: ['final-project/**', 'scripts/web/**', '.github/workflows/web-build.yml']
 permissions:

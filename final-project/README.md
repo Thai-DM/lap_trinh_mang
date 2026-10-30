@@ -1,89 +1,17 @@
+# Networked Super Smash Profs ? source modules
 
-```
-   _____                          _____                     _       _____            __     
-  / ____|                        / ____|                   | |     |  __ \          / _|    
- | (___  _   _ _ __   ___ _ __  | (___  _ __ ___   __ _ ___| |__   | |__) | __ ___ | |_ ___ 
-  \___ \| | | | '_ \ / _ \ '__|  \___ \| '_ ` _ \ / _` / __| '_ \  |  ___/ '__/ _ \|  _/ __|
-  ____) | |_| | |_) |  __/ |     ____) | | | | | | (_| \__ \ | | | | |   | | | (_) | | \__ \
- |_____/ \__,_| .__/ \___|_|    |_____/|_| |_| |_|\__,_|___/_| |_| |_|   |_|  \___/|_| |___/
-              | |                                                                           
-              |_|                                                                           
-```
-# Super Smash Profs
+H??ng d?n ??y ?? v? ki?n tr?c, c?ng ngh?, c?i ??t, c?u h?nh, database, ch?y server/client/web, ki?m th?, k?t qu? v? gi?i h?n n?m t?i **[README ? g?c repository](../README.md)**.
 
-A Java platformer which is inspired by Super Smash Bros and developed with libGDX and Tiled.
+Th? m?c n?y ch?a c?c Gradle module `common`, `server`, `core`, `desktop`, `tests`; `web` v? `teavm-probe` l? Gradle project ri?ng. Y?u c?u **JDK 17**. L?n build ??u c?n Internet:
 
-## Table of Contents
-
-- [Description](#description)
-- [Installation](#installation)
-  - [How can I edit the Project?](#how-can-i-edit-the-project)
-  - [How can I play the game?](#how-can-i-play-the-game)
-- [Authors](#authors)
-- [Screenshots](#screenshots)
-- [Documentation](#documentation)
-- [Feedback](#feedback)
-
-## Description
-
-A multiplayer platform game playable on only one keyboard. There are features such as
-character selection, various abilities and much more.
-
-## Installation
-
-Clone this repository to a directory of choice and open the project using IntelliJ IDEA.
-Make sure to download all the mandatory gradle dependencies.
-
-### How can I edit the Project?
-
-Simply open the build.gradle in an IDE of your choice
-
-### How can I play the game?
-
-#### You can start the game by running:
-
-```path
-desktop/module/build/libs/desktop-1.0.jar
+```powershell
+.\gradlew.bat :server:installCluster :desktop:dist --no-daemon '-Dorg.gradle.jvmargs=-Xmx512m'
 ```
 
-#### If you want to generate your own .jar, then run this command with gradle:
+Linux/macOS: d?ng `bash ./gradlew` thay `.\gradlew.bat`.
 
-```gradle
-gradlew desktop:dist
-```
-
-### Running the CLI directly in IntelliJ
-To start the game, simply add a new run configuration and type in "run".
-
-## Authors
-
-- [@lv042](https://github.com/lv042)
-- [@ll071]
-- [@md147]
-- [@ab306]
-
-### License
-
-[Apache 2.0](https://choosealicense.com/licenses/apache-2.0/)
-
-
-
-### Built With
-
-<a href="https://docs.oracle.com/javase/tutorial/index.html"><img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/java/java-original.svg" height="40px" width="40px" /></a> <a href="https://libgdx.com/"><img src="https://libgdx.com/assets/brand/logo.svg" height="40px" width="160px" /></a>  <a href="https://www.mapeditor.org/"><img src="https://www.mapeditor.org/img/tiled-logo-filled.png" height="40px" width="40px" /></a>
-
-
-## Screenshots
-
-![mainmenu](./assets/screenshots/mainmenu.png)
-![selection](./assets/screenshots/selection.png)
-![gameplay](./assets/screenshots/gameplay.png)
-![winner](./assets/screenshots/winner.png)
-
-## Documentation
-
-https://drive.google.com/file/d/15gitvx5r0FNpOf9QIgNHDvPcJrHTNwK1/view?usp=sharing
-
-## Feedback
-
-If you have any feedback, please reach out to us at luca.v.kannen@gmail.com
+- Ch?y server/client v? c?u h?nh LAN: [h??ng d?n ch?nh](../README.md#ch?y-server-v?-client-desktop).
+- Web: [h??ng d?n web](web/README.md).
+- C?m worker: [h??ng d?n cluster](../docs/scalability/README.md).
+- Y?u c?u h?c ph?n: [Instruction](Instruction.md), [Topics](Topics.md), [Submission](Submission.md).
+- T?c gi? v? t?i li?u game local g?c: [README_UPSTREAM.md](README_UPSTREAM.md). ??y l? ghi nh?n ngu?n k? th?a; c?c l?nh trong t?i li?u g?c kh?ng thay th? h??ng d?n ch?y b?n m?ng hi?n t?i.
